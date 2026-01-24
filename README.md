@@ -4,7 +4,7 @@ Cloud-based RFID circulation, tagging, and gate monitoring for libraries. BookWa
 
 ## Demo
 
-Try BookWaves without hardware at https://xxx.xxx.xxx
+Try BookWaves without hardware at https://bookwaves-demo.vercel.app
 
 - Login with any username/password.
 - Stores data in browser memory only.
