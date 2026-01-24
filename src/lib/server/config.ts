@@ -76,7 +76,9 @@ export function getConfig(): LMSConfig {
 
 	if (!filePath) {
 		if (!allowMissing) {
-			throw new Error('Configuration file not found: checked CONFIG_FILE_PATH, config.yaml, config.example.yaml');
+			throw new Error(
+				'Configuration file not found: checked CONFIG_FILE_PATH, config.yaml, config.example.yaml'
+			);
 		}
 
 		// Fallback for build environments where the real config is not baked into the image.
