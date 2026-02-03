@@ -4,6 +4,8 @@
 	import { BookOpen } from '@lucide/svelte';
 	import type { PageProps } from './$types';
 	import { onDestroy, onMount } from 'svelte';
+	import { fly, fade } from 'svelte/transition';
+	import { flip } from 'svelte/animate';
 	import { createReaderFromParams } from '$lib/stores/reader-selection';
 	import type { RFIDData } from '$lib/reader/interface';
 	import { page } from '$app/state';
@@ -56,7 +58,10 @@
 			switch (event.type) {
 				case 'added':
 					clientLogger.info('New item detected:', event.item.id);
-					detectedItems = [...detectedItems, event.item];
+					detectedItems = [
+						event.item,
+						...detectedItems.filter((i) => i.id !== event.item.id)
+					];
 					break;
 				case 'removed':
 					clientLogger.info('Item removed:', event.item.id);
@@ -107,7 +112,12 @@
 						<span class="text-lg">On Device</span>
 					</li>
 					{#each detectedItems as item (item.id)}
-						<li class="border-t border-base-200">
+						<li
+							class="border-t border-base-200"
+							in:fly={{ y: -10, duration: 160 }}
+							out:fade={{ duration: 120 }}
+							animate:flip={{ duration: 200 }}
+						>
 							<div class="p-4 hover:bg-base-200">
 								<RFIDItem {item} />
 							</div>

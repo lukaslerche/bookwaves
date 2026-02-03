@@ -3,6 +3,8 @@
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import { AlertTriangle, CheckCircle, Eye, ShieldAlert, Lock } from '@lucide/svelte';
 	import { onDestroy, onMount } from 'svelte';
+	import { fly, fade } from 'svelte/transition';
+	import { flip } from 'svelte/animate';
 	import type { PageProps } from './$types';
 	import { createReaderFromParams } from '$lib/stores/reader-selection';
 	import type { RFIDData } from '$lib/reader/interface';
@@ -71,7 +73,10 @@
 			switch (event.type) {
 				case 'added':
 					clientLogger.info('New item detected:', event.item.id);
-					detectedItems = [...detectedItems, event.item];
+					detectedItems = [
+						event.item,
+						...detectedItems.filter((i) => i.id !== event.item.id)
+					];
 					// Play warning sound if item is secured
 					if (event.item.secured) {
 						playWarningSound();
@@ -158,7 +163,12 @@
 						<span class="text-2xl">{listTitle}</span>
 					</li>
 					{#each visibleItems as item (item.id)}
-						<li class="border-t border-base-200">
+						<li
+							class="border-t border-base-200"
+							in:fly={{ y: -10, duration: 160 }}
+							out:fade={{ duration: 120 }}
+							animate:flip={{ duration: 200 }}
+						>
 							<div class="p-6 hover:bg-base-200 {item.secured ? 'bg-error/10' : ''}">
 								<RFIDItem {item} highlight={item.secured} />
 							</div>

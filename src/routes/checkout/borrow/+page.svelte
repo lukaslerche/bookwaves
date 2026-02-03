@@ -6,6 +6,8 @@
 	import { BookOpen, Check, X } from '@lucide/svelte';
 	import type { PageProps } from './$types';
 	import { onDestroy, onMount } from 'svelte';
+	import { fly, fade } from 'svelte/transition';
+	import { flip } from 'svelte/animate';
 	import type { SvelteComponent } from 'svelte';
 	import { createReaderFromParams } from '$lib/stores/reader-selection';
 	import type { RFIDData, RFIDReader } from '$lib/reader/interface';
@@ -200,7 +202,7 @@
 			status: 'checking',
 			message: 'Preparing to borrow...'
 		};
-		processedItems = [...processedItems, processed];
+		processedItems = [processed, ...processedItems];
 	}
 
 	async function initSessionAndReader(activeUser: string) {
@@ -395,7 +397,12 @@
 								<span class="badge badge-lg badge-primary">{processedItems.length}</span>
 							</li>
 							{#each processedItems as item (item.rfidData.id)}
-								<li class="border-t border-base-200">
+								<li
+									class="border-t border-base-200"
+									in:fly={{ y: -10, duration: 160 }}
+									out:fade={{ duration: 120 }}
+									animate:flip={{ duration: 200 }}
+								>
 									<div
 										class="flex flex-col gap-4 p-4 hover:bg-base-200 md:flex-row md:items-center"
 									>
