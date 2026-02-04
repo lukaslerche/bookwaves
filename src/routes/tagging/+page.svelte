@@ -11,6 +11,7 @@
 	let { data }: { data: PageData } = $props();
 
 	let input = $state('');
+    let holder = $state('');
 	let reader: RFIDReader | null = $state(null);
 	let detectedItems: Array<RFIDData> = $state([]);
 	let writing = $state(false);
@@ -145,7 +146,7 @@
 		stopPolling();
 		await wait(200);
 		try {
-			const result = await reader.initialize(input.trim());
+			const result = await reader.initialize(input.trim(), holder.trim());
 			if (!result.success) {
 				lastWriteStatus = 'error';
 				statusMessage = result.message || 'Failed to initialize tag. Please try again.';
@@ -280,6 +281,26 @@
 						Scan a barcode or type a book ID and press Enter to initialize the tag
 					</p>
 
+                    <div
+                        class="form-control mb-4"
+                        class:hidden={data.taggingFormats.length === 1}
+                    >
+                        <label class="label">
+                            <span class="label-text text-lg">Holder</span>
+                        </label>
+
+                        <select
+                            class="input-bordered input input-lg w-full"
+                            bind:value={holder}
+                            disabled={writing}
+                        >
+                            {#each data.taggingFormats as taggingFormat}
+                                <option value={taggingFormat.name}>
+                                    {taggingFormat.description}
+                                </option>
+                            {/each}
+                        </select>
+                    </div>
 					<div class="form-control mb-4">
 						<label class="label" for="book-id-input">
 							<span class="label-text text-lg">Book ID</span>

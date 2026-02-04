@@ -13,6 +13,11 @@ export interface TaggingWhitelistConfig {
 	values?: string[];
 }
 
+export interface TaggingFormats {
+    name: string;
+    description: string;
+}
+
 export interface TaggingConfig {
 	whitelist?: TaggingWhitelistConfig;
 }
@@ -49,6 +54,7 @@ export interface LMSConfig {
 	tagging?: TaggingConfig;
 	checkout?: CheckoutConfig;
 	middleware_instances: MiddlewareInstanceConfig[];
+    tagging_formats: TaggingFormats[];
 }
 
 const DEFAULT_LOGIN_MODE: LoginMode = 'username_password';
@@ -103,6 +109,10 @@ middleware_instances:
   #  url: http://localhost:7070
   - id: mock1
     type: mock # Mock middleware for testing (no URL needed)
+
+tagging_formats:
+  - name: DE386 # Tag format
+    description: "RPTU Standort Kaiserslatern" # Human readable name
 `;
 
 let cachedConfig: LMSConfig | null = null;
@@ -184,6 +194,10 @@ export function getConfig(): LMSConfig {
 			throw new Error('Invalid configuration: lms.type is required');
 		}
 
+        if (!data.tagging_formats || !Array.isArray(data.tagging_formats)) {
+            throw new Error('Invalid configuration for RPTU: tagging_formats must be set and be an array')
+        }
+
 		if (!data.middleware_instances || !Array.isArray(data.middleware_instances)) {
 			throw new Error('Invalid configuration: middleware_instances must be an array');
 		}
@@ -211,7 +225,6 @@ export function getConfig(): LMSConfig {
 			);
 		}
 
-		// Fallback for build environments where the real config is not baked into the image.
 		cachedConfig = {
 			log_level: 'info',
 			lms: { type: 'mock', api_key: '' },
@@ -219,7 +232,8 @@ export function getConfig(): LMSConfig {
 			gate: DEFAULT_GATE_CONFIG,
 			tagging: DEFAULT_TAGGING_CONFIG,
 			checkout: DEFAULT_CHECKOUT_CONFIG,
-			middleware_instances: []
+			middleware_instances: [],
+            tagging_formats: []
 		};
 		return cachedConfig;
 	}
@@ -245,45 +259,46 @@ export function getConfig(): LMSConfig {
 		}
 	};
 
-	const parseCheckoutProfiles = (): CheckoutProfileConfig[] => {
-		if (data.checkout?.profiles === undefined) return DEFAULT_CHECKOUT_CONFIG.profiles ?? [];
+    const parseCheckoutProfiles = (): CheckoutProfileConfig[] => {
+        if (data.checkout?.profiles === undefined) return DEFAULT_CHECKOUT_CONFIG.profiles ?? [];
 
-		if (!Array.isArray(data.checkout.profiles)) {
-			throw new Error('Invalid configuration: checkout.profiles must be an array');
-		}
+        if (!Array.isArray(data.checkout.profiles)) {
+            throw new Error('Invalid configuration: checkout.profiles must be an array');
+        }
 
-		const lmsType = typeof data.lms?.type === 'string' ? data.lms.type : '';
+        const lmsType = typeof data.lms?.type === 'string' ? data.lms.type : '';
 
-		return data.checkout.profiles.map((profile, index) => {
-			if (!profile || typeof profile !== 'object') {
-				throw new Error(`Invalid configuration: checkout.profiles[${index}] must be an object`);
-			}
+        return data.checkout.profiles.map((profile, index) => {
+            if (!profile || typeof profile !== 'object') {
+                throw new Error(`Invalid configuration: checkout.profiles[${index}] must be an object`);
+            }
 
-			const id = typeof profile.id === 'string' ? profile.id.trim() : '';
-			const library = typeof profile.library === 'string' ? profile.library.trim() : '';
-			const circulationDesk =
-				typeof profile.circulation_desk === 'string' ? profile.circulation_desk.trim() : '';
-			const type = typeof profile.type === 'string' ? profile.type.trim() : lmsType;
+            const id = typeof profile.id === 'string' ? profile.id.trim() : '';
+            const library = typeof profile.library === 'string' ? profile.library.trim() : '';
+            const circulationDesk =
+                typeof profile.circulation_desk === 'string' ? profile.circulation_desk.trim() : '';
+            const type = typeof profile.type === 'string' ? profile.type.trim() : lmsType;
 
-			if (!id || !library || !circulationDesk) {
-				throw new Error(
-					`Invalid configuration: checkout.profiles[${index}] must include id, library, and circulation_desk`
-				);
-			}
-			if (!type) {
-				throw new Error(
-					'Invalid configuration: lms.type is required when checkout profiles are defined'
-				);
-			}
+            if (!id || !library || !circulationDesk) {
+                throw new Error(
+                    `Invalid configuration: checkout.profiles[${index}] must include id, library, and circulation_desk`
+                );
+            }
+            if (!type) {
+                throw new Error(
+                    'Invalid configuration: lms.type is required when checkout profiles are defined'
+                );
+            }
 
-			return {
-				id,
-				type,
-				library,
-				circulation_desk: circulationDesk
-			};
-		});
-	};
+            return {
+                id,
+                type,
+                library,
+                circulation_desk: circulationDesk
+            };
+        });
+    };
+
 
 	const parsedCheckoutConfig: CheckoutConfig = {
 		profiles: parseCheckoutProfiles()
@@ -302,6 +317,10 @@ export function getConfig(): LMSConfig {
 
 	if (!data.middleware_instances || !Array.isArray(data.middleware_instances)) {
 		throw new Error('Invalid configuration: middleware_instances must be an array');
+	}
+
+	if (!data.tagging_formats || !Array.isArray(data.tagging_formats)) {
+		throw new Error('Invalid configuration: tagging_formats must be an array');
 	}
 
 	data.log_level = parseLogLevel(data.log_level, 'info');

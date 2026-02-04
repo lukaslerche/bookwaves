@@ -299,7 +299,7 @@ export class FeigRFIDReader implements RFIDReader {
 
 	async initialize(
 		mediaId: string,
-		format?: string,
+		format: string,
 		secured: boolean = true
 	): Promise<{
 		success: boolean;
@@ -314,6 +314,7 @@ export class FeigRFIDReader implements RFIDReader {
 		try {
 			const params = new URLSearchParams({
 				mediaId,
+                format,
 				secured: secured.toString()
 			});
 			if (format) {
