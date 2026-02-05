@@ -2,7 +2,7 @@
 	import RFIDItem from '$lib/components/RFIDItem.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import CheckoutSummaryModal from '$lib/components/CheckoutSummaryModal.svelte';
-	import { Check, RotateCcw, X } from '@lucide/svelte';
+	import { Check, RotateCcw, Undo2, X } from '@lucide/svelte';
 	import type { PageProps } from './$types';
 	import { onDestroy, onMount } from 'svelte';
 	import { fly, fade } from 'svelte/transition';
@@ -87,6 +87,21 @@
 		return unique;
 	}
 
+	function getDirectiveBadgeClass(color?: string) {
+		switch (color) {
+			case 'red':
+				return 'badge-error';
+			case 'green':
+				return 'badge-success';
+			case 'blue':
+				return 'badge-info';
+			case 'yellow':
+				return 'badge-warning';
+			default:
+				return 'badge-neutral';
+		}
+	}
+
 	async function handleMediaItemLoaded(processed: ProcessedItem, mediaItem: MediaItem | null) {
 		if (processed.status !== 'checking') return;
 
@@ -99,6 +114,7 @@
 
 		// Store media item reference
 		processed.mediaItem = mediaItem;
+		processed.directive = mediaItem?.returnDirective ?? processed.directive ?? null;
 
 		if (!mediaItem) {
 			processed.status = 'failed';
@@ -139,7 +155,8 @@
 		if (result?.ok) {
 			processed.status = 'success';
 			processed.message = result.message ?? 'Successfully returned';
-			processed.directive = result.directive ?? null;
+			processed.directive =
+				result.directive ?? processed.directive ?? mediaItem?.returnDirective ?? null;
 			// Refresh the RFIDItem to show updated status
 			if (processed.component?.refresh) {
 				await processed.component.refresh();
@@ -159,7 +176,7 @@
 			addSessionItem({
 				rfidData: processed.rfidData,
 				mediaItem: itemForSession,
-				directive: result.directive ?? null,
+				directive: processed.directive ?? null,
 				timestamp: Date.now(),
 				status: 'success',
 				message: processed.message
@@ -174,7 +191,7 @@
 			addSessionItem({
 				rfidData: processed.rfidData,
 				mediaItem,
-				directive: null,
+				directive: processed.directive ?? null,
 				timestamp: Date.now(),
 				status: 'failed',
 				message: processed.message
@@ -304,9 +321,23 @@
 				</a>
 			</div>
 		{/if}
-		<header class="mb-10 text-center text-white">
-			<h1 class="mb-3 text-5xl font-bold drop-shadow-lg">Return Books</h1>
-			<p class="text-xl opacity-90">Place your items on the reader</p>
+		<header
+			class="mb-8 flex flex-col gap-4 rounded-2xl bg-base-100/10 p-6 shadow-lg backdrop-blur-sm md:flex-row md:items-center md:justify-between"
+		>
+			<div class="flex items-center gap-4">
+				<div class="rounded-2xl bg-base-100/20 p-3 text-white shadow-lg">
+					<Undo2 class="h-8 w-8" />
+				</div>
+				<div class="text-white">
+					<h1 class="text-4xl font-bold drop-shadow-lg">Return Books</h1>
+					<p class="text-base opacity-90">Place your items on the reader</p>
+				</div>
+			</div>
+			<div class="md:ml-auto">
+				<button class="btn shadow-xl btn-lg btn-accent" onclick={handleDoneClick}>
+					<Check />Done
+				</button>
+			</div>
 		</header>
 
 		<div class="mb-8">
@@ -320,6 +351,7 @@
 							<span class="badge badge-lg badge-info">{processedItems.length}</span>
 						</li>
 						{#each processedItems as item (item.rfidData.id)}
+							{@const directive = item.directive ?? item.mediaItem?.returnDirective}
 							<li
 								class="border-t border-base-200"
 								in:fly={{ y: -10, duration: 160 }}
@@ -341,18 +373,32 @@
 											<div
 												class="card w-full border border-base-300 bg-base-100 px-4 py-3 shadow-sm"
 											>
-												<div class="flex items-center gap-3">
-													<span class="loading loading-md loading-spinner text-info"></span>
-													<span class="text-left text-base">{item.message}</span>
+												<div class="flex flex-col gap-2">
+													{#if directive}
+														<div class="badge {getDirectiveBadgeClass(directive.color)} badge-sm">
+															{directive.label}
+														</div>
+													{/if}
+													<div class="flex items-center gap-3">
+														<span class="loading loading-md loading-spinner text-info"></span>
+														<span class="text-left text-base">{item.message}</span>
+													</div>
 												</div>
 											</div>
 										{:else if item.status === 'success'}
 											<div
 												class="card w-full border border-success/40 bg-success/10 px-4 py-4 text-base text-success shadow-sm"
 											>
-												<div class="flex items-center gap-3">
-													<Check />
-													<span class="text-left">{item.message}</span>
+												<div class="flex flex-col gap-2">
+													{#if directive}
+														<div class="badge {getDirectiveBadgeClass(directive.color)} badge-sm">
+															{directive.label}
+														</div>
+													{/if}
+													<div class="flex items-center gap-3">
+														<Check />
+														<span class="text-left">{item.message}</span>
+													</div>
 												</div>
 											</div>
 										{:else if item.status === 'failed'}
@@ -360,6 +406,11 @@
 												class="card w-full border border-error/40 bg-error/10 px-4 py-4 text-base text-error shadow-sm"
 											>
 												<div class="flex flex-col gap-2">
+													{#if directive}
+														<div class="badge {getDirectiveBadgeClass(directive.color)} badge-sm">
+															{directive.label}
+														</div>
+													{/if}
 													<div class="flex items-center gap-2">
 														<X />
 														<span class="font-semibold">Error</span>
@@ -383,12 +434,6 @@
 					</ul>
 				</div>
 			</div>
-		</div>
-
-		<div class="flex justify-center gap-4">
-			<button class="btn px-10 text-xl shadow-xl btn-lg btn-accent" onclick={handleDoneClick}>
-				Done →
-			</button>
 		</div>
 	</div>
 </div>

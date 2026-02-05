@@ -267,7 +267,7 @@ export class AlmaLMS implements LibraryManagementSystem {
 	}
 
 	private mapLoanToMediaItem(loan: v.InferOutput<typeof ItemLoanSchema>): MediaItem {
-		return {
+		const mediaItem: MediaItem = {
 			barcode: loan.item_barcode,
 			title: loan.title,
 			author: loan.author,
@@ -281,13 +281,15 @@ export class AlmaLMS implements LibraryManagementSystem {
 			status: 'On loan',
 			cover: `https://picsum.dev/120/180?seed=${encodeURIComponent(loan.title)}`
 		};
+		mediaItem.returnDirective = this.buildReturnDirective(mediaItem);
+		return mediaItem;
 	}
 
 	private mapItemToMediaItem(
 		itemData: v.InferOutput<typeof ItemSchema>,
 		barcode: string
 	): MediaItem {
-		return {
+		const mediaItem: MediaItem = {
 			barcode,
 			title: itemData.bib_data.title,
 			author: itemData.bib_data.author,
@@ -302,6 +304,8 @@ export class AlmaLMS implements LibraryManagementSystem {
 				itemData.item_data.base_status.desc + ': ' + (itemData.item_data.process_type?.desc ?? '-'),
 			cover: 'https://picsum.dev/120/180?seed=' + itemData.bib_data.isbn
 		};
+		mediaItem.returnDirective = this.buildReturnDirective(mediaItem);
+		return mediaItem;
 	}
 
 	constructor({ apiKey, apiUrl = DEFAULT_API_URL, checkoutProfiles = [] }: AlmaLmsOptions) {
@@ -540,6 +544,7 @@ export class AlmaLMS implements LibraryManagementSystem {
 				(parsedItemData.output.item_data.process_type?.desc ?? '-'),
 			cover: 'https://picsum.dev/120/180?seed=' + parsedItemData.output.bib_data.isbn
 		};
+		result.returnDirective = this.buildReturnDirective(result);
 		this.setCachedItem(barcode, {
 			mmsId: parsedItemData.output.bib_data.mms_id,
 			holdingId: parsedItemData.output.holding_data.holding_id,

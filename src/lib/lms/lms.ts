@@ -2,6 +2,14 @@ import * as v from 'valibot';
 
 // This is an interface for a Library Management System (LMS)
 
+export const LmsReturnDirectiveSchema = v.object({
+	binId: v.string(),
+	label: v.string(),
+	color: v.optional(v.string()),
+	message: v.optional(v.string()),
+	sortOrder: v.optional(v.number())
+});
+
 export const MediaItemSchema = v.object({
 	barcode: v.string(),
 	title: v.optional(v.string()),
@@ -14,19 +22,14 @@ export const MediaItemSchema = v.object({
 	status: v.optional(v.string()),
 	library: v.optional(v.string()),
 	location: v.optional(v.string()),
-	shelfmark: v.optional(v.string())
+	shelfmark: v.optional(v.string()),
+	returnDirective: v.optional(LmsReturnDirectiveSchema)
 });
 
 //export type MediaItem = typeof MediaItemSchema;
 export type MediaItem = v.InferOutput<typeof MediaItemSchema>;
 
-export type LmsReturnDirective = {
-	binId: string;
-	label: string;
-	color?: string;
-	message?: string;
-	sortOrder?: number;
-};
+export type LmsReturnDirective = v.InferOutput<typeof LmsReturnDirectiveSchema>;
 
 export type LmsActionSuccess = {
 	ok: true;

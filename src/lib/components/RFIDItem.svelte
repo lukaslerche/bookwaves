@@ -10,12 +10,20 @@
 		item,
 		highlight = false,
 		showRfidDetails = false,
-		onMediaItemLoaded
+		onMediaItemLoaded,
+		showBin = true,
+		showSecurity = true,
+		showLibraryLocation = true,
+		showPublicationLine = true
 	}: {
 		item: RFIDData;
 		highlight?: boolean;
 		showRfidDetails?: boolean;
 		onMediaItemLoaded?: (mediaItem: MediaItem | null) => void;
+		showBin?: boolean;
+		showSecurity?: boolean;
+		showLibraryLocation?: boolean;
+		showPublicationLine?: boolean;
 	} = $props();
 
 	let mediaItem = $state<MediaItem | null>(null);
@@ -76,6 +84,21 @@
 		}
 	}
 
+	function getDirectiveBadgeClass(color?: string): string {
+		switch (color) {
+			case 'red':
+				return 'badge-error';
+			case 'green':
+				return 'badge-success';
+			case 'blue':
+				return 'badge-info';
+			case 'yellow':
+				return 'badge-warning';
+			default:
+				return 'badge-neutral';
+		}
+	}
+
 	function getSecuredBadgeClass(secured?: boolean): string {
 		return secured ? 'badge-error' : 'badge-success';
 	}
@@ -124,7 +147,7 @@
 			</div>
 		{:else if mediaItem}
 			<!-- Media Item Information -->
-			<div class="flex items-start gap-3">
+			<div class="flex items-stretch gap-3">
 				{#if mediaItem.cover}
 					<img
 						alt={mediaItem.title}
@@ -133,13 +156,13 @@
 					/>
 				{/if}
 				<div class="min-w-0 flex-1">
-					<h3 class="card-title truncate text-base font-semibold">
+					<h3 class="card-title truncate text-2xl font-semibold">
 						{getDisplayTitle(mediaItem)}
 					</h3>
 					{#if mediaItem.author}
-						<div class="text-sm opacity-80">{mediaItem.author}</div>
+						<div class="text-xl opacity-80">{mediaItem.author}</div>
 					{/if}
-					{#if formatPublicationInfo(mediaItem)}
+					{#if showPublicationLine && formatPublicationInfo(mediaItem)}
 						<div class="text-xs opacity-70">{formatPublicationInfo(mediaItem)}</div>
 					{/if}
 					<div class="mt-1 text-xs font-semibold uppercase opacity-60">
@@ -158,7 +181,7 @@
 								Due: {mediaItem.dueDate.toLocaleDateString()}
 							</div>
 						{/if}-->
-						{#if item.secured !== undefined}
+						{#if showSecurity && item.secured !== undefined}
 							<div class="badge {getSecuredBadgeClass(item.secured)} badge-sm">
 								{#if item.secured}
 									<Lock size={16} />
@@ -169,7 +192,7 @@
 							</div>
 						{/if}
 					</div>
-					{#if mediaItem.library || mediaItem.location || mediaItem.shelfmark}
+					{#if showLibraryLocation && (mediaItem.library || mediaItem.location)}
 						<div class="mt-2 flex flex-wrap gap-2 text-xs opacity-70">
 							{#if mediaItem.library}
 								<div class="badge badge-outline badge-sm">{mediaItem.library}</div>
@@ -177,12 +200,27 @@
 							{#if mediaItem.location}
 								<div class="badge badge-outline badge-sm">{mediaItem.location}</div>
 							{/if}
-							{#if mediaItem.shelfmark}
-								<div class="badge badge-outline badge-sm">{mediaItem.shelfmark}</div>
-							{/if}
 						</div>
 					{/if}
 				</div>
+				{#if mediaItem.shelfmark || (showBin && mediaItem.returnDirective)}
+					<div class="flex min-w-[160px] items-center justify-center gap-3 text-center">
+						{#if mediaItem.shelfmark}
+							<span class="text-lg font-semibold text-base-content/70">
+								{mediaItem.shelfmark}
+							</span>
+						{/if}
+						{#if showBin && mediaItem.returnDirective}
+							<span
+								class="badge badge-lg {getDirectiveBadgeClass(
+									mediaItem.returnDirective.color
+								)} rounded-md px-4"
+							>
+								{mediaItem.returnDirective.label}
+							</span>
+						{/if}
+					</div>
+				{/if}
 			</div>
 
 			{#if showRfidDetails}

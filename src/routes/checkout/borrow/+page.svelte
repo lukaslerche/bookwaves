@@ -372,9 +372,22 @@
 				</div>
 			{/if}
 			<header
-				class="mb-8 flex flex-row items-center justify-between rounded-2xl bg-base-100/10 p-6 shadow-lg backdrop-blur-sm"
+				class="mb-8 flex flex-col gap-4 rounded-2xl bg-base-100/10 p-6 shadow-lg backdrop-blur-sm md:flex-row md:items-center md:justify-between"
 			>
-				<h1 class="text-4xl font-bold text-white drop-shadow-lg">Borrow Books</h1>
+				<div class="flex items-center gap-4">
+					<div class="rounded-2xl bg-base-100/20 p-3 text-white shadow-lg">
+						<BookOpen class="h-8 w-8" />
+					</div>
+					<div class="text-white">
+						<h1 class="text-4xl font-bold drop-shadow-lg">Borrow Books</h1>
+
+						<p class="mt-3 text-base opacity-90">Place your items on the reader</p>
+						<button class="btn mt-3 shadow-xl btn-lg btn-accent" onclick={handleDoneClick}>
+							<Check />Done & Logout
+						</button>
+					</div>
+				</div>
+
 				{#if data.account}
 					<div class="rounded-xl bg-base-100 p-4 shadow-lg">
 						<Account
@@ -462,12 +475,6 @@
 						</ul>
 					</div>
 				</div>
-			</div>
-
-			<div class="flex justify-center gap-4">
-				<button class="btn px-10 text-xl shadow-xl btn-lg btn-accent" onclick={handleDoneClick}>
-					Done & Logout →
-				</button>
 			</div>
 		</div>
 	</div>

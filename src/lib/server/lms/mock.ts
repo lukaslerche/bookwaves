@@ -250,7 +250,9 @@ export const mockLMS: LibraryManagementSystem = {
 	},
 	async getItem(barcode: string): Promise<MediaItem | null> {
 		await new Promise((resolve) => setTimeout(resolve, 100)); // Simulate network delay
-		return mediaDatabase.get(barcode) || null;
+		const item = mediaDatabase.get(barcode);
+		if (!item) return null;
+		return { ...item, returnDirective: getMockReturnDirective(item) };
 	},
 	async borrowItem(barcode: string): Promise<LmsActionResult> {
 		await new Promise((resolve) => setTimeout(resolve, 200)); // Simulate network delay
@@ -270,7 +272,11 @@ export const mockLMS: LibraryManagementSystem = {
 
 		item.status = 'borrowed';
 
-		return { ok: true, item: { ...item }, message: 'Successfully borrowed' };
+		return {
+			ok: true,
+			item: { ...item, returnDirective: getMockReturnDirective(item) },
+			message: 'Successfully borrowed'
+		};
 	},
 	async returnItem(barcode: string): Promise<LmsActionResult> {
 		await new Promise((resolve) => setTimeout(resolve, 200)); // Simulate network delay
@@ -293,7 +299,7 @@ export const mockLMS: LibraryManagementSystem = {
 
 		return {
 			ok: true,
-			item: { ...item },
+			item: { ...item, returnDirective: directive },
 			message: 'Successfully returned',
 			directive
 		};

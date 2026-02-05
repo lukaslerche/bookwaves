@@ -1,7 +1,6 @@
 <script lang="ts">
 	import RFIDItem from '$lib/components/RFIDItem.svelte';
-	import PageHeader from '$lib/components/PageHeader.svelte';
-	import { BookOpen } from '@lucide/svelte';
+	import { BookOpen, List as ListIcon } from '@lucide/svelte';
 	import type { PageProps } from './$types';
 	import { onDestroy, onMount } from 'svelte';
 	import { fly, fade } from 'svelte/transition';
@@ -100,7 +99,24 @@
 				</a>
 			</div>
 		{/if}
-		<PageHeader title="View Items" subtitle="Currently on the device" />
+		<header
+			class="mb-8 flex flex-col gap-4 rounded-2xl bg-base-100/10 p-6 shadow-lg backdrop-blur-sm md:flex-row md:items-center md:justify-between"
+		>
+			<div class="flex items-center gap-4">
+				<div class="rounded-2xl bg-base-100/20 p-3 text-white shadow-lg">
+					<ListIcon class="h-8 w-8" />
+				</div>
+				<div class="text-white">
+					<h1 class="text-4xl font-bold drop-shadow-lg">View Items</h1>
+					<p class="text-base opacity-90">Currently on the device</p>
+				</div>
+			</div>
+			<div class="md:ml-auto">
+				<a href="/checkout{queryString}" class="btn shadow-xl btn-lg btn-accent">
+					← Back to Menu
+				</a>
+			</div>
+		</header>
 
 		<div class="card mb-8 bg-base-100 shadow-2xl">
 			<div class="card-body p-0">
@@ -130,12 +146,6 @@
 					{/each}
 				</ul>
 			</div>
-		</div>
-
-		<div class="flex justify-center">
-			<a href="/checkout{queryString}" class="btn px-10 text-xl shadow-xl btn-lg btn-accent">
-				← Back to Menu
-			</a>
 		</div>
 	</div>
 </div>

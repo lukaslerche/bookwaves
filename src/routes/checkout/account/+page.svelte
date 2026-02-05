@@ -3,6 +3,7 @@
 	import LoginModal from '$lib/components/LoginModal.svelte';
 	import type { PageProps } from './$types';
 	import { page } from '$app/state';
+	import { User } from '@lucide/svelte';
 	import { onMount } from 'svelte';
 	import { getAuthUser, clearAuthUser, setAuthUser } from '$lib/stores/auth';
 	import { loginUser, logoutUser } from '$lib/lms/lms.remote';
@@ -61,9 +62,22 @@
 	<div class="min-h-screen bg-linear-to-br from-primary to-secondary p-8">
 		<div class="mx-auto max-w-6xl">
 			<header
-				class="mb-8 flex flex-row items-center justify-between rounded-2xl bg-base-100/10 p-6 shadow-lg backdrop-blur-sm"
+				class="mb-8 flex flex-col gap-4 rounded-2xl bg-base-100/10 p-6 shadow-lg backdrop-blur-sm md:flex-row md:items-center md:justify-between"
 			>
-				<h1 class="text-4xl font-bold text-white drop-shadow-lg">Your Account</h1>
+				<div class="flex items-center gap-4">
+					<div class="rounded-2xl bg-base-100/20 p-3 text-white shadow-lg">
+						<User class="h-8 w-8" />
+					</div>
+					<div class="text-white">
+						<h1 class="text-4xl font-bold drop-shadow-lg">Your Account</h1>
+						<p class="text-base opacity-90">Overview of your loans and fees</p>
+					</div>
+				</div>
+				<div class="md:ml-auto">
+					<button onclick={handleLogoutAndBack} class="btn shadow-xl btn-lg btn-accent">
+						← Logout & Back
+					</button>
+				</div>
 			</header>
 
 			{#if data.account}
@@ -102,12 +116,6 @@
 					<p>Please sign in to view your account details.</p>
 				</div>
 			{/if}
-
-			<div class="flex justify-center gap-4">
-				<button onclick={handleLogoutAndBack} class="btn px-10 text-xl shadow-xl btn-lg btn-accent">
-					← Back to Checkout
-				</button>
-			</div>
 		</div>
 	</div>
 {/if}
