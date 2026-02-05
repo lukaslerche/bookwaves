@@ -204,7 +204,7 @@
 					{/if}
 				</div>
 				{#if mediaItem.shelfmark || (showBin && mediaItem.returnDirective)}
-					<div class="flex min-w-[160px] items-center justify-center gap-3 text-center">
+					<div class="flex min-w-40 items-center justify-center gap-3 text-center">
 						{#if mediaItem.shelfmark}
 							<span class="text-lg font-semibold text-base-content/70">
 								{mediaItem.shelfmark}
