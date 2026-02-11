@@ -107,7 +107,7 @@ tagging:
   formats:
     - name: DE386 # Tag format
       description: "RPTU Standort Kaiserslatern" # Human readable name
-	- name: DE290 # Tag format
+    - name: DE290 # Tag format
       description: "Dortmunder Format" # Human readable name
 
 middleware_instances:

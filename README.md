@@ -175,7 +175,7 @@ docker buildx build --tag ghcr.io/lukaslerche/bookwaves:latest --load .
    ```bash
    docker buildx build --platform linux/amd64,linux/arm64 \
      --tag ghcr.io/lukaslerche/bookwaves:latest \
-     --tag ghcr.io/lukaslerche/bookwaves:1.2.0 \
+     --tag ghcr.io/lukaslerche/bookwaves:1.3.0 \
      --push .
    ```
 
