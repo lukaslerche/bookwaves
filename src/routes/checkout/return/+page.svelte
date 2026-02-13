@@ -301,7 +301,7 @@
 	}
 </script>
 
-<div class="min-h-screen bg-linear-to-br from-primary to-secondary p-8">
+<div class="app-page-bg-checkout min-h-screen p-8">
 	<div class="mx-auto max-w-6xl">
 		{#if workflowWarning}
 			<div class="mb-6 alert alert-warning shadow-lg">

@@ -129,7 +129,7 @@
 	}
 </script>
 
-<div class="min-h-full bg-base-200 p-8">
+<div class="app-page-bg-admin min-h-full p-8">
 	<div class="mx-auto max-w-5xl">
 		<h1 class="mb-8 text-4xl font-bold">Admin</h1>
 

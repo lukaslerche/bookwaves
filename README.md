@@ -54,6 +54,7 @@ Copy `config.example.yaml` to `config.yaml` and edit:
 - `middleware_instances` drives all reader pickers; at least one entry is required. The mock entry works without hardware.
 - Alma requires a valid API key; mock LMS needs no credentials. Login mode controls the checkout dialogs.
 - Tagging whitelist blocks writes unless the EPC starts with an allowed prefix (override toggle available in UI).
+- `theme.page_backgrounds` lets you override route background gradients (`home`, `checkout`, `gate`, `reader`, `tagging`, `admin`).
 
 ## UI Workflows
 

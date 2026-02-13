@@ -172,7 +172,7 @@
 	}
 </script>
 
-<div class="min-h-full bg-linear-to-br from-info to-primary p-8">
+<div class="app-page-bg-reader min-h-full p-8">
 	<div class="mx-auto max-w-7xl">
 		<PageHeader
 			title="RFID Reader Management"

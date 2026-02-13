@@ -4,7 +4,7 @@
 	import { Tag, Settings, BookOpen, Bell, SquarePen } from '@lucide/svelte';
 </script>
 
-<div class="min-h-full bg-linear-to-br from-blue-600 to-indigo-800 p-8">
+<div class="app-page-bg-home min-h-full p-8">
 	<div class="mx-auto max-w-6xl">
 		<PageHeader title="BOOKWAVES" subtitle="Cloud-Based RFID Solution for Libraries" showLogo />
 

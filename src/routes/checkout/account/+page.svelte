@@ -76,7 +76,7 @@
 {#if showLoginModal}
 	<LoginModal onSuccess={handleLoginSuccess} onCancel={handleLogoutAndBack} {loginMode} />
 {:else}
-	<div class="min-h-screen bg-linear-to-br from-primary to-secondary p-8">
+	<div class="app-page-bg-checkout min-h-screen p-8">
 		<div class="mx-auto max-w-6xl">
 			<header
 				class="mb-8 flex flex-col gap-4 rounded-2xl bg-base-100/10 p-6 shadow-lg backdrop-blur-sm md:flex-row md:items-center md:justify-between"

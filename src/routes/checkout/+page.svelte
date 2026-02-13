@@ -8,9 +8,7 @@
 	let queryString = $derived(page.url.search);
 </script>
 
-<div
-	class="flex min-h-full flex-col items-center justify-center bg-linear-to-br from-primary to-secondary p-8"
->
+<div class="app-page-bg-checkout flex min-h-full flex-col items-center justify-center p-8">
 	<PageHeader title="Self-Checkout" subtitle="Please select an option to continue" showLogo />
 
 	<nav class="grid w-full max-w-6xl grid-cols-1 gap-8 lg:grid-cols-4">

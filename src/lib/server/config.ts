@@ -44,6 +44,24 @@ export interface CheckoutConfig {
 	profiles?: CheckoutProfileConfig[];
 }
 
+export interface ThemeGradientConfig {
+	from?: string;
+	to?: string;
+}
+
+export interface ThemePageBackgroundsConfig {
+	home?: ThemeGradientConfig;
+	checkout?: ThemeGradientConfig;
+	gate?: ThemeGradientConfig;
+	reader?: ThemeGradientConfig;
+	tagging?: ThemeGradientConfig;
+	admin?: ThemeGradientConfig;
+}
+
+export interface ThemeConfig {
+	page_backgrounds?: ThemePageBackgroundsConfig;
+}
+
 export interface LMSConfig {
 	log_level?: LogLevel;
 	lms: {
@@ -54,6 +72,7 @@ export interface LMSConfig {
 	gate?: GateConfig;
 	tagging?: TaggingConfig;
 	checkout?: CheckoutConfig;
+	theme?: ThemeConfig;
 	middleware_instances: MiddlewareInstanceConfig[];
 }
 
@@ -69,6 +88,93 @@ const DEFAULT_TAGGING_CONFIG: Required<TaggingConfig> = {
 	formats: []
 };
 const DEFAULT_CHECKOUT_CONFIG: CheckoutConfig = { profiles: [] };
+const DEFAULT_THEME_CONFIG: ThemeConfig = {
+	page_backgrounds: {
+		home: { from: '#2563eb', to: '#3730a3' },
+		checkout: { from: 'var(--color-primary)', to: 'var(--color-secondary)' },
+		gate: { from: 'var(--color-primary)', to: 'var(--color-secondary)' },
+		reader: { from: 'var(--color-info)', to: 'var(--color-primary)' },
+		tagging: { from: 'var(--color-info)', to: 'var(--color-primary)' },
+		admin: { from: 'var(--color-base-200)', to: 'var(--color-base-300)' }
+	}
+};
+
+function normalizeCssColor(value: unknown): string | undefined {
+	if (typeof value !== 'string') return undefined;
+	const trimmed = value.trim();
+	if (!trimmed || trimmed.length > 64) return undefined;
+	if (/[;{}<>\n\r]/.test(trimmed)) return undefined;
+	return trimmed;
+}
+
+function parseThemeConfig(theme: ThemeConfig | undefined): ThemeConfig {
+	const homeDefault = DEFAULT_THEME_CONFIG.page_backgrounds?.home;
+	const checkoutDefault = DEFAULT_THEME_CONFIG.page_backgrounds?.checkout;
+	const gateDefault = DEFAULT_THEME_CONFIG.page_backgrounds?.gate;
+	const readerDefault = DEFAULT_THEME_CONFIG.page_backgrounds?.reader;
+	const taggingDefault = DEFAULT_THEME_CONFIG.page_backgrounds?.tagging;
+	const adminDefault = DEFAULT_THEME_CONFIG.page_backgrounds?.admin;
+
+	return {
+		page_backgrounds: {
+			home: {
+				from:
+					normalizeCssColor(theme?.page_backgrounds?.home?.from) ?? homeDefault?.from ?? '#2563eb',
+				to: normalizeCssColor(theme?.page_backgrounds?.home?.to) ?? homeDefault?.to ?? '#3730a3'
+			},
+			checkout: {
+				from:
+					normalizeCssColor(theme?.page_backgrounds?.checkout?.from) ??
+					checkoutDefault?.from ??
+					'var(--color-primary)',
+				to:
+					normalizeCssColor(theme?.page_backgrounds?.checkout?.to) ??
+					checkoutDefault?.to ??
+					'var(--color-secondary)'
+			},
+			gate: {
+				from:
+					normalizeCssColor(theme?.page_backgrounds?.gate?.from) ??
+					gateDefault?.from ??
+					'var(--color-primary)',
+				to:
+					normalizeCssColor(theme?.page_backgrounds?.gate?.to) ??
+					gateDefault?.to ??
+					'var(--color-secondary)'
+			},
+			reader: {
+				from:
+					normalizeCssColor(theme?.page_backgrounds?.reader?.from) ??
+					readerDefault?.from ??
+					'var(--color-info)',
+				to:
+					normalizeCssColor(theme?.page_backgrounds?.reader?.to) ??
+					readerDefault?.to ??
+					'var(--color-primary)'
+			},
+			tagging: {
+				from:
+					normalizeCssColor(theme?.page_backgrounds?.tagging?.from) ??
+					taggingDefault?.from ??
+					'var(--color-info)',
+				to:
+					normalizeCssColor(theme?.page_backgrounds?.tagging?.to) ??
+					taggingDefault?.to ??
+					'var(--color-primary)'
+			},
+			admin: {
+				from:
+					normalizeCssColor(theme?.page_backgrounds?.admin?.from) ??
+					adminDefault?.from ??
+					'var(--color-base-200)',
+				to:
+					normalizeCssColor(theme?.page_backgrounds?.admin?.to) ??
+					adminDefault?.to ??
+					'var(--color-base-300)'
+			}
+		}
+	};
+}
 
 const EMBEDDED_CONFIG_YAML = `# Copy this file to config.yaml and update with your actual values
 
@@ -109,6 +215,27 @@ tagging:
       description: "RPTU Standort Kaiserslatern" # Human readable name
     - name: DE290 # Tag format
       description: "Dortmunder Format" # Human readable name
+
+theme:
+  page_backgrounds:
+    home:
+      from: "#2563eb"
+      to: "#3730a3"
+    checkout:
+      from: "var(--color-primary)"
+      to: "var(--color-secondary)"
+    gate:
+      from: "var(--color-primary)"
+      to: "var(--color-secondary)"
+    reader:
+      from: "var(--color-info)"
+      to: "var(--color-primary)"
+    tagging:
+      from: "var(--color-info)"
+      to: "var(--color-primary)"
+    admin:
+      from: "var(--color-base-200)"
+      to: "var(--color-base-300)"
 
 middleware_instances:
   #- id: feig1
@@ -222,6 +349,7 @@ export function getConfig(): LMSConfig {
 		data.gate = parsedGateConfig;
 		data.tagging = parsedTaggingConfig;
 		data.checkout = parsedCheckoutConfig;
+		data.theme = parseThemeConfig(data.theme);
 
 		cachedConfig = data;
 		return data;
@@ -247,6 +375,7 @@ export function getConfig(): LMSConfig {
 			gate: DEFAULT_GATE_CONFIG,
 			tagging: DEFAULT_TAGGING_CONFIG,
 			checkout: DEFAULT_CHECKOUT_CONFIG,
+			theme: parseThemeConfig(undefined),
 			middleware_instances: []
 		};
 		return cachedConfig;
@@ -348,6 +477,7 @@ export function getConfig(): LMSConfig {
 	data.gate = parsedGateConfig;
 	data.tagging = parsedTaggingConfig;
 	data.checkout = parsedCheckoutConfig;
+	data.theme = parseThemeConfig(data.theme);
 
 	cachedConfig = data;
 	return data;

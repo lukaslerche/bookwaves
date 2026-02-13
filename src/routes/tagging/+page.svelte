@@ -185,7 +185,7 @@
 	});
 </script>
 
-<div class="min-h-full bg-linear-to-br from-info to-primary p-8">
+<div class="app-page-bg-tagging min-h-full p-8">
 	<div class="mx-auto max-w-4xl">
 		<header class="mb-12 text-center text-white">
 			<h1 class="mb-3 text-5xl font-bold drop-shadow-lg">RFID Tagging</h1>
