@@ -55,6 +55,7 @@ Copy `config.example.yaml` to `config.yaml` and edit:
 - Alma requires a valid API key; mock LMS needs no credentials. Login mode controls the checkout dialogs.
 - Tagging whitelist blocks writes unless the EPC starts with an allowed prefix (override toggle available in UI).
 - `theme.page_backgrounds` lets you override route background gradients (`home`, `checkout`, `gate`, `reader`, `tagging`, `admin`).
+- `theme.logo` lets you override the header logo (use an absolute path like `/branding/logo.png` or an `https://` URL).
 
 ## UI Workflows
 

@@ -3,8 +3,13 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import type { Snippet } from 'svelte';
 
-	let { children, data }: { children: Snippet; data: { themeCssVars?: Record<string, string> } } =
-		$props();
+	let {
+		children,
+		data
+	}: {
+		children: Snippet;
+		data: { themeCssVars?: Record<string, string>; themeLogoUrl?: string | null };
+	} = $props();
 
 	let themeVarsStyle = $derived(
 		Object.entries(data.themeCssVars ?? {})

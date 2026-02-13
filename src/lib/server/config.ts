@@ -60,6 +60,7 @@ export interface ThemePageBackgroundsConfig {
 
 export interface ThemeConfig {
 	page_backgrounds?: ThemePageBackgroundsConfig;
+	logo?: string;
 }
 
 export interface LMSConfig {
@@ -96,7 +97,8 @@ const DEFAULT_THEME_CONFIG: ThemeConfig = {
 		reader: { from: 'var(--color-info)', to: 'var(--color-primary)' },
 		tagging: { from: 'var(--color-info)', to: 'var(--color-primary)' },
 		admin: { from: 'var(--color-base-200)', to: 'var(--color-base-300)' }
-	}
+	},
+	logo: undefined
 };
 
 function normalizeCssColor(value: unknown): string | undefined {
@@ -105,6 +107,18 @@ function normalizeCssColor(value: unknown): string | undefined {
 	if (!trimmed || trimmed.length > 64) return undefined;
 	if (/[;{}<>\n\r]/.test(trimmed)) return undefined;
 	return trimmed;
+}
+
+function normalizeThemeLogo(value: unknown): string | undefined {
+	if (typeof value !== 'string') return undefined;
+	const trimmed = value.trim();
+	if (!trimmed || trimmed.length > 2048) return undefined;
+	if (/[\s"'<>\n\r]/.test(trimmed)) return undefined;
+
+	if (trimmed.startsWith('/')) return trimmed;
+	if (/^https?:\/\//i.test(trimmed)) return trimmed;
+
+	return undefined;
 }
 
 function parseThemeConfig(theme: ThemeConfig | undefined): ThemeConfig {
@@ -172,7 +186,8 @@ function parseThemeConfig(theme: ThemeConfig | undefined): ThemeConfig {
 					adminDefault?.to ??
 					'var(--color-base-300)'
 			}
-		}
+		},
+		logo: normalizeThemeLogo(theme?.logo) ?? DEFAULT_THEME_CONFIG.logo
 	};
 }
 
@@ -217,6 +232,7 @@ tagging:
       description: "Dortmunder Format" # Human readable name
 
 theme:
+	logo: "/branding/logo.png" # optional; supports /absolute/path or https:// URL
   page_backgrounds:
     home:
       from: "#2563eb"

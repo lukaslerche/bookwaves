@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import logo from '$lib/assets/logo.png';
 
 	interface Props {
@@ -9,12 +10,17 @@
 	}
 
 	let { title, subtitle, showLogo = false, variant = 'default' }: Props = $props();
+
+	let themedLogo = $derived(
+		(page.data as { themeLogoUrl?: string | null } | undefined)?.themeLogoUrl
+	);
+	let resolvedLogo = $derived(themedLogo || logo);
 </script>
 
 <header class="mb-12 text-center text-white">
 	{#if showLogo}
 		<div class="mb-6 flex justify-center">
-			<img src={logo} alt="BookWaves Logo" class="h-24 drop-shadow-2xl" />
+			<img src={resolvedLogo} alt="BookWaves Logo" class="h-24 drop-shadow-2xl" />
 		</div>
 	{/if}
 	<h1

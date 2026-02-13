@@ -6,6 +6,7 @@ export const load: LayoutServerLoad = async () => {
 	const pageBackgrounds = config.theme?.page_backgrounds;
 
 	return {
+		themeLogoUrl: config.theme?.logo ?? null,
 		themeCssVars: {
 			'--bw-page-home-from': pageBackgrounds?.home?.from ?? '#2563eb',
 			'--bw-page-home-to': pageBackgrounds?.home?.to ?? '#3730a3',
