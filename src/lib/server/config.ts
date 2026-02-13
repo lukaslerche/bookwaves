@@ -232,7 +232,7 @@ tagging:
       description: "Dortmunder Format" # Human readable name
 
 theme:
-	logo: "/branding/logo.png" # optional; supports /absolute/path or https:// URL
+    #logo: "/branding/logo.png" # optional; supports /absolute/path or https:// URL
   page_backgrounds:
     home:
       from: "#2563eb"
