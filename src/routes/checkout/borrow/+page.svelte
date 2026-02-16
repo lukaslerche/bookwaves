@@ -28,6 +28,7 @@
 		type SessionItem
 	} from '$lib/stores/checkout-session';
 	import { SvelteSet } from 'svelte/reactivity';
+	import { m } from '$lib/paraglide/messages';
 
 	let { data }: PageProps = $props();
 
@@ -334,8 +335,9 @@
 	{#if workflowWarning}
 		<div class="mx-auto mb-4 alert max-w-4xl alert-warning shadow-lg">
 			<div>
-				<strong>Configuration missing.</strong>
-				{workflowWarning} Contact IT/library staff.
+				<strong>{m.configuration_missing()}.</strong>
+				{workflowWarning}
+				{m.contact_staff()}.
 			</div>
 			<a
 				class="btn btn-ghost btn-sm"
@@ -356,8 +358,9 @@
 			{#if workflowWarning}
 				<div class="mb-6 alert alert-warning shadow-lg">
 					<div>
-						<strong>Configuration missing.</strong>
-						{workflowWarning} Contact IT/library staff.
+						<strong>{m.configuration_missing()}.</strong>
+						{workflowWarning}
+						{m.contact_staff()}.
 					</div>
 					<a
 						class="btn btn-ghost btn-sm"
@@ -379,11 +382,11 @@
 						<BookOpen class="h-8 w-8" />
 					</div>
 					<div class="text-white">
-						<h1 class="text-4xl font-bold drop-shadow-lg">Borrow Books</h1>
+						<h1 class="text-4xl font-bold drop-shadow-lg">{m.borrow_books()}</h1>
 
-						<p class="mt-3 text-base opacity-90">Place your items on the reader</p>
+						<p class="mt-3 text-base opacity-90">{m.place_your_items_on_the_reader()}</p>
 						<button class="btn mt-3 shadow-xl btn-lg btn-accent" onclick={handleDoneClick}>
-							<Check />Done & Logout
+							<Check />{m.done()} & {m.logout()}
 						</button>
 					</div>
 				</div>
@@ -406,7 +409,7 @@
 							<li
 								class="flex flex-row items-center justify-between menu-title px-6 py-4 text-base opacity-70"
 							>
-								<span class="text-lg">Items to Borrow</span>
+								<span class="text-lg">{m.items_to_borrow()}</span>
 								<span class="badge badge-lg badge-primary">{processedItems.length}</span>
 							</li>
 							{#each processedItems as item (item.rfidData.id)}
@@ -454,7 +457,7 @@
 													<div class="flex flex-col gap-2">
 														<div class="flex items-center gap-2">
 															<X />
-															<span class="font-semibold">Error</span>
+															<span class="font-semibold">{m.error()}</span>
 														</div>
 														<span class="text-left wrap-break-word">{item.message}</span>
 													</div>
@@ -468,7 +471,7 @@
 									<EmptyState
 										icon={BookOpen}
 										title="Ready to Borrow"
-										description="Place items on the reader to begin"
+										description={m.place_items_on_the_reader_to_begin()}
 									/>
 								</li>
 							{/each}

@@ -25,6 +25,7 @@
 		type SessionItem
 	} from '$lib/stores/checkout-session';
 	import { SvelteSet } from 'svelte/reactivity';
+	import { m } from '$lib/paraglide/messages';
 
 	let { data }: PageProps = $props();
 
@@ -306,8 +307,9 @@
 		{#if workflowWarning}
 			<div class="mb-6 alert alert-warning shadow-lg">
 				<div>
-					<strong>Configuration missing.</strong>
-					{workflowWarning} Contact IT/library staff.
+					<strong>{m.configuration_missing()}.</strong>
+					{workflowWarning}
+					{m.contact_staff()}.
 				</div>
 				<a
 					class="btn btn-ghost btn-sm"
@@ -329,13 +331,13 @@
 					<Undo2 class="h-8 w-8" />
 				</div>
 				<div class="text-white">
-					<h1 class="text-4xl font-bold drop-shadow-lg">Return Books</h1>
-					<p class="text-base opacity-90">Place your items on the reader</p>
+					<h1 class="text-4xl font-bold drop-shadow-lg">{m.return_books()}</h1>
+					<p class="text-base opacity-90">{m.place_your_items_on_the_reader()}</p>
 				</div>
 			</div>
 			<div class="md:ml-auto">
 				<button class="btn shadow-xl btn-lg btn-accent" onclick={handleDoneClick}>
-					<Check />Done
+					<Check />{m.done()}
 				</button>
 			</div>
 		</header>
@@ -347,7 +349,7 @@
 						<li
 							class="flex flex-row items-center justify-between menu-title px-6 py-4 text-base opacity-70"
 						>
-							<span class="text-lg">Items to Return</span>
+							<span class="text-lg">{m.items_to_return()}</span>
 							<span class="badge badge-lg badge-info">{processedItems.length}</span>
 						</li>
 						{#each processedItems as item (item.rfidData.id)}
@@ -427,7 +429,7 @@
 								<EmptyState
 									icon={RotateCcw}
 									title="Ready to Return"
-									description="Place items on the reader to begin"
+									description={m.place_items_on_the_reader_to_begin()}
 								/>
 							</li>
 						{/each}

@@ -128,7 +128,7 @@
 				</a>
 			</div>
 		{/if}
-		<PageHeader title="Security Gate" showLogo />
+		<PageHeader title={m.gate_label()} showLogo />
 
 		<div class="mb-8 flex items-center justify-center">
 			{#if detectedItems.some((item) => item.secured)}

@@ -9,6 +9,7 @@
 	import type { RFIDData } from '$lib/reader/interface';
 	import { page } from '$app/state';
 	import { clientLogger } from '$lib/client/logger';
+	import { m } from '$lib/paraglide/messages';
 
 	let { data }: PageProps = $props();
 	let detectedItems: Array<RFIDData> = $state([]);
@@ -107,13 +108,13 @@
 					<ListIcon class="h-8 w-8" />
 				</div>
 				<div class="text-white">
-					<h1 class="text-4xl font-bold drop-shadow-lg">View Items</h1>
-					<p class="text-base opacity-90">Currently on the device</p>
+					<h1 class="text-4xl font-bold drop-shadow-lg">{m.view_items()}</h1>
+					<p class="text-base opacity-90">{m.currently_on_the_device()}</p>
 				</div>
 			</div>
 			<div class="md:ml-auto">
 				<a href="/checkout{queryString}" class="btn shadow-xl btn-lg btn-accent">
-					← Back to Menu
+					← {m.back()}
 				</a>
 			</div>
 		</header>
@@ -122,7 +123,7 @@
 			<div class="card-body p-0">
 				<ul class="">
 					<li class="menu-title px-6 py-4 text-base opacity-70">
-						<span class="text-lg">On Device</span>
+						<span class="text-lg">{m.on_device()}</span>
 					</li>
 					{#each detectedItems as item (item.id)}
 						<li
@@ -139,8 +140,8 @@
 						<li class="px-6 py-8 text-center">
 							<div class="flex flex-col items-center gap-4 opacity-60">
 								<BookOpen class="h-20 w-20 text-base-content/30" />
-								<p class="text-xl">No items detected</p>
-								<p class="text-base">Place items on the reader</p>
+								<p class="text-xl">{m.no_items_detected()}</p>
+								<p class="text-base">{m.place_items_on_the_reader()}</p>
 							</div>
 						</li>
 					{/each}

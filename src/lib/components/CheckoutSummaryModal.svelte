@@ -3,6 +3,7 @@
 	import { getSuccessfulItems } from '$lib/stores/checkout-session';
 	import type { LmsReturnDirective } from '$lib/lms/lms';
 	import { Check, TriangleAlert } from '@lucide/svelte';
+	import { m } from '$lib/paraglide/messages';
 
 	type Props = {
 		session: CheckoutSession;
@@ -48,13 +49,15 @@
 <dialog class="modal-open modal">
 	<div class="modal-box max-w-3xl">
 		<h3 class="mb-6 text-2xl font-bold">
-			{session.type === 'borrow' ? 'Checkout' : 'Return'} Summary
+			{session.type === 'borrow' ? 'Checkout' : 'Return'}
+			{m.summary()}
 		</h3>
 
 		{#if successfulItems.length > 0}
 			<div class="mb-6">
 				<h4 class="mb-3 text-lg font-semibold text-success">
-					✓ Successfully {actionText}: {successfulItems.length}
+					✓ {m.successfully()}
+					{actionText}: {successfulItems.length}
 					{successfulItems.length === 1 ? 'item' : 'items'}
 				</h4>
 
@@ -102,7 +105,8 @@
 			<div class="mb-6">
 				<h4 class="mb-3 text-lg font-semibold text-warning">
 					⚠ {failedItems.length}
-					{failedItems.length === 1 ? 'item' : 'items'} could not be processed
+					{failedItems.length === 1 ? 'item' : 'items'}
+					{m.could_not_be_processed()}
 				</h4>
 				<ul class="space-y-2">
 					{#each failedItems as item (item.rfidData.id)}
@@ -147,7 +151,7 @@
 
 		{#if successfulItems.length === 0 && failedItems.length === 0}
 			<div class="py-8 text-center">
-				<p class="text-lg opacity-70">No items were processed in this session.</p>
+				<p class="text-lg opacity-70">{m.no_items_processed()}.</p>
 			</div>
 		{/if}
 

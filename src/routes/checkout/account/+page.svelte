@@ -8,6 +8,7 @@
 	import { getAuthUser, clearAuthUser, setAuthUser } from '$lib/stores/auth';
 	import { loginUser, logoutUser } from '$lib/lms/lms.remote';
 	import { goto, invalidateAll } from '$app/navigation';
+	import { m } from '$lib/paraglide/messages';
 
 	let { data }: PageProps = $props();
 
@@ -86,13 +87,13 @@
 						<User class="h-8 w-8" />
 					</div>
 					<div class="text-white">
-						<h1 class="text-4xl font-bold drop-shadow-lg">Your Account</h1>
-						<p class="text-base opacity-90">Overview of your loans and fees</p>
+						<h1 class="text-4xl font-bold drop-shadow-lg">{m.your_account()}</h1>
+						<p class="text-base opacity-90">{m.your_account_description()}</p>
 					</div>
 				</div>
 				<div class="md:ml-auto">
 					<button onclick={handleLogoutAndBack} class="btn shadow-xl btn-lg btn-accent">
-						← Logout & Back
+						← {m.logout()} & {m.back()}
 					</button>
 				</div>
 			</header>
@@ -111,14 +112,14 @@
 							>
 								<input type="radio" name="account_tabs" checked />
 								<User class="me-2 size-4" />
-								Loans
+								{m.loans()}
 							</label>
 							<div
 								class="tab-content border-base-300 bg-(--tab-bg) p-6 [--tab-bg:color-mix(in_oklab,var(--color-primary),white_15%)]"
 							>
-								<h2 class="text-2xl font-semibold">Current Loans</h2>
+								<h2 class="text-2xl font-semibold">{m.current_loans()}</h2>
 								{#if data.loans.length === 0}
-									<p class="mt-4 text-center text-sm opacity-70">You have no current loans.</p>
+									<p class="mt-4 text-center text-sm opacity-70">{m.no_current_loans()}.</p>
 								{:else}
 									<ul class="mt-4 space-y-2">
 										{#each data.loans as loan}
@@ -141,12 +142,12 @@
 							>
 								<input type="radio" name="account_tabs" />
 								<ShoppingCart class="me-2 size-4" />
-								Orders
+								{m.orders()}
 							</label>
 							<div
 								class="tab-content border-base-300 bg-(--tab-bg) p-6 [--tab-bg:color-mix(in_oklab,var(--color-secondary),white_15%)]"
 							>
-								<h2 class="text-2xl font-semibold">Recent Orders</h2>
+								<h2 class="text-2xl font-semibold">{m.recent_orders()}</h2>
 								<ul class="mt-4 space-y-2">
 									{#each mockOrders as order}
 										<li class="rounded-lg bg-base-100 p-4">
@@ -156,7 +157,7 @@
 											</div>
 											<div class="mt-1 flex items-center justify-between text-sm opacity-70">
 												<span>Status: {order.status}</span>
-												<span>Total: {order.total}</span>
+												<span>{m.total()}: {order.total}</span>
 											</div>
 										</li>
 									{/each}
@@ -168,12 +169,12 @@
 							>
 								<input type="radio" name="account_tabs" />
 								<Package class="me-2 size-4" />
-								Pickups
+								{m.pickups()}
 							</label>
 							<div
 								class="tab-content border-base-300 bg-(--tab-bg) p-6 [--tab-bg:color-mix(in_oklab,var(--color-accent),white_15%)]"
 							>
-								<h2 class="text-2xl font-semibold">Pickup Windows</h2>
+								<h2 class="text-2xl font-semibold">{m.pickup_windows()}</h2>
 								<ul class="mt-4 space-y-2">
 									{#each mockPickups as pickup}
 										<li class="rounded-lg bg-base-100 p-4">
@@ -181,7 +182,7 @@
 												<p class="font-semibold">{pickup.location}</p>
 												<p class="text-sm opacity-70">{pickup.code}</p>
 											</div>
-											<p class="mt-1 text-sm opacity-70">Window: {pickup.window}</p>
+											<p class="mt-1 text-sm opacity-70">{m.window()}: {pickup.window}</p>
 										</li>
 									{/each}
 								</ul>
@@ -192,12 +193,12 @@
 							>
 								<input type="radio" name="account_tabs" />
 								<Receipt class="me-2 size-4" />
-								Fees
+								{m.fees()}
 							</label>
 							<div
 								class="tab-content border-base-300 bg-(--tab-bg) p-6 [--tab-bg:color-mix(in_oklab,#f59e0b,white_15%)]"
 							>
-								<h2 class="text-2xl font-semibold">Fees & Balances</h2>
+								<h2 class="text-2xl font-semibold">{m.fees()} & {m.balances()}</h2>
 								<ul class="mt-4 space-y-2">
 									{#each mockFees as fee}
 										<li class="flex items-center justify-between rounded-lg bg-base-100 p-4">
@@ -215,7 +216,7 @@
 				</div>
 			{:else}
 				<div class="mb-12 rounded-xl bg-base-100/20 p-6 text-center text-white/80">
-					<p>Please sign in to view your account details.</p>
+					<p>{m.please_sign_in()}.</p>
 				</div>
 			{/if}
 		</div>
