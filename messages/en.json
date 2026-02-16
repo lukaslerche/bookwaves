@@ -137,5 +137,6 @@
 	"password": "Password",
 	"enter_your_password": "Enter your password",
 	"logging_in": "Logging in",
-	"login": "Login"
+	"login": "Login",
+	"reload": "Reload"
 }

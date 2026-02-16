@@ -5,7 +5,6 @@
 	import { CircleX } from '@lucide/svelte';
 	import { clientLogger } from '$lib/client/logger';
 	import { m } from '$lib/paraglide/messages';
-	import { mockRFIDReader } from '$lib/reader/mock';
 
 	type LoginMode = 'username_password' | 'username_only';
 
@@ -163,9 +162,7 @@
 				</div>
 				<h3 class="text-3xl leading-tight font-black">{m.login_required()}</h3>
 				<p class="mt-2 text-base-content/70">
-					{requiresPassword
-						? m.username_password_description()
-						: m.password_only_description()}
+					{requiresPassword ? m.username_password_description() : m.password_only_description()}
 				</p>
 			</div>
 			<div
@@ -213,9 +210,7 @@
 						{scannerOpen ? m.stop_camera() : m.start_with_camera()}
 					</button>
 					{#if scannerStatus === 'scanning'}
-						<span class="text-xs text-base-content/60">
-							m.point_the_camera()
-						</span>
+						<span class="text-xs text-base-content/60"> m.point_the_camera() </span>
 					{/if}
 				</div>
 				{#if scannerOpen}
@@ -256,7 +251,7 @@
 					onclick={handleCancel}
 					disabled={isLoading}
 				>
-					Cancel
+					{m.cancel()}
 				</button>
 				<button class="btn px-6 btn-lg btn-primary" type="submit" disabled={isLoading}>
 					{#if isLoading}

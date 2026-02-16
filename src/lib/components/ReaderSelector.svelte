@@ -4,6 +4,7 @@
 	import type { MiddlewareInstanceConfig } from '$lib/server/config';
 	import { getSelectedReaderConfig, setSelectedReaderConfig } from '$lib/stores/reader-selection';
 	import { Cpu } from '@lucide/svelte';
+	import { m } from '$lib/paraglide/messages';
 
 	type MiddlewareReaders = {
 		instance: MiddlewareInstanceConfig;
@@ -104,11 +105,11 @@
 		<div class="flex items-center gap-2">
 			<Cpu />
 			<div>
-				<div class="text-xs uppercase opacity-70">Reader</div>
+				<div class="text-xs uppercase opacity-70">{m.reader()}</div>
 				<div class="text-sm font-semibold">
 					{selectedMiddleware && selectedReader
 						? `${selectedMiddleware} / ${selectedReader}`
-						: 'No selection'}
+						: m.no_selection()}
 				</div>
 				{#if currentMiddleware}
 					<div class="text-[11px] opacity-70">
@@ -144,13 +145,13 @@
 						</option>
 					{/each}
 				{:else}
-					<option value="">No readers</option>
+					<option value="">{m.no_readers()}</option>
 				{/if}
 			</select>
 
 			{#if currentReader}
 				<span class="badge badge-sm {currentReader.isConnected ? 'badge-success' : 'badge-error'}">
-					{currentReader.isConnected ? 'Connected' : 'Offline'}
+					{currentReader.isConnected ? m.connected() : m.offline()}
 				</span>
 			{/if}
 		</div>
@@ -171,9 +172,9 @@
 				</div>
 
 				<div class="mt-3">
-					<h4 class="mb-2 text-sm font-semibold">Readers:</h4>
+					<h4 class="mb-2 text-sm font-semibold">{m.readers()}:</h4>
 					{#if readers.length === 0}
-						<div class="text-sm text-base-content/60 italic">No readers available</div>
+						<div class="text-sm text-base-content/60 italic">{m.no_readers_available()}</div>
 					{:else}
 						<div class="space-y-2">
 							{#each readers as reader}
@@ -195,7 +196,7 @@
 											<span class="badge badge-sm">{reader.mode}</span>
 											<span
 												class={`inline-block h-2 w-2 rounded-full ${reader.isConnected ? 'bg-success' : 'bg-error'}`}
-												title={reader.isConnected ? 'Connected' : 'Disconnected'}
+												title={reader.isConnected ? m.connected() : m.offline()}
 											></span>
 										</div>
 										<div class="mt-1 text-xs text-base-content/60">

@@ -5,6 +5,7 @@
 	import { onMount } from 'svelte';
 	import { Lock, LockOpen, Tag } from '@lucide/svelte';
 	import { clientLogger } from '$lib/client/logger';
+	import { m } from '$lib/paraglide/messages';
 
 	let {
 		item,
@@ -238,7 +239,8 @@
 						EPC: {item.id} <br /> Barcode: {item?.mediaId ?? 'N/A'}
 					</h3>
 					<p class="mt-1 text-xs opacity-60">
-						Detected at {formatTimestamp(item.timestamp)}
+						{m.detected_at()}
+						{formatTimestamp(item.timestamp)}
 					</p>
 				</div>
 
@@ -268,11 +270,13 @@
 			<div class="mt-3 flex min-h-40 items-start gap-3">
 				<div class="h-45 w-32 shrink-0 skeleton rounded-box"></div>
 				<div class="flex min-w-0 flex-1 flex-col gap-2 text-xs">
-					<div class="text-sm font-semibold">Media information unavailable</div>
+					<div class="text-sm font-semibold">{m.media_information_unavailable()}</div>
 					<div class="italic opacity-60">
 						{fetchError ?? 'No media information found for this RFID tag'}
 					</div>
-					<button class="btn w-full btn-outline btn-sm" onclick={fetchMediaItem}> Reload </button>
+					<button class="btn w-full btn-outline btn-sm" onclick={fetchMediaItem}>
+						{m.reload()}
+					</button>
 				</div>
 			</div>
 		{/if}
