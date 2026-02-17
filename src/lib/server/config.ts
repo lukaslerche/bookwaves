@@ -61,6 +61,7 @@ export interface ThemePageBackgroundsConfig {
 export interface ThemeConfig {
 	page_backgrounds?: ThemePageBackgroundsConfig;
 	logo?: string;
+    font?: string;
 }
 
 export interface LMSConfig {
@@ -98,7 +99,8 @@ const DEFAULT_THEME_CONFIG: ThemeConfig = {
 		tagging: { from: 'var(--color-info)', to: 'var(--color-primary)' },
 		admin: { from: 'var(--color-base-200)', to: 'var(--color-base-300)' }
 	},
-	logo: undefined
+	logo: undefined,
+    font: undefined
 };
 
 function normalizeCssColor(value: unknown): string | undefined {
@@ -119,6 +121,13 @@ function normalizeThemeLogo(value: unknown): string | undefined {
 	if (/^https?:\/\//i.test(trimmed)) return trimmed;
 
 	return undefined;
+}
+
+function normalizeThemeFont(value: unknown): string | undefined {
+	if (typeof value !== 'string') return undefined;
+	const trimmed = value.trim();
+	if (!trimmed || trimmed.length > 2048) return undefined;
+	if (/[\s"'<>\n\r]/.test(trimmed)) return undefined;
 }
 
 function parseThemeConfig(theme: ThemeConfig | undefined): ThemeConfig {
@@ -187,7 +196,8 @@ function parseThemeConfig(theme: ThemeConfig | undefined): ThemeConfig {
 					'var(--color-base-300)'
 			}
 		},
-		logo: normalizeThemeLogo(theme?.logo) ?? DEFAULT_THEME_CONFIG.logo
+		logo: normalizeThemeLogo(theme?.logo) ?? DEFAULT_THEME_CONFIG.logo,
+        font: normalizeThemeFont(theme?.font) ?? DEFAULT_THEME_CONFIG.font
 	};
 }
 
