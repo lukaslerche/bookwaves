@@ -9,11 +9,19 @@
 		data
 	}: {
 		children: Snippet;
-		data: { themeCssVars?: Record<string, string> };
+		data: { 
+           themeCssVars?: Record<string, string>;
+           font?: string;
+        };
 	} = $props();
 
 	let themeVarsStyle = $derived(
 		Object.entries(data.themeCssVars ?? {})
+            .concat(
+              data.font
+                ? [['--font-url', `url(${data.font})`]]
+                : []
+            )
 			.map(([name, value]) => `${name}: ${value}`)
 			.join('; ')
 	);
