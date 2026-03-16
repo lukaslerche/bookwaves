@@ -75,8 +75,8 @@ Copy `config.example.yaml` to `config.yaml` and edit:
 
 ### Reader Selection while using
 
-- **Persistent selection**: Choosing a reader in the Admin/Reader/Tagging pages stores `selectedMiddleware`/`selectedReader` in `localStorage`.
-- **URL selection**: Gate and Checkout use `?middleware_id=ID&reader_id=NAME` query params (useful to fix a certain reader in a kiosk environment). Checkout also requires `checkout_profile_id=ID` to select the LMS checkout profile (aka the library/circ desk combo for Alma).
+- **Persistent selection**: Choosing a reader in the Admin/Reader/Tagging pages stores `selectedMiddleware`/`selectedReader` in `localStorage`. IMPORTANT: These must be Feig "host" mode readers.
+- **URL selection**: Gate and Checkout use `?middleware_id=ID&reader_id=NAME` query params (useful to fix a certain reader in a kiosk environment). Checkout also requires `checkout_profile_id=ID` to select the LMS checkout profile (aka the library/circ desk combo for Alma). IMPORTANT: These must be Feig "notification" mode readers.
 - **Mock helpers**: Quick links set `middleware_id=mock1&reader_id=MockReader1`.
 
 ## LMS Integrations
