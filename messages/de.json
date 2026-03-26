@@ -146,5 +146,6 @@
 	"no_readers_available": "Keine Lesegeräte verfügbar",
 	"detected_at": "Erkannt am",
 	"media_information_unavailable": "Medieninformationen nicht verfügbar",
-	"reload": "Neu laden"
+	"reload": "Neu laden",
+    "tagging_crew_message": "Scannen Sie das nächste Buch mit dem Barcode-Scanner"
 }

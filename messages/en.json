@@ -138,5 +138,6 @@
 	"enter_your_password": "Enter your password",
 	"logging_in": "Logging in",
 	"login": "Login",
-	"reload": "Reload"
+	"reload": "Reload",
+    "tagging_crew_message": "Scan the next book using the barcode scanner"
 }

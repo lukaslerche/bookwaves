@@ -36,6 +36,7 @@ tagging:
       description: 'RPTU Standort Kaiserslatern' # Human readable name
     - name: DE290 # Tag format
       description: 'Dortmunder Format' # Human readable name
+  focus: false # if false, the reader selector is shown and eabling it streamlines the the tagging for the the crew
 
 theme:
   #logo: '/branding/logo.png' # optional; supports /absolute/path or https:// URL

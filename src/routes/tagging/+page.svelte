@@ -12,6 +12,7 @@
 	let { data }: { data: PageData } = $props();
 
 	let input = $state('');
+    let barcodeInput: HTMLInputElement | undefined = $state();
 	let holder = $state('');
 	let reader: RFIDReader | null = $state(null);
 	let detectedItems: Array<RFIDData> = $state([]);
@@ -22,6 +23,8 @@
 	let readerError = $state<string | null>(null);
 	let pollingAbortController: AbortController | null = null;
 	let overrideWhitelist = $state(false);
+    let displayReaderSelector = data.focus ? "hidden" : "";
+    let displayBackButton = data.focus ? "hidden" : "";
 
 	const whitelistValues = $derived(data.whitelist ?? []);
 	const whitelistEnabled = $derived(whitelistValues.length > 0);
@@ -169,6 +172,7 @@
 			setTimeout(() => {
 				lastWriteStatus = null;
 				statusMessage = '';
+                barcodeInput?.focus();
 			}, 3000);
 		}
 	}
@@ -191,7 +195,7 @@
 		<header class="mb-12 text-center text-white">
 			<h1 class="mb-3 text-5xl font-bold drop-shadow-lg">{m.tagging_label()}</h1>
 			<p class="text-xl opacity-90">{m.tagging_description()}</p>
-			<div class="mt-6 flex justify-center">
+			<div class="mt-6 flex justify-center {displayReaderSelector}">
 				<ReaderSelector
 					middlewareReaders={data.middlewareReaders}
 					on:change={() => initializeReader()}
@@ -279,7 +283,11 @@
 				<div class="card-body">
 					<h2 class="mb-4 card-title text-2xl">{m.initialize_tag()}</h2>
 					<p class="mb-4 text-sm opacity-70">
+                        {#if data.focus } 
+                        {m.tagging_crew_message()}
+                        {:else }
 						{m.initialize_tag_text()}
+                        {/if}
 					</p>
 
 					<div class="form-control mb-4" class:hidden={data.taggingFormats.length < 2}>
@@ -309,6 +317,7 @@
 							id="barcode-input"
 							type="text"
 							bind:value={input}
+                            bind:this={barcodeInput}
 							onkeypress={handleKeyPress}
 							placeholder="{m.scan_barcode_or()}..."
 							class="input-bordered input input-lg w-full"
@@ -354,7 +363,7 @@
 			</div>
 		{/if}
 
-		<div class="mt-8 flex justify-center">
+		<div class="mt-8 flex justify-center {displayBackButton}">
 			<a href="/" class="btn text-white shadow-xl btn-ghost btn-lg"> ← {m.back()} </a>
 		</div>
 	</div>

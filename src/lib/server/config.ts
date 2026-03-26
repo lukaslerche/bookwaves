@@ -21,6 +21,7 @@ export interface TaggingFormats {
 export interface TaggingConfig {
 	whitelist?: TaggingWhitelistConfig;
 	formats?: TaggingFormats[];
+    focus?: boolean
 }
 
 export interface MiddlewareInstanceConfig {
@@ -87,7 +88,8 @@ const DEFAULT_TAGGING_CONFIG: Required<TaggingConfig> = {
 	whitelist: {
 		values: []
 	},
-	formats: []
+	formats: [],
+    focus: false
 };
 const DEFAULT_CHECKOUT_CONFIG: CheckoutConfig = { profiles: [] };
 const DEFAULT_THEME_CONFIG: ThemeConfig = {
@@ -303,7 +305,8 @@ export function getConfig(): LMSConfig {
 							typeof format.description === 'string' &&
 							format.description.trim().length > 0
 					)
-				: DEFAULT_TAGGING_CONFIG.formats
+				: DEFAULT_TAGGING_CONFIG.formats,
+            focus: typeof data.tagging?.focus === 'boolean' ? data.tagging.focus : DEFAULT_TAGGING_CONFIG.focus,
 		};
 
 		const parseCheckoutProfiles = (): CheckoutProfileConfig[] => {
@@ -436,7 +439,8 @@ export function getConfig(): LMSConfig {
 						typeof format.description === 'string' &&
 						format.description.trim().length > 0
 				)
-			: DEFAULT_TAGGING_CONFIG.formats
+			: DEFAULT_TAGGING_CONFIG.formats,
+        focus: typeof data.tagging?.focus === 'boolean' ? data.tagging.focus : DEFAULT_TAGGING_CONFIG.focus
 	};
 
 	const parseCheckoutProfiles = (): CheckoutProfileConfig[] => {

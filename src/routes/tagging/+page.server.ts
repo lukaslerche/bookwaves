@@ -6,6 +6,7 @@ export async function load() {
 
 	const tagging = (config as { tagging?: TaggingConfig }).tagging;
 	const taggingFormats = tagging?.formats ?? [];
+    const focus = tagging?.focus;
 	const whitelist = (tagging?.whitelist?.values ?? [])
 		.filter((value) => typeof value === 'string')
 		.map((value) => value.trim())
@@ -14,6 +15,7 @@ export async function load() {
 	return {
 		middlewareReaders,
 		whitelist,
+        focus,
 		taggingFormats
 	};
 }
