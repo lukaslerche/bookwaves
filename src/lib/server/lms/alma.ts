@@ -211,7 +211,7 @@ export class AlmaLMS implements LibraryManagementSystem {
 
 	private async parseErrorResponse(res: Response): Promise<{ reason: string; errors?: string[] }> {
 		const fallbackReason = `Request failed with status ${res.status}`;
-		let bodyText: string | null = null;
+		let bodyText: string | null;
 
 		try {
 			bodyText = await res.text();

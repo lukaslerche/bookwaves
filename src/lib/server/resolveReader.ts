@@ -59,7 +59,7 @@ export async function resolveReaderByIp(readerIp: string): Promise<ResolvedReade
 	const config = getConfig();
 
 	for (const instance of config.middleware_instances) {
-		let readers: ReaderInfo[] = [];
+		let readers: ReaderInfo[];
 
 		try {
 			readers = await getAllReaders(instance);
