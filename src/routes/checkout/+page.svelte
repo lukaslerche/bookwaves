@@ -1,7 +1,7 @@
 <script lang="ts">
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import NavigationCard from '$lib/components/NavigationCard.svelte';
-	import { BookOpen, List, User, Undo2 } from '@lucide/svelte';
+	import { BookOpen, Library, User, HandHelping } from '@lucide/svelte';
 	import { page } from '$app/state';
 	import { m } from '$lib/paraglide/messages';
 
@@ -37,17 +37,8 @@
 			href="/checkout/return{queryString}"
 			title={m.return_label()}
 			description={m.return_description()}
-			icon={Undo2}
+			icon={HandHelping}
 			iconColorValue="var(--bw-checkout-icon-return)"
-			size="large"
-		/>
-
-		<NavigationCard
-			href="/checkout/list{queryString}"
-			title={m.list_label()}
-			description={m.list_description()}
-			icon={List}
-			iconColorValue="var(--bw-checkout-icon-list)"
 			size="large"
 		/>
 
@@ -57,6 +48,15 @@
 			description={m.account_description()}
 			icon={User}
 			iconColorValue="var(--bw-checkout-icon-account)"
+			size="large"
+		/>
+
+		<NavigationCard
+			href="/checkout/list{queryString}"
+			title={m.list_label()}
+			description={m.list_description()}
+			icon={Library}
+			iconColorValue="var(--bw-checkout-icon-list)"
 			size="large"
 		/>
 	</nav>
