@@ -91,6 +91,7 @@
 	"no_fees": "No fees",
 	"date": "Date",
 	"medium": "Medium",
+	"media": "Media",
 	"comment": "Comment",
 	"get_account": "Get Account",
 	"account": "Account",
@@ -151,5 +152,17 @@
 	"enter_your_password": "Enter your password",
 	"logging_in": "Logging in",
 	"login": "Login",
-	"reload": "Reload"
+	"finish_and_logout": "Finish & Logout",
+	"close": "Close",
+	"reader": "Reader",
+	"no_selection": "No selection",
+	"no_readers": "No readers",
+	"connected": "Connected",
+	"offline": "Offline",
+	"no_readers_available": "No readers available",
+	"detected_at": "Detected at",
+	"media_information_unavailable": "Media information unavailable",
+	"reload": "Reload",
+	"borrowed": "borrowed",
+	"returned": "returned"
 }

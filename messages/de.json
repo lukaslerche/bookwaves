@@ -91,6 +91,7 @@
 	"no_fees": "Keine Gebühren",
 	"date": "Datum",
 	"medium": "Medium",
+	"media": "Medien",
 	"comment": "Kommentar",
 	"get_account": "Konto abrufen",
 	"account": "Konto",
@@ -151,6 +152,8 @@
 	"enter_your_password": "Gib dein Passwort ein",
 	"logging_in": "Wird angemeldet",
 	"login": "Anmelden",
+	"finish_and_logout": "Fertigstellen & abmelden",
+	"close": "Schließen",
 	"reader": "Lesegerät",
 	"no_selection": "Keine Auswahl",
 	"no_readers": "Keine Lesegeräte",
@@ -159,5 +162,7 @@
 	"no_readers_available": "Keine Lesegeräte verfügbar",
 	"detected_at": "Erkannt am",
 	"media_information_unavailable": "Medieninformationen nicht verfügbar",
-	"reload": "Neu laden"
+	"reload": "Neu laden",
+	"borrowed": "ausgeliehen",
+	"returned": "zurückgegeben"
 }

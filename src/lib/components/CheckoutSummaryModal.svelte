@@ -15,7 +15,7 @@
 	const successfulItems = $derived(getSuccessfulItems(session));
 	const failedItems = $derived(session.items.filter((item) => item.status !== 'success'));
 
-	const actionText = $derived(session.type === 'borrow' ? 'borrowed' : 'returned');
+	const actionText = $derived(session.type === 'borrow' ? m.borrowed() : m.returned());
 
 	const fallbackDirective: LmsReturnDirective = {
 		binId: 'unspecified',
@@ -55,7 +55,7 @@
 
 		<div class="modal-action mt-0 mb-6">
 			<button class="btn btn-block btn-primary" onclick={onConfirm}>
-				{successfulItems.length > 0 ? 'Finish & Logout' : 'Close'}
+				{successfulItems.length > 0 ? m.finish_and_logout() : m.close()}
 			</button>
 		</div>
 
@@ -64,7 +64,7 @@
 				<h4 class="mb-3 text-lg font-semibold text-success">
 					✓ {m.successfully()}
 					{actionText}: {successfulItems.length}
-					{successfulItems.length === 1 ? 'item' : 'items'}
+					{successfulItems.length === 1 ? m.medium() : m.media()}
 				</h4>
 
 				<ul class="space-y-2">
@@ -90,12 +90,17 @@
 									{item.mediaItem?.shelfmark ?? '—'}
 								</div>
 								{#if directive}
-									<div class="flex items-center justify-center">
+									<div class="flex flex-col items-end justify-center gap-1">
 										<div
 											class={`badge badge-lg ${getDirectiveBadgeClass(directive.color)} rounded-md px-4`}
 										>
 											{directive.label}
 										</div>
+										{#if directive.message}
+											<p class="max-w-48 text-right text-xs text-base-content/70">
+												{directive.message}
+											</p>
+										{/if}
 									</div>
 								{:else}
 									<div></div>
@@ -111,7 +116,7 @@
 			<div class="mb-6">
 				<h4 class="mb-3 text-lg font-semibold text-warning">
 					⚠ {failedItems.length}
-					{failedItems.length === 1 ? 'item' : 'items'}
+					{failedItems.length === 1 ? m.medium() : m.media()}
 					{m.could_not_be_processed()}
 				</h4>
 				<ul class="space-y-2">

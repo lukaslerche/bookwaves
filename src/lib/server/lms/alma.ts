@@ -211,9 +211,9 @@ export class AlmaLMS implements LibraryManagementSystem {
 		if (location.includes('children') || library.includes('children')) {
 			return {
 				binId: 'blue',
-				label: 'Blue bin',
+				label: 'Blue shelf',
 				color: 'blue',
-				message: 'Place this item in the blue sorting bin',
+				message: 'Place this item in the blue sorting shelf',
 				sortOrder: 2
 			};
 		}
@@ -221,18 +221,18 @@ export class AlmaLMS implements LibraryManagementSystem {
 		if (location.includes('fiction') || location.includes('fantasy')) {
 			return {
 				binId: 'red',
-				label: 'Red bin',
+				label: 'Red shelf',
 				color: 'red',
-				message: 'Place this item in the red sorting bin',
+				message: 'Place this item in the red sorting shelf',
 				sortOrder: 1
 			};
 		}
 
 		return {
-			binId: 'green',
-			label: 'Green bin',
-			color: 'green',
-			message: 'Place this item in the green sorting bin',
+			binId: 'yellow',
+			label: 'Yellow shelf',
+			color: 'yellow',
+			message: 'Place this item in the yellow sorting shelf',
 			sortOrder: 3
 		};
 	}
