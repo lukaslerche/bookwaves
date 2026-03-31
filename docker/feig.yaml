@@ -33,6 +33,12 @@ loggers:
 # Allow all origins for CORS (defaults to false)
 corsAnyHost: false
 
+# CSV file logging for successful /initialize operations
+# Set to false to disable file logging entirely
+tagFileLoggingEnabled: true
+# Path inside the runtime/container filesystem
+tagFileLoggingPath: /logs/taggingLog.csv
+
 # Reader configurations
 readers:
   - name: reader1
