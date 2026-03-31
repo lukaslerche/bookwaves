@@ -1,7 +1,13 @@
 // These are the remote function calls to interact with the LMS from the client side (browser, +page.svelte)
 
 import { command, getRequestEvent, query } from '$app/server';
-import type { LibraryManagementSystem, LmsActionResult } from './lms';
+import type {
+	LibraryManagementSystem,
+	LmsActionResult,
+	LmsFee,
+	LmsPickup,
+	LmsRequest
+} from './lms';
 //import * as serverLms from '$lib/server/lms';
 import { getLms } from '../server/lms/resolve';
 import * as v from 'valibot';
@@ -30,6 +36,18 @@ export const getAccount = query(async () => {
 export const getLoans = query(async () => {
 	await resumeUserFromCookie();
 	return lms.getLoans();
+});
+export const getRequests = query(async (): Promise<LmsRequest[]> => {
+	await resumeUserFromCookie();
+	return lms.getRequests();
+});
+export const getPickups = query(async (): Promise<LmsPickup[]> => {
+	await resumeUserFromCookie();
+	return lms.getPickups();
+});
+export const getFees = query(async (): Promise<LmsFee[]> => {
+	await resumeUserFromCookie();
+	return lms.getFees();
 });
 
 export const loginUser = command(

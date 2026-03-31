@@ -18,7 +18,16 @@ export const load = (async ({ cookies }) => {
 	if (!userId) {
 		logger.info('No auth cookie found for checkout/account load');
 		await lms.logoutUser();
-		return { account: null, loans: [], authUser: null, requiresAuth: true, loginMode };
+		return {
+			account: null,
+			loans: [],
+			requests: [],
+			pickups: [],
+			fees: [],
+			authUser: null,
+			requiresAuth: true,
+			loginMode
+		};
 	}
 
 	const loggedIn = await lms.loginUser(userId);
@@ -27,18 +36,57 @@ export const load = (async ({ cookies }) => {
 		logger.warn({ userId }, 'Stored auth cookie failed to login in checkout/account');
 		clearAuthCookie(cookies);
 		await lms.logoutUser();
-		return { account: null, loans: [], authUser: null, requiresAuth: true, loginMode };
+		return {
+			account: null,
+			loans: [],
+			requests: [],
+			pickups: [],
+			fees: [],
+			authUser: null,
+			requiresAuth: true,
+			loginMode
+		};
 	}
 
 	try {
 		const account = await lms.getAccount();
 		const loans = await lms.getLoans();
-		logger.info({ userId, loanCount: loans.length }, 'Loaded checkout/account data');
-		return { account, loans, authUser: userId, requiresAuth: false, loginMode };
+		const requests = await lms.getRequests();
+		const pickups = await lms.getPickups();
+		const fees = await lms.getFees();
+		logger.info(
+			{
+				userId,
+				loanCount: loans.length,
+				requestCount: requests.length,
+				pickupCount: pickups.length,
+				feeCount: fees.length
+			},
+			'Loaded checkout/account data'
+		);
+		return {
+			account,
+			loans,
+			requests,
+			pickups,
+			fees,
+			authUser: userId,
+			requiresAuth: false,
+			loginMode
+		};
 	} catch (error) {
 		logger.error({ err: error }, 'Failed to load account data');
 		clearAuthCookie(cookies);
 		await lms.logoutUser();
-		return { account: null, loans: [], authUser: null, requiresAuth: true, loginMode };
+		return {
+			account: null,
+			loans: [],
+			requests: [],
+			pickups: [],
+			fees: [],
+			authUser: null,
+			requiresAuth: true,
+			loginMode
+		};
 	}
 }) satisfies PageServerLoad;

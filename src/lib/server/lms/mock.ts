@@ -1,4 +1,7 @@
 import type {
+	LmsFee,
+	LmsPickup,
+	LmsRequest,
 	LibraryManagementSystem,
 	LmsActionResult,
 	LmsReturnDirective,
@@ -181,6 +184,82 @@ const mediaDatabase: Map<string, MediaItem> = new Map([
 
 let currentUser: string | null = null;
 
+const mockRequests: LmsRequest[] = [
+	{
+		requestId: 'REQ-1037',
+		title: 'Hold shelf request',
+		fullTitle: 'Hold shelf request',
+		author: 'Ursula K. Le Guin',
+		year: '1969',
+		shelfmark: 'SF LEG 1969',
+		requestType: 'HOLD',
+		requestSubType: 'Physical Item',
+		pickupLocation: 'Main Branch',
+		requestStatus: 'IN_PROCESS',
+		placeInQueue: 2,
+		requestDate: '2026-03-22T09:00:00.000Z',
+		manualDescription: '2025'
+	},
+	{
+		requestId: 'REQ-1031',
+		title: 'Interlibrary loan',
+		fullTitle: 'Interlibrary loan',
+		author: 'N.K. Jemisin',
+		year: '2015',
+		shelfmark: 'SF JEM 2015',
+		requestType: 'PATRON_PHYSICAL',
+		requestSubType: 'Fernleihe',
+		pickupLocation: 'West Annex',
+		requestStatus: 'IN_PROCESS',
+		placeInQueue: 1,
+		requestDate: '2026-03-20T10:00:00.000Z'
+	},
+	{
+		requestId: 'REQ-1024',
+		title: 'Special collection scan',
+		fullTitle: 'Special collection scan',
+		author: 'Aby Warburg',
+		year: '1928',
+		requestType: 'DIGITIZATION',
+		requestSubType: 'Digitization',
+		pickupLocation: 'DIGITIZATION',
+		requestStatus: 'ON_HOLD_SHELF',
+		requestDate: '2026-03-18T11:00:00.000Z',
+		expiryDate: '2026-04-04T18:00:00.000Z',
+		shelfmark: 'SC 904.2 ART'
+	}
+];
+
+const mockFees: LmsFee[] = [
+	{
+		type: 'Overdue',
+		balance: 2.75,
+		currency: 'USD',
+		status: 'Unpaid',
+		title: 'The Left Hand of Darkness',
+		author: 'Ursula K. Le Guin',
+		year: '1969',
+		creationTime: '2026-03-01T10:00:00.000Z'
+	},
+	{
+		type: 'Replacement',
+		balance: 18,
+		currency: 'USD',
+		status: 'Pending',
+		title: 'Replacement cost',
+		comment: 'Lost media replacement pending at circulation desk',
+		creationTime: '2026-02-25T09:30:00.000Z'
+	},
+	{
+		type: 'Processing',
+		balance: 1.25,
+		currency: 'USD',
+		status: 'Paid',
+		title: 'Processing fee',
+		creationTime: '2026-02-10T13:15:00.000Z'
+	}
+];
+
 function getMockReturnDirective(item: MediaItem): LmsReturnDirective {
 	const location = item.location?.toLowerCase() ?? '';
 	const author = item.author?.toLowerCase() ?? '';
@@ -239,10 +318,41 @@ export const mockLMS: LibraryManagementSystem = {
 			return [];
 		}
 
-		const borrowedItems = Array.from(mediaDatabase.values()).filter(
-			(item) => item.status === 'borrowed'
-		);
+		const borrowedItems = Array.from(mediaDatabase.values())
+			.filter((item) => item.status === 'borrowed')
+			.map((item, index) => ({
+				...item,
+				year: item.date,
+				loanDate: `2026-03-${String(index + 1).padStart(2, '0')}T09:00:00.000Z`,
+				dueDate: `2026-04-${String(index + 1).padStart(2, '0')}T17:00:00.000Z`,
+				returnLibrary: item.library
+			}));
 		return borrowedItems;
+	},
+	async getRequests(): Promise<LmsRequest[]> {
+		if (!currentUser) {
+			return [];
+		}
+
+		return mockRequests
+			.filter((request) => request.requestStatus !== 'ON_HOLD_SHELF')
+			.toSorted((a, b) => (a.requestDate ?? '').localeCompare(b.requestDate ?? ''));
+	},
+	async getPickups(): Promise<LmsPickup[]> {
+		if (!currentUser) {
+			return [];
+		}
+
+		return mockRequests
+			.filter((request) => request.requestStatus === 'ON_HOLD_SHELF')
+			.toSorted((a, b) => (a.expiryDate ?? '').localeCompare(b.expiryDate ?? ''));
+	},
+	async getFees(): Promise<LmsFee[]> {
+		if (!currentUser) {
+			return [];
+		}
+
+		return mockFees.toSorted((a, b) => (a.creationTime ?? '').localeCompare(b.creationTime ?? ''));
 	},
 	async logoutUser(): Promise<boolean> {
 		currentUser = null;

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import Account from '$lib/components/Account.svelte';
 	import LoginModal from '$lib/components/LoginModal.svelte';
 	import type { PageProps } from './$types';
 	import { page } from '$app/state';
@@ -11,23 +10,6 @@
 	import { m } from '$lib/paraglide/messages';
 
 	let { data }: PageProps = $props();
-
-	const mockOrders = [
-		{ id: 'ORD-1037', title: 'Hold shelf request', status: 'Processing', total: 'USD 6.50' },
-		{ id: 'ORD-1031', title: 'Interlibrary loan', status: 'Shipped', total: 'USD 12.00' },
-		{ id: 'ORD-1024', title: 'Special collection scan', status: 'Completed', total: 'USD 4.00' }
-	];
-
-	const mockPickups = [
-		{ code: 'PU-7712', location: 'Main Branch', window: 'Feb 6, 9:00-18:00' },
-		{ code: 'PU-7698', location: 'West Annex', window: 'Feb 7, 10:00-16:00' }
-	];
-
-	const mockFees = [
-		{ type: 'Overdue', amount: 'USD 2.75', status: 'Unpaid' },
-		{ type: 'Replacement', amount: 'USD 18.00', status: 'Pending' },
-		{ type: 'Processing', amount: 'USD 1.25', status: 'Paid' }
-	];
 
 	const needsLogin = $derived(data.requiresAuth || !data.account);
 	const loginMode = $derived(data.loginMode ?? 'username_password');
@@ -72,6 +54,54 @@
 		logoutUser();
 		goto(`/checkout${queryString}`);
 	}
+
+	function formatDate(value?: string): string {
+		if (!value) return '-';
+		const date = new Date(value);
+		return Number.isNaN(date.getTime()) ? '-' : date.toLocaleDateString();
+	}
+
+	function formatLoanDuration(from?: string, to?: string): string {
+		return `${formatDate(from)} - ${formatDate(to)}`;
+	}
+
+	function formatTitleAuthorYear(item: {
+		title?: string;
+		author?: string;
+		year?: string;
+		date?: string;
+	}): string {
+		const title = item.title?.trim() || '-';
+		const author = item.author?.trim();
+		const year = item.year?.trim() || item.date?.trim();
+
+		if (author && year) return `${title} - ${author} (${year})`;
+		if (author) return `${title} - ${author}`;
+		if (year) return `${title} (${year})`;
+		return title;
+	}
+
+	function formatMoney(balance: number, currency?: string): string {
+		return new Intl.NumberFormat(undefined, {
+			style: 'currency',
+			currency: currency || 'EUR'
+		}).format(balance);
+	}
+
+	function formatFeeComment(comment?: string): string {
+		if (!comment?.trim()) return '-';
+		if (comment.startsWith('Date generated:')) {
+			return comment.split('Profile:')[1] || comment.split('Profile/s:')[1] || comment;
+		}
+		return comment;
+	}
+
+	function hasFeeMedium(fee: { title?: string; author?: string; year?: string }): boolean {
+		return Boolean(fee.title?.trim() || fee.author?.trim() || fee.year?.trim());
+	}
+
+	const feesTotal = $derived(data.fees.reduce((sum, fee) => sum + fee.balance, 0));
+	const feesCurrency = $derived(data.fees[0]?.currency ?? 'EUR');
 </script>
 
 {#if showLoginModal}
@@ -88,7 +118,9 @@
 					</div>
 					<div class="text-white">
 						<h1 class="text-4xl font-bold drop-shadow-lg">{m.your_account()}</h1>
-						<p class="text-base opacity-90">{m.your_account_description()}</p>
+						<p class="text-base opacity-90">
+							{m.your_account_description()}{#if data.account}: {data.account.name}{/if}
+						</p>
 					</div>
 				</div>
 				<div class="md:ml-auto">
@@ -99,102 +131,133 @@
 			</header>
 
 			{#if data.account}
-				<div class="mb-8">
-					<Account
-						name={data.account.name}
-						fees={data.account.fees}
-						borrowedCount={data.account.loans}
-					/>
-					<div class="mt-6">
-						<div role="tablist" class="tabs-lift tabs w-full tabs-lg">
-							<label class="tab">
-								<input type="radio" name="account_tabs" checked />
-								<User class="me-2 size-4" />
-								{m.loans()}
-							</label>
-							<div class="tab-content border-base-300 bg-base-100 p-6">
-								<h2 class="text-2xl font-semibold">{m.current_loans()}</h2>
-								{#if data.loans.length === 0}
-									<p class="mt-4 text-center text-sm opacity-70">{m.no_current_loans()}.</p>
-								{:else}
-									<ul class="mt-4 space-y-2">
-										{#each data.loans as loan (loan.barcode)}
-											<li
-												class="flex flex-row items-center justify-between rounded-lg bg-base-100 p-4"
-											>
-												<div>
-													<p class="font-semibold">{loan.title}</p>
-													<p class="text-sm opacity-70">Barcode: {loan.barcode}</p>
-												</div>
-												<!-- TODO<div class="text-sm opacity-70">Due: NOT IMPLEMENTED</div>-->
-											</li>
-										{/each}
-									</ul>
-								{/if}
-							</div>
-
-							<label class="tab">
-								<input type="radio" name="account_tabs" />
-								<ShoppingCart class="me-2 size-4" />
-								{m.orders()}
-							</label>
-							<div class="tab-content border-base-300 bg-base-100 p-6">
-								<h2 class="text-2xl font-semibold">{m.recent_orders()}</h2>
+				<div class="mt-6 mb-8">
+					<div role="tablist" class="tabs-lift tabs w-full tabs-lg">
+						<label class="tab">
+							<input type="radio" name="account_tabs" checked />
+							<User class="me-2 size-4" />
+							{m.loans()} ({data.loans.length})
+						</label>
+						<div class="tab-content border-base-300 bg-base-100 p-6">
+							<h2 class="text-2xl font-semibold">{m.current_loans()}</h2>
+							{#if data.loans.length === 0}
+								<p class="mt-4 text-center text-sm opacity-70">{m.no_current_loans()}.</p>
+							{:else}
 								<ul class="mt-4 space-y-2">
-									{#each mockOrders as order (order.id)}
-										<li class="rounded-lg bg-base-100 p-4">
-											<div class="flex items-center justify-between">
-												<p class="font-semibold">{order.title}</p>
-												<p class="text-sm opacity-70">{order.id}</p>
-											</div>
-											<div class="mt-1 flex items-center justify-between text-sm opacity-70">
-												<span>Status: {order.status}</span>
-												<span>{m.total()}: {order.total}</span>
+									{#each data.loans as loan (loan.barcode)}
+										<li class="rounded-lg bg-base-100 p-3">
+											<div class="grid gap-x-4 gap-y-1 text-sm md:grid-cols-2">
+												<p class="font-semibold md:col-span-2">{formatTitleAuthorYear(loan)}</p>
+												<p class="opacity-70">{m.shelfmark()}: {loan.shelfmark ?? '-'}</p>
+												<p class="opacity-70">
+													{m.return_to()}: {loan.returnLibrary ?? loan.library ?? '-'}
+												</p>
+												<p class="opacity-70 md:col-span-2">
+													{m.loan_duration()}: {formatLoanDuration(loan.loanDate, loan.dueDate)}
+												</p>
 											</div>
 										</li>
 									{/each}
 								</ul>
-							</div>
+							{/if}
+						</div>
 
-							<label class="tab">
-								<input type="radio" name="account_tabs" />
-								<Package class="me-2 size-4" />
-								{m.pickups()}
-							</label>
-							<div class="tab-content border-base-300 bg-base-100 p-6">
-								<h2 class="text-2xl font-semibold">{m.pickup_windows()}</h2>
+						<label class="tab">
+							<input type="radio" name="account_tabs" />
+							<ShoppingCart class="me-2 size-4" />
+							{m.orders()} ({data.requests.length})
+						</label>
+						<div class="tab-content border-base-300 bg-base-100 p-6">
+							<h2 class="text-2xl font-semibold">{m.recent_orders()}</h2>
+							{#if data.requests.length === 0}
+								<p class="mt-4 text-center text-sm opacity-70">{m.no_current_loans()}.</p>
+							{:else}
 								<ul class="mt-4 space-y-2">
-									{#each mockPickups as pickup (pickup.code)}
-										<li class="rounded-lg bg-base-100 p-4">
-											<div class="flex items-center justify-between">
-												<p class="font-semibold">{pickup.location}</p>
-												<p class="text-sm opacity-70">{pickup.code}</p>
+									{#each data.requests as request (request.requestId)}
+										<li class="rounded-lg bg-base-100 p-3">
+											<div class="grid gap-x-4 gap-y-1 text-sm md:grid-cols-2">
+												<p class="font-semibold md:col-span-2">{formatTitleAuthorYear(request)}</p>
+												<p class="opacity-70">{m.pickup_from()}: {request.pickupLocation ?? '-'}</p>
+												<p class="opacity-70">
+													{m.requested_on()}: {formatDate(request.requestDate)}
+												</p>
+												<p class="opacity-70">
+													{m.queue_position()}: {request.placeInQueue ?? '-'}
+												</p>
+												<p class="opacity-70">{m.status()}: {request.requestStatus ?? '-'}</p>
+												<p class="opacity-70 md:col-span-2">
+													{m.request_type()}: {request.requestSubType ?? request.requestType ?? '-'}
+												</p>
 											</div>
-											<p class="mt-1 text-sm opacity-70">{m.window()}: {pickup.window}</p>
 										</li>
 									{/each}
 								</ul>
-							</div>
+							{/if}
+						</div>
 
-							<label class="tab">
-								<input type="radio" name="account_tabs" />
-								<Receipt class="me-2 size-4" />
-								{m.fees()}
-							</label>
-							<div class="tab-content border-base-300 bg-base-100 p-6">
-								<h2 class="text-2xl font-semibold">{m.fees()} & {m.balances()}</h2>
+						<label class="tab">
+							<input type="radio" name="account_tabs" />
+							<Package class="me-2 size-4" />
+							{m.pickups()} ({data.pickups.length})
+						</label>
+						<div class="tab-content border-base-300 bg-base-100 p-6">
+							<h2 class="text-2xl font-semibold">{m.pickup_windows()}</h2>
+							{#if data.pickups.length === 0}
+								<p class="mt-4 text-center text-sm opacity-70">{m.no_current_loans()}.</p>
+							{:else}
 								<ul class="mt-4 space-y-2">
-									{#each mockFees as fee (fee.type + '-' + fee.amount)}
-										<li class="flex items-center justify-between rounded-lg bg-base-100 p-4">
-											<div>
+									{#each data.pickups as pickup (pickup.requestId)}
+										<li class="rounded-lg bg-base-100 p-3">
+											<div class="grid gap-x-4 gap-y-1 text-sm md:grid-cols-2">
+												<p class="font-semibold md:col-span-2">{formatTitleAuthorYear(pickup)}</p>
+												<p class="opacity-70">{m.shelfmark()}: {pickup.shelfmark ?? '-'}</p>
+												<p class="opacity-70">
+													{m.pickup_until()}: {formatDate(pickup.expiryDate)}
+												</p>
+												<p class="opacity-70">{m.pickup_from()}: {pickup.pickupLocation ?? '-'}</p>
+												<p class="opacity-70">
+													{m.request_type()}: {pickup.requestSubType ?? pickup.requestType ?? '-'}
+												</p>
+											</div>
+										</li>
+									{/each}
+								</ul>
+							{/if}
+						</div>
+
+						<label class="tab">
+							<input type="radio" name="account_tabs" />
+							<Receipt class="me-2 size-4" />
+							{m.fees()} ({formatMoney(feesTotal, feesCurrency)})
+						</label>
+						<div class="tab-content border-base-300 bg-base-100 p-6">
+							<h2 class="text-2xl font-semibold">{m.fees()} & {m.balances()}</h2>
+							{#if data.fees.length === 0}
+								<p class="mt-4 text-center text-sm opacity-70">{m.no_fees()}.</p>
+							{:else}
+								<ul class="mt-4 space-y-2">
+									{#each data.fees as fee (fee.type + '-' + fee.balance + '-' + (fee.creationTime ?? ''))}
+										<li class="rounded-lg bg-base-100 p-3">
+											<div class="grid gap-x-4 gap-y-1 text-sm md:grid-cols-[1fr_auto]">
 												<p class="font-semibold">{fee.type}</p>
-												<p class="text-sm opacity-70">Status: {fee.status}</p>
+												<p class="text-right font-medium opacity-80">
+													{formatMoney(fee.balance, fee.currency)}
+												</p>
+												<p class="opacity-70">{m.date()}: {formatDate(fee.creationTime)}</p>
+												<p class="text-right opacity-70">{m.status()}: {fee.status ?? '-'}</p>
+												{#if hasFeeMedium(fee)}
+													<p class="opacity-70 md:col-span-2">
+														{m.medium()}: {formatTitleAuthorYear(fee)}
+													</p>
+												{/if}
+												<p class="opacity-70 md:col-span-2">
+													{m.comment()}: {formatFeeComment(fee.comment)}
+												</p>
 											</div>
-											<p class="text-sm opacity-70">{fee.amount}</p>
 										</li>
 									{/each}
 								</ul>
-							</div>
+							{/if}
 						</div>
 					</div>
 				</div>

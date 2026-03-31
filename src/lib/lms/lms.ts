@@ -14,6 +14,7 @@ export const MediaItemSchema = v.object({
 	barcode: v.string(),
 	title: v.optional(v.string()),
 	author: v.optional(v.string()),
+	year: v.optional(v.string()),
 	edition: v.optional(v.string()),
 	place: v.optional(v.string()),
 	date: v.optional(v.string()),
@@ -23,6 +24,9 @@ export const MediaItemSchema = v.object({
 	library: v.optional(v.string()),
 	location: v.optional(v.string()),
 	shelfmark: v.optional(v.string()),
+	loanDate: v.optional(v.string()),
+	dueDate: v.optional(v.string()),
+	returnLibrary: v.optional(v.string()),
 	returnDirective: v.optional(LmsReturnDirectiveSchema)
 });
 
@@ -47,6 +51,38 @@ export type LmsActionFailure = {
 
 export type LmsActionResult = LmsActionSuccess | LmsActionFailure;
 
+export interface LmsRequest {
+	requestId: string;
+	title: string;
+	fullTitle?: string;
+	author?: string;
+	year?: string;
+	requestType?: string;
+	requestSubType?: string;
+	pickupLocation?: string;
+	requestStatus?: string;
+	placeInQueue?: number;
+	requestDate?: string;
+	expiryDate?: string;
+	manualDescription?: string;
+	itemId?: string;
+	shelfmark?: string;
+}
+
+export type LmsPickup = LmsRequest;
+
+export interface LmsFee {
+	type: string;
+	balance: number;
+	currency?: string;
+	status?: string;
+	title?: string;
+	author?: string;
+	year?: string;
+	comment?: string;
+	creationTime?: string;
+}
+
 export interface CheckoutContext {
 	checkoutProfileId?: string;
 	library?: string;
@@ -67,6 +103,9 @@ export interface LibraryManagementSystem {
 	loginUser(user: string, password?: string): Promise<boolean>;
 	getAccount(): Promise<{ name: string; fees: number; loans: number }>;
 	getLoans(): Promise<MediaItem[]>;
+	getRequests(): Promise<LmsRequest[]>;
+	getPickups(): Promise<LmsPickup[]>;
+	getFees(): Promise<LmsFee[]>;
 	logoutUser(): Promise<boolean>;
 
 	/**

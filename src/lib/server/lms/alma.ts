@@ -1,5 +1,8 @@
 import type {
 	CheckoutContext,
+	LmsFee,
+	LmsPickup,
+	LmsRequest,
 	LibraryManagementSystem,
 	LmsActionResult,
 	LmsReturnDirective,
@@ -98,14 +101,98 @@ const ItemLoanSchema = v.object({
 	title: v.string(),
 	author: v.string(),
 	publication_year: v.string(),
-	location_code: LocationCodeSchema
-	//due_date: v.pipe(v.string(), v.isoDateTime()) // TODO parse date strings properly
+	location_code: LocationCodeSchema,
+	loan_date: v.optional(v.string()),
+	due_date: v.optional(v.string()),
+	alternative_call_number: v.optional(v.string()),
+	call_number: v.optional(v.string())
 });
 
 export const ItemLoanResponseSchema = v.object({
 	item_loan: v.optional(v.array(ItemLoanSchema)),
 	total_record_count: v.number()
 });
+
+const RequestSubTypeSchema = v.object({
+	value: v.optional(v.string()),
+	desc: v.optional(v.string())
+});
+
+const UserRequestSchema = v.object({
+	request_id: v.string(),
+	title: v.optional(v.string()),
+	request_type: v.optional(v.string()),
+	request_sub_type: v.optional(RequestSubTypeSchema),
+	pickup_location: v.optional(v.string()),
+	request_status: v.optional(v.string()),
+	place_in_queue: v.optional(v.union([v.number(), v.string()])),
+	request_date: v.optional(v.string()),
+	expiry_date: v.optional(v.string()),
+	manual_description: v.optional(v.string()),
+	item_id: v.optional(v.string()),
+	author: v.optional(v.string()),
+	chapter_title: v.optional(v.string()),
+	journal_title: v.optional(v.string()),
+	volume: v.optional(v.string()),
+	issue: v.optional(v.string()),
+	pages: v.optional(v.string()),
+	publication_year: v.optional(v.union([v.string(), v.number()])),
+	shelf_mark: v.optional(v.string()),
+	call_number: v.optional(v.string())
+});
+
+const UserRequestsResponseSchema = v.object({
+	user_request: v.optional(v.array(UserRequestSchema)),
+	total_record_count: v.optional(v.number())
+});
+
+const AlmaFeeSchema = v.object({
+	type: v.union([v.string(), ValueDescLinkSchema]),
+	balance: v.union([v.number(), v.string()]),
+	title: v.optional(v.string()),
+	author: v.optional(v.string()),
+	publication_year: v.optional(v.union([v.string(), v.number()])),
+	comment: v.optional(v.string()),
+	creation_time: v.optional(v.string()),
+	status: v.optional(v.union([v.string(), ValueDescLinkSchema]))
+});
+
+const FeesResponseSchema = v.object({
+	total_record_count: v.optional(v.number()),
+	total_sum: v.optional(v.union([v.number(), v.string()])),
+	currency: v.optional(v.union([v.string(), ValueDescLinkSchema])),
+	fee: v.optional(v.array(AlmaFeeSchema))
+});
+
+function extractValueDesc(input: unknown): { value?: string; desc?: string } {
+	if (typeof input === 'string') {
+		return { value: input, desc: input };
+	}
+
+	if (input && typeof input === 'object') {
+		const maybeObj = input as { value?: unknown; desc?: unknown };
+		return {
+			value: typeof maybeObj.value === 'string' ? maybeObj.value : undefined,
+			desc: typeof maybeObj.desc === 'string' ? maybeObj.desc : undefined
+		};
+	}
+
+	return {};
+}
+
+function parseBalance(input: unknown): number {
+	if (typeof input === 'number') {
+		return Number.isFinite(input) ? input : 0;
+	}
+
+	if (typeof input === 'string') {
+		const normalized = input.replace(',', '.').replace(/[^0-9.-]/g, '');
+		const parsed = Number.parseFloat(normalized);
+		return Number.isNaN(parsed) ? 0 : parsed;
+	}
+
+	return 0;
+}
 
 export class AlmaLMS implements LibraryManagementSystem {
 	private apiUrl: string;
@@ -271,18 +358,39 @@ export class AlmaLMS implements LibraryManagementSystem {
 			barcode: loan.item_barcode,
 			title: loan.title,
 			author: loan.author,
+			year: loan.publication_year,
 			edition: '',
 			place: '',
 			date: loan.publication_year,
 			publisher: '',
 			library: loan.library.desc ?? loan.library.value,
 			location: loan.location_code.name ?? loan.location_code.value,
-			shelfmark: '',
+			shelfmark: loan.alternative_call_number ?? loan.call_number ?? '',
+			loanDate: loan.loan_date,
+			dueDate: loan.due_date,
+			returnLibrary: loan.library.desc ?? loan.library.value,
 			status: 'On loan',
 			cover: `https://picsum.dev/120/180?seed=${encodeURIComponent(loan.title)}`
 		};
 		mediaItem.returnDirective = this.buildReturnDirective(mediaItem);
 		return mediaItem;
+	}
+
+	private inferRequestYear(request: v.InferOutput<typeof UserRequestSchema>): string | undefined {
+		if (typeof request.publication_year === 'number') {
+			return String(request.publication_year);
+		}
+
+		if (typeof request.publication_year === 'string' && request.publication_year.trim()) {
+			return request.publication_year.trim();
+		}
+
+		const fromManualDescription = request.manual_description?.trim();
+		if (fromManualDescription && /^\d{4}$/.test(fromManualDescription)) {
+			return fromManualDescription;
+		}
+
+		return undefined;
 	}
 
 	private mapItemToMediaItem(
@@ -308,6 +416,85 @@ export class AlmaLMS implements LibraryManagementSystem {
 		return mediaItem;
 	}
 
+	private buildFullRequestTitle(request: v.InferOutput<typeof UserRequestSchema>): string {
+		const titleParts = [request.title].filter((part): part is string => Boolean(part?.trim()));
+
+		const detailParts = [
+			request.chapter_title,
+			request.journal_title,
+			request.volume,
+			request.issue,
+			request.pages
+		].filter((part): part is string => Boolean(part?.trim()));
+
+		if (detailParts.length > 0) {
+			titleParts.push(detailParts.join(' | '));
+		}
+
+		if (request.author?.trim()) {
+			titleParts.push(request.author.trim());
+		}
+
+		return titleParts.join(' - ') || request.request_id;
+	}
+
+	private mapRequestToLmsRequest(request: v.InferOutput<typeof UserRequestSchema>): LmsRequest {
+		const placeInQueue =
+			typeof request.place_in_queue === 'number'
+				? request.place_in_queue
+				: Number.parseInt(request.place_in_queue ?? '', 10);
+
+		return {
+			requestId: request.request_id,
+			title: request.title ?? request.request_id,
+			fullTitle: this.buildFullRequestTitle(request),
+			author: request.author?.trim() || undefined,
+			year: this.inferRequestYear(request),
+			requestType: request.request_type,
+			requestSubType: request.request_sub_type?.desc ?? request.request_sub_type?.value,
+			pickupLocation: request.pickup_location ?? request.request_type,
+			requestStatus: request.request_status,
+			placeInQueue: Number.isNaN(placeInQueue) ? undefined : placeInQueue,
+			requestDate: request.request_date,
+			expiryDate: request.expiry_date,
+			manualDescription: request.manual_description,
+			itemId: request.item_id,
+			shelfmark: request.shelf_mark ?? request.call_number
+		};
+	}
+
+	private async fetchUserRequests(): Promise<v.InferOutput<typeof UserRequestSchema>[]> {
+		if (!this.currentUserId) {
+			return [];
+		}
+
+		const params = new URLSearchParams(this.params.toString());
+		params.set('limit', '100');
+
+		let res: Response;
+		try {
+			res = await fetch(
+				`${this.apiUrl}users/${encodeURIComponent(this.currentUserId)}/requests?${params.toString()}`
+			);
+		} catch {
+			throw new Error('Network error while fetching user requests');
+		}
+
+		if (!res.ok) {
+			throw new Error(`Error fetching user requests: ${res.statusText}`);
+		}
+
+		const requestsData = await res.json();
+		const parsedRequestsData = v.safeParse(UserRequestsResponseSchema, requestsData);
+
+		if (!parsedRequestsData.success) {
+			logger.error({ issues: parsedRequestsData.issues }, 'Parsed requests data error');
+			throw new Error('Invalid requests data format');
+		}
+
+		return parsedRequestsData.output.user_request ?? [];
+	}
+
 	constructor({ apiKey, apiUrl = DEFAULT_API_URL, checkoutProfiles = [] }: AlmaLmsOptions) {
 		if (!apiKey) {
 			throw new Error('Alma API key is required');
@@ -331,7 +518,7 @@ export class AlmaLMS implements LibraryManagementSystem {
 
 		this.params = new URLSearchParams({
 			apikey: this.apiKey,
-			lang: 'en',
+			lang: 'de',
 			format: 'json'
 		});
 
@@ -436,23 +623,115 @@ export class AlmaLMS implements LibraryManagementSystem {
 			throw new Error('Invalid loans data format');
 		}
 		for (const loan of parsedLoansData.output.item_loan ?? []) {
-			borrowedItems.push({
-				// TODO there are missing fields
-				barcode: loan.item_barcode,
-				title: loan.title,
-				author: loan.author,
-				edition: '',
-				place: '',
-				date: loan.publication_year,
-				publisher: '',
-				library: loan.library.desc ?? loan.library.value,
-				location: loan.location_code.name ?? loan.location_code.value,
-				shelfmark: '',
-				status: 'On loan',
-				cover: `https://picsum.dev/120/180?seed=${encodeURIComponent(loan.title)}`
-			});
+			borrowedItems.push(this.mapLoanToMediaItem(loan));
 		}
 		return borrowedItems;
+	}
+
+	async getRequests(): Promise<LmsRequest[]> {
+		if (!this.currentUserId) {
+			return [];
+		}
+
+		const requests = await this.fetchUserRequests();
+
+		return requests
+			.filter((request) => request.request_status !== 'ON_HOLD_SHELF')
+			.map((request) => this.mapRequestToLmsRequest(request))
+			.sort((a, b) => (a.requestDate ?? '').localeCompare(b.requestDate ?? ''));
+	}
+
+	async getPickups(): Promise<LmsPickup[]> {
+		if (!this.currentUserId) {
+			return [];
+		}
+
+		const requests = await this.fetchUserRequests();
+
+		return requests
+			.filter((request) => request.request_status === 'ON_HOLD_SHELF')
+			.map((request) => this.mapRequestToLmsRequest(request))
+			.sort((a, b) => (a.expiryDate ?? '').localeCompare(b.expiryDate ?? ''));
+	}
+
+	async getFees(): Promise<LmsFee[]> {
+		if (!this.currentUserId) {
+			return [];
+		}
+
+		let res: Response;
+		try {
+			res = await fetch(
+				`${this.apiUrl}users/${encodeURIComponent(this.currentUserId)}/fees?${this.params.toString()}`
+			);
+		} catch {
+			throw new Error('Network error while fetching user fees');
+		}
+
+		if (!res.ok) {
+			throw new Error(`Error fetching user fees: ${res.statusText}`);
+		}
+
+		const feesData: unknown = await res.json();
+		const parsedFeesData = v.safeParse(FeesResponseSchema, feesData);
+
+		let feeEntries: unknown[] = [];
+		let currency: string | undefined;
+
+		if (parsedFeesData.success) {
+			currency = extractValueDesc(parsedFeesData.output.currency).value;
+			feeEntries = parsedFeesData.output.fee ?? [];
+		} else {
+			logger.warn(
+				{ issues: parsedFeesData.issues, feesData },
+				'Parsed fees data warning; using fallback mapper'
+			);
+			if (feesData && typeof feesData === 'object') {
+				const raw = feesData as { fee?: unknown; currency?: unknown };
+				currency = extractValueDesc(raw.currency).value;
+				feeEntries = Array.isArray(raw.fee) ? raw.fee : [];
+			}
+		}
+
+		return feeEntries
+			.map((entry): LmsFee => {
+				const fee = entry as {
+					type?: unknown;
+					balance?: unknown;
+					status?: unknown;
+					title?: unknown;
+					author?: unknown;
+					publication_year?: unknown;
+					comment?: unknown;
+					creation_time?: unknown;
+				};
+
+				const type = extractValueDesc(fee.type).desc ?? extractValueDesc(fee.type).value ?? 'Fee';
+				const status = extractValueDesc(fee.status).desc ?? extractValueDesc(fee.status).value;
+				const title = typeof fee.title === 'string' ? fee.title : undefined;
+				const author = typeof fee.author === 'string' ? fee.author : undefined;
+				const year =
+					typeof fee.publication_year === 'number'
+						? String(fee.publication_year)
+						: typeof fee.publication_year === 'string'
+							? fee.publication_year
+							: undefined;
+				const comment = typeof fee.comment === 'string' ? fee.comment : undefined;
+				const creationTime = typeof fee.creation_time === 'string' ? fee.creation_time : undefined;
+
+				return {
+					type,
+					balance: parseBalance(fee.balance),
+					currency,
+					status,
+					title,
+					author,
+					year,
+					comment,
+					creationTime
+				};
+			})
+			.sort((a, b) => (a.creationTime ?? '').localeCompare(b.creationTime ?? ''));
 	}
 
 	async loginUser(user: string, password?: string): Promise<boolean> {
