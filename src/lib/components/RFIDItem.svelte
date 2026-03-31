@@ -12,6 +12,7 @@
 		highlight = false,
 		showRfidDetails = false,
 		onMediaItemLoaded,
+		showBadges = true,
 		showBin = true,
 		showSecurity = true,
 		showLibraryLocation = true,
@@ -21,6 +22,7 @@
 		highlight?: boolean;
 		showRfidDetails?: boolean;
 		onMediaItemLoaded?: (mediaItem: MediaItem | null) => void;
+		showBadges?: boolean;
 		showBin?: boolean;
 		showSecurity?: boolean;
 		showLibraryLocation?: boolean;
@@ -171,29 +173,31 @@
 							{mediaItem.date}
 						{/if}
 					</div>
-					<div class="mt-2 flex flex-wrap gap-2">
-						{#if mediaItem.status}
-							<div class="badge {getStatusBadgeClass(mediaItem.status)} badge-sm">
-								{mediaItem.status}
-							</div>
-						{/if}
-						<!--{#if mediaItem.status === 'borrowed' && mediaItem.dueDate}
-							<div class="badge badge-outline badge-sm">
-								Due: {mediaItem.dueDate.toLocaleDateString()}
-							</div>
-						{/if}-->
-						{#if showSecurity && item.secured !== undefined}
-							<div class="badge {getSecuredBadgeClass(item.secured)} badge-sm">
-								{#if item.secured}
-									<Lock size={16} />
-								{:else}
-									<LockOpen size={16} />
-								{/if}
-								{getSecuredText(item.secured)}
-							</div>
-						{/if}
-					</div>
-					{#if showLibraryLocation && (mediaItem.library || mediaItem.location)}
+					{#if showBadges}
+						<div class="mt-2 flex flex-wrap gap-2">
+							{#if mediaItem.status}
+								<div class="badge {getStatusBadgeClass(mediaItem.status)} badge-sm">
+									{mediaItem.status}
+								</div>
+							{/if}
+							<!--{#if mediaItem.status === 'borrowed' && mediaItem.dueDate}
+								<div class="badge badge-outline badge-sm">
+									Due: {mediaItem.dueDate.toLocaleDateString()}
+								</div>
+							{/if}-->
+							{#if showSecurity && item.secured !== undefined}
+								<div class="badge {getSecuredBadgeClass(item.secured)} badge-sm">
+									{#if item.secured}
+										<Lock size={16} />
+									{:else}
+										<LockOpen size={16} />
+									{/if}
+									{getSecuredText(item.secured)}
+								</div>
+							{/if}
+						</div>
+					{/if}
+					{#if showBadges && showLibraryLocation && (mediaItem.library || mediaItem.location)}
 						<div class="mt-2 flex flex-wrap gap-2 text-xs opacity-70">
 							{#if mediaItem.library}
 								<div class="badge badge-outline badge-sm">{mediaItem.library}</div>
@@ -204,14 +208,14 @@
 						</div>
 					{/if}
 				</div>
-				{#if mediaItem.shelfmark || (showBin && mediaItem.returnDirective)}
+				{#if mediaItem.shelfmark || (showBadges && showBin && mediaItem.returnDirective)}
 					<div class="flex min-w-40 items-center justify-center gap-3 text-center">
 						{#if mediaItem.shelfmark}
 							<span class="text-lg font-semibold text-base-content/70">
 								{mediaItem.shelfmark}
 							</span>
 						{/if}
-						{#if showBin && mediaItem.returnDirective}
+						{#if showBadges && showBin && mediaItem.returnDirective}
 							<span
 								class="badge badge-lg {getDirectiveBadgeClass(
 									mediaItem.returnDirective.color

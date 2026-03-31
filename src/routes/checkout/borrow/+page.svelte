@@ -453,6 +453,7 @@
 										<div class="flex-1 md:max-w-[75%] md:basis-3/4">
 											<RFIDItem
 												item={item.rfidData}
+												showBadges={false}
 												bind:this={item.component}
 												onMediaItemLoaded={(mediaItem) => handleMediaItemLoaded(item, mediaItem)}
 											/>
