@@ -107,22 +107,18 @@
 					/>
 					<div class="mt-6">
 						<div role="tablist" class="tabs-lift tabs w-full tabs-lg">
-							<label
-								class="tab [--tab-bg:color-mix(in_oklab,var(--color-primary),white_15%)] [--tab-border-color:var(--color-primary)]"
-							>
+							<label class="tab">
 								<input type="radio" name="account_tabs" checked />
 								<User class="me-2 size-4" />
 								{m.loans()}
 							</label>
-							<div
-								class="tab-content border-base-300 bg-(--tab-bg) p-6 [--tab-bg:color-mix(in_oklab,var(--color-primary),white_15%)]"
-							>
+							<div class="tab-content border-base-300 bg-base-100 p-6">
 								<h2 class="text-2xl font-semibold">{m.current_loans()}</h2>
 								{#if data.loans.length === 0}
 									<p class="mt-4 text-center text-sm opacity-70">{m.no_current_loans()}.</p>
 								{:else}
 									<ul class="mt-4 space-y-2">
-										{#each data.loans as loan}
+										{#each data.loans as loan (loan.barcode)}
 											<li
 												class="flex flex-row items-center justify-between rounded-lg bg-base-100 p-4"
 											>
@@ -137,19 +133,15 @@
 								{/if}
 							</div>
 
-							<label
-								class="tab [--tab-bg:color-mix(in_oklab,var(--color-secondary),white_15%)] [--tab-border-color:var(--color-secondary)]"
-							>
+							<label class="tab">
 								<input type="radio" name="account_tabs" />
 								<ShoppingCart class="me-2 size-4" />
 								{m.orders()}
 							</label>
-							<div
-								class="tab-content border-base-300 bg-(--tab-bg) p-6 [--tab-bg:color-mix(in_oklab,var(--color-secondary),white_15%)]"
-							>
+							<div class="tab-content border-base-300 bg-base-100 p-6">
 								<h2 class="text-2xl font-semibold">{m.recent_orders()}</h2>
 								<ul class="mt-4 space-y-2">
-									{#each mockOrders as order}
+									{#each mockOrders as order (order.id)}
 										<li class="rounded-lg bg-base-100 p-4">
 											<div class="flex items-center justify-between">
 												<p class="font-semibold">{order.title}</p>
@@ -164,19 +156,15 @@
 								</ul>
 							</div>
 
-							<label
-								class="tab [--tab-bg:color-mix(in_oklab,var(--color-accent),white_15%)] [--tab-border-color:var(--color-accent)]"
-							>
+							<label class="tab">
 								<input type="radio" name="account_tabs" />
 								<Package class="me-2 size-4" />
 								{m.pickups()}
 							</label>
-							<div
-								class="tab-content border-base-300 bg-(--tab-bg) p-6 [--tab-bg:color-mix(in_oklab,var(--color-accent),white_15%)]"
-							>
+							<div class="tab-content border-base-300 bg-base-100 p-6">
 								<h2 class="text-2xl font-semibold">{m.pickup_windows()}</h2>
 								<ul class="mt-4 space-y-2">
-									{#each mockPickups as pickup}
+									{#each mockPickups as pickup (pickup.code)}
 										<li class="rounded-lg bg-base-100 p-4">
 											<div class="flex items-center justify-between">
 												<p class="font-semibold">{pickup.location}</p>
@@ -188,19 +176,15 @@
 								</ul>
 							</div>
 
-							<label
-								class="tab [--tab-bg:color-mix(in_oklab,#f59e0b,white_15%)] [--tab-border-color:#f59e0b]"
-							>
+							<label class="tab">
 								<input type="radio" name="account_tabs" />
 								<Receipt class="me-2 size-4" />
 								{m.fees()}
 							</label>
-							<div
-								class="tab-content border-base-300 bg-(--tab-bg) p-6 [--tab-bg:color-mix(in_oklab,#f59e0b,white_15%)]"
-							>
+							<div class="tab-content border-base-300 bg-base-100 p-6">
 								<h2 class="text-2xl font-semibold">{m.fees()} & {m.balances()}</h2>
 								<ul class="mt-4 space-y-2">
-									{#each mockFees as fee}
+									{#each mockFees as fee (fee.type + '-' + fee.amount)}
 										<li class="flex items-center justify-between rounded-lg bg-base-100 p-4">
 											<div>
 												<p class="font-semibold">{fee.type}</p>
