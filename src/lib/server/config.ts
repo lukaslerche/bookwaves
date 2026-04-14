@@ -61,7 +61,7 @@ export interface ThemePageBackgroundsConfig {
 
 export interface ThemeConfig {
 	page_backgrounds?: ThemePageBackgroundsConfig;
-    font?: string;
+	font?: string;
 	logo?: string;
 }
 
@@ -203,7 +203,7 @@ function parseThemeConfig(theme: ThemeConfig | undefined): ThemeConfig {
 			}
 		},
 		logo: normalizeThemeLogo(theme?.logo) ?? DEFAULT_THEME_CONFIG.logo,
-        font: validateSource(theme?.font) ?? DEFAULT_THEME_CONFIG.font
+		font: validateSource(theme?.font) ?? DEFAULT_THEME_CONFIG.font
 	};
 }
 
