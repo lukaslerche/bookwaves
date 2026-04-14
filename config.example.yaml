@@ -40,6 +40,7 @@ tagging:
 
 theme:
   #logo: '/branding/logo.png' # optional; supports /absolute/path or https:// URL
+  #font: '/branding/font.ttf' # optional; supports /absolute/path or https:// URL to support loading the font from a CDN, only .ttf files are supported
   page_backgrounds:
     home:
       from: '#2563eb'
