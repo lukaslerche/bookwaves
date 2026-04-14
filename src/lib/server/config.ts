@@ -112,18 +112,6 @@ function normalizeCssColor(value: unknown): string | undefined {
 	return trimmed;
 }
 
-function normalizeThemeLogo(value: unknown): string | undefined {
-	if (typeof value !== 'string') return undefined;
-	const trimmed = value.trim();
-	if (!trimmed || trimmed.length > 2048) return undefined;
-	if (/[\s"'<>\n\r]/.test(trimmed)) return undefined;
-
-	if (trimmed.startsWith('/')) return trimmed;
-	if (/^https?:\/\//i.test(trimmed)) return trimmed;
-
-	return undefined;
-}
-
 function validateSource(value: unknown): string | undefined {
 	if (typeof value !== 'string') return undefined;
 	const trimmed = value.trim();
@@ -202,7 +190,7 @@ function parseThemeConfig(theme: ThemeConfig | undefined): ThemeConfig {
 					'var(--color-base-300)'
 			}
 		},
-		logo: normalizeThemeLogo(theme?.logo) ?? DEFAULT_THEME_CONFIG.logo,
+		logo: validateSource(theme?.logo) ?? DEFAULT_THEME_CONFIG.logo,
 		font: validateSource(theme?.font) ?? DEFAULT_THEME_CONFIG.font
 	};
 }
