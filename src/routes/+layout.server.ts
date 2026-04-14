@@ -7,6 +7,7 @@ export const load: LayoutServerLoad = async () => {
 
 	return {
 		themeLogoUrl: config.theme?.logo ?? null,
+		themeFontUrl: config.theme?.font ?? null,
 		themeCssVars: {
 			'--bw-page-home-from': pageBackgrounds?.home?.from ?? '#2563eb',
 			'--bw-page-home-to': pageBackgrounds?.home?.to ?? '#3730a3',
