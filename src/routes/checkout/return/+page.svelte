@@ -26,10 +26,13 @@
 	} from '$lib/stores/checkout-session';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { m } from '$lib/paraglide/messages';
+	import { createIdleCountdown, IDLE_TIMEOUT_SECONDS } from '$lib/client/idle-countdown';
 
 	let { data }: PageProps = $props();
 
 	let showSummaryModal = $state(false);
+	let countdownSeconds = $state(IDLE_TIMEOUT_SECONDS);
+	const countdownProgress = $derived(Math.round((countdownSeconds / IDLE_TIMEOUT_SECONDS) * 100));
 	let currentSession: CheckoutSession | null = $state(null);
 	let readerUnsubscribe: (() => void) | null = null;
 	let readerInstance: RFIDReader | null = null;
@@ -61,6 +64,16 @@
 	});
 	const workflowWarning = $derived(readerWarning ?? checkoutProfileWarning ?? null);
 
+	const idleCountdown = createIdleCountdown({
+		seconds: IDLE_TIMEOUT_SECONDS,
+		onTick: (remainingSeconds) => {
+			countdownSeconds = remainingSeconds;
+		},
+		onExpired: () => {
+			handleIdleTimeout();
+		}
+	});
+
 	type RFIDItemInstance = SvelteComponent & { refresh: () => Promise<void> };
 
 	type ProcessedItem = {
@@ -75,6 +88,19 @@
 	};
 
 	let processedItems: Array<ProcessedItem> = $state([]);
+
+	function startIdleCountdown() {
+		idleCountdown.start();
+	}
+
+	function resetIdleCountdown() {
+		if (showSummaryModal) return;
+		idleCountdown.reset();
+	}
+
+	function stopIdleCountdown() {
+		idleCountdown.stop();
+	}
 
 	function dedupeSessionItems(items: SessionItem[]): SessionItem[] {
 		const seen = new SvelteSet<string>();
@@ -235,6 +261,8 @@
 			return;
 		}
 
+		resetIdleCountdown();
+
 		// Add item with checking status
 		const processed: ProcessedItem = {
 			rfidData,
@@ -254,6 +282,7 @@
 
 	onMount(async () => {
 		clientLogger.debug('Page data:', data);
+		startIdleCountdown();
 
 		// Initialize or restore session
 		let session = getCheckoutSession();
@@ -320,6 +349,7 @@
 	});
 
 	onDestroy(() => {
+		stopIdleCountdown();
 		if (readerUnsubscribe) {
 			readerUnsubscribe();
 			readerUnsubscribe = null;
@@ -328,6 +358,10 @@
 	});
 
 	function handleDoneClick() {
+		if (showSummaryModal) return;
+
+		stopIdleCountdown();
+
 		// Stop reader monitoring
 		if (readerUnsubscribe) {
 			readerUnsubscribe();
@@ -337,10 +371,22 @@
 	}
 
 	function handleSummaryConfirm() {
+		stopIdleCountdown();
 		clearCheckoutSession();
 		goto(`/checkout${page.url.search}`);
 	}
+
+	function handleIdleTimeout() {
+		handleDoneClick();
+	}
 </script>
+
+<svelte:window
+	onpointerdown={resetIdleCountdown}
+	onkeydown={resetIdleCountdown}
+	onwheel={resetIdleCountdown}
+	ontouchstart={resetIdleCountdown}
+/>
 
 <div class="app-page-bg-checkout min-h-screen p-8">
 	<div class="mx-auto max-w-6xl">
@@ -375,9 +421,19 @@
 					<p class="text-base opacity-90">{m.place_your_items_on_the_reader()}</p>
 				</div>
 			</div>
-			<div class="md:ml-auto">
+			<div class="flex flex-col gap-3 sm:flex-row sm:items-center md:ml-auto">
+				<div class="w-full rounded-xl bg-base-100/80 px-3 py-2 text-base-content shadow-lg sm:w-52">
+					<div
+						class="mb-1 flex items-center justify-between text-xs font-semibold tracking-wide uppercase"
+					>
+						<span>Timeout</span>
+						<span>{countdownSeconds}s</span>
+					</div>
+					<progress class="progress w-full progress-info" value={countdownProgress} max="100"
+					></progress>
+				</div>
 				<button class="btn shadow-xl btn-lg btn-accent" onclick={handleDoneClick}>
-					<Check />{m.done()}
+					<Check />{m.i_am_done()}
 				</button>
 			</div>
 		</header>
@@ -386,12 +442,12 @@
 			<div class="card bg-base-100 shadow-2xl">
 				<div class="card-body p-0">
 					<ul class="">
-						<li
+						<!--<li
 							class="flex flex-row items-center justify-between menu-title px-6 py-4 text-base opacity-70"
 						>
 							<span class="text-lg">{m.items_to_return()}</span>
 							<span class="badge badge-lg badge-info">{processedItems.length}</span>
-						</li>
+						</li>-->
 						{#each processedItems as item (item.rfidData.id)}
 							{@const directive = item.directive ?? item.mediaItem?.returnDirective}
 							<li

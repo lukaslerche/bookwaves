@@ -10,10 +10,14 @@
 	import { page } from '$app/state';
 	import { clientLogger } from '$lib/client/logger';
 	import { m } from '$lib/paraglide/messages';
+	import { goto } from '$app/navigation';
+	import { createIdleCountdown, IDLE_TIMEOUT_SECONDS } from '$lib/client/idle-countdown';
 
 	let { data }: PageProps = $props();
 	let detectedItems: Array<RFIDData> = $state([]);
 	let readerUnsubscribe: (() => void) | null = null;
+	let countdownSeconds = $state(IDLE_TIMEOUT_SECONDS);
+	const countdownProgress = $derived(Math.round((countdownSeconds / IDLE_TIMEOUT_SECONDS) * 100));
 	const missingReaderParams = $derived(
 		!data.readerConfig.middlewareId || !data.readerConfig.readerId
 	);
@@ -28,8 +32,31 @@
 	// Get current query string to preserve reader config
 	let queryString = $derived(page.url.search);
 
+	const idleCountdown = createIdleCountdown({
+		seconds: IDLE_TIMEOUT_SECONDS,
+		onTick: (remainingSeconds) => {
+			countdownSeconds = remainingSeconds;
+		},
+		onExpired: () => {
+			handleIdleTimeout();
+		}
+	});
+
+	function startIdleCountdown() {
+		idleCountdown.start();
+	}
+
+	function resetIdleCountdown() {
+		idleCountdown.reset();
+	}
+
+	function stopIdleCountdown() {
+		idleCountdown.stop();
+	}
+
 	onMount(async () => {
 		clientLogger.debug('Page data:', data);
+		startIdleCountdown();
 
 		// Create a reader instance from URL params or localStorage
 		const reader = createReaderFromParams(
@@ -75,12 +102,25 @@
 	});
 
 	onDestroy(() => {
+		stopIdleCountdown();
 		if (readerUnsubscribe) {
 			readerUnsubscribe();
 			readerUnsubscribe = null;
 		}
 	});
+
+	function handleIdleTimeout() {
+		stopIdleCountdown();
+		goto(`/checkout${queryString}`);
+	}
 </script>
+
+<svelte:window
+	onpointerdown={resetIdleCountdown}
+	onkeydown={resetIdleCountdown}
+	onwheel={resetIdleCountdown}
+	ontouchstart={resetIdleCountdown}
+/>
 
 <div class="app-page-bg-checkout min-h-screen p-8">
 	<div class="mx-auto max-w-6xl">
@@ -114,8 +154,22 @@
 					<p class="text-base opacity-90">{m.currently_on_the_device()}</p>
 				</div>
 			</div>
-			<div class="md:ml-auto">
-				<a href="/checkout{queryString}" class="btn shadow-xl btn-lg btn-accent">
+			<div class="flex flex-col gap-3 sm:flex-row sm:items-center md:ml-auto">
+				<div class="w-full rounded-xl bg-base-100/80 px-3 py-2 text-base-content shadow-lg sm:w-52">
+					<div
+						class="mb-1 flex items-center justify-between text-xs font-semibold tracking-wide uppercase"
+					>
+						<span>Timeout</span>
+						<span>{countdownSeconds}s</span>
+					</div>
+					<progress class="progress w-full progress-info" value={countdownProgress} max="100"
+					></progress>
+				</div>
+				<a
+					href="/checkout{queryString}"
+					class="btn shadow-xl btn-lg btn-accent"
+					onclick={stopIdleCountdown}
+				>
 					← {m.back()}
 				</a>
 			</div>
@@ -124,9 +178,9 @@
 		<div class="card mb-8 bg-base-100 shadow-2xl">
 			<div class="card-body p-0">
 				<ul class="">
-					<li class="menu-title px-6 py-4 text-base opacity-70">
+					<!--<li class="menu-title px-6 py-4 text-base opacity-70">
 						<span class="text-lg">{m.on_device()}</span>
-					</li>
+					</li>-->
 					{#each detectedItems as item (item.id)}
 						<li
 							class="border-t border-base-200"

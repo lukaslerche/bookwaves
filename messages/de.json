@@ -165,5 +165,6 @@
 	"reload": "Neu laden",
 	"borrowed": "ausgeliehen",
 	"returned": "zurückgegeben",
-	"tagging_crew_message": "Scannen Sie das nächste Buch mit dem Barcode-Scanner"
+	"tagging_crew_message": "Scannen Sie das nächste Buch mit dem Barcode-Scanner",
+	"i_am_done": "Ich bin fertig"
 }

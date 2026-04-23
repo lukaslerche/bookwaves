@@ -4,7 +4,7 @@
 	interface Props {
 		href: string;
 		title: string;
-		description: string;
+		description?: string;
 		icon: Component;
 		iconColor?: string;
 		iconColorValue?: string;
@@ -48,6 +48,8 @@
 			<Icon class="{iconInnerSize} {iconColorClass}" style={iconStyle} />
 		</div>
 		<h2 class="mb-2 {titleSize} font-bold">{title}</h2>
-		<p class="{descSize} text-base-content/70">{description}</p>
+		{#if description}
+			<p class="{descSize} text-base-content/70">{description}</p>
+		{/if}
 	</div>
 </a>

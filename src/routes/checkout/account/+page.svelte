@@ -3,20 +3,46 @@
 	import type { PageProps } from './$types';
 	import { page } from '$app/state';
 	import { User, ShoppingCart, Package, Receipt } from '@lucide/svelte';
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { getAuthUser, clearAuthUser, setAuthUser } from '$lib/stores/auth';
 	import { loginUser, logoutUser } from '$lib/lms/lms.remote';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { m } from '$lib/paraglide/messages';
+	import { createIdleCountdown, IDLE_TIMEOUT_SECONDS } from '$lib/client/idle-countdown';
 
 	let { data }: PageProps = $props();
 
 	const needsLogin = $derived(data.requiresAuth || !data.account);
 	const loginMode = $derived(data.loginMode ?? 'username_password');
 	let showLoginModal = $derived(needsLogin);
+	let countdownSeconds = $state(IDLE_TIMEOUT_SECONDS);
+	const countdownProgress = $derived(Math.round((countdownSeconds / IDLE_TIMEOUT_SECONDS) * 100));
 
 	// Get current query string to preserve reader config
 	let queryString = $derived(page.url.search);
+
+	const idleCountdown = createIdleCountdown({
+		seconds: IDLE_TIMEOUT_SECONDS,
+		onTick: (remainingSeconds) => {
+			countdownSeconds = remainingSeconds;
+		},
+		onExpired: () => {
+			handleIdleTimeout();
+		}
+	});
+
+	function startIdleCountdown() {
+		idleCountdown.start();
+	}
+
+	function resetIdleCountdown() {
+		if (showLoginModal) return;
+		idleCountdown.reset();
+	}
+
+	function stopIdleCountdown() {
+		idleCountdown.stop();
+	}
 
 	onMount(async () => {
 		// Check if user is authenticated
@@ -34,6 +60,11 @@
 
 		// Log in to LMS with stored user
 		await loginUser({ user: activeUser });
+		startIdleCountdown();
+	});
+
+	onDestroy(() => {
+		stopIdleCountdown();
 	});
 
 	async function handleLoginSuccess() {
@@ -45,14 +76,21 @@
 			await loginUser({ user: authUser });
 		}
 
+		startIdleCountdown();
+
 		// Reload the page to load account data
 		invalidateAll();
 	}
 
 	function handleLogoutAndBack() {
+		stopIdleCountdown();
 		clearAuthUser();
 		logoutUser();
 		goto(`/checkout${queryString}`);
+	}
+
+	function handleIdleTimeout() {
+		handleLogoutAndBack();
 	}
 
 	function formatDate(value?: string): string {
@@ -104,6 +142,13 @@
 	const feesCurrency = $derived(data.fees[0]?.currency ?? 'EUR');
 </script>
 
+<svelte:window
+	onpointerdown={resetIdleCountdown}
+	onkeydown={resetIdleCountdown}
+	onwheel={resetIdleCountdown}
+	ontouchstart={resetIdleCountdown}
+/>
+
 {#if showLoginModal}
 	<LoginModal onSuccess={handleLoginSuccess} onCancel={handleLogoutAndBack} {loginMode} />
 {:else}
@@ -123,9 +168,21 @@
 						</p>
 					</div>
 				</div>
-				<div class="md:ml-auto">
+				<div class="flex flex-col gap-3 sm:flex-row sm:items-center md:ml-auto">
+					<div
+						class="w-full rounded-xl bg-base-100/80 px-3 py-2 text-base-content shadow-lg sm:w-52"
+					>
+						<div
+							class="mb-1 flex items-center justify-between text-xs font-semibold tracking-wide uppercase"
+						>
+							<span>Timeout</span>
+							<span>{countdownSeconds}s</span>
+						</div>
+						<progress class="progress w-full progress-warning" value={countdownProgress} max="100"
+						></progress>
+					</div>
 					<button onclick={handleLogoutAndBack} class="btn shadow-xl btn-lg btn-accent">
-						← {m.logout()} & {m.back()}
+						← {m.logout()}
 					</button>
 				</div>
 			</header>

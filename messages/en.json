@@ -165,5 +165,6 @@
 	"reload": "Reload",
 	"borrowed": "borrowed",
 	"returned": "returned",
-	"tagging_crew_message": "Scan the next book using the barcode scanner"
+	"tagging_crew_message": "Scan the next book using the barcode scanner",
+	"i_am_done": "I am done"
 }

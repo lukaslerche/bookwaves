@@ -18,7 +18,7 @@
 </script>
 
 <div class="app-page-bg-checkout flex min-h-full flex-col items-center justify-center p-8">
-	<PageHeader title={m.checkout_label()} subtitle={m.checkout_description()} showLogo />
+	<PageHeader title={m.checkout_label()} showLogo />
 
 	<nav
 		class="grid w-full max-w-6xl grid-cols-1 gap-8 lg:grid-cols-4"
@@ -27,7 +27,6 @@
 		<NavigationCard
 			href="/checkout/borrow{queryString}"
 			title={m.borrow_label()}
-			description={m.borrow_description()}
 			icon={BookOpen}
 			iconColorValue="var(--bw-checkout-icon-borrow)"
 			size="large"
@@ -36,7 +35,6 @@
 		<NavigationCard
 			href="/checkout/return{queryString}"
 			title={m.return_label()}
-			description={m.return_description()}
 			icon={HandHelping}
 			iconColorValue="var(--bw-checkout-icon-return)"
 			size="large"
@@ -45,7 +43,6 @@
 		<NavigationCard
 			href="/checkout/account{queryString}"
 			title={m.account_label()}
-			description={m.account_description()}
 			icon={User}
 			iconColorValue="var(--bw-checkout-icon-account)"
 			size="large"
@@ -54,7 +51,6 @@
 		<NavigationCard
 			href="/checkout/list{queryString}"
 			title={m.list_label()}
-			description={m.list_description()}
 			icon={Library}
 			iconColorValue="var(--bw-checkout-icon-list)"
 			size="large"
