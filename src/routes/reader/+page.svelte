@@ -210,8 +210,8 @@
 				{#each detectedItems as item (item.id)}
 					<div class="card bg-base-100 shadow-2xl">
 						<div class="card-body">
-							<div class="grid gap-6 lg:grid-cols-[2fr_1fr]">
-								<div>
+							<div class="grid gap-6 lg:grid-cols-[6fr_1fr]">
+								<div class="min-w-0">
 									<RFIDItem {item} showRfidDetails />
 								</div>
 
