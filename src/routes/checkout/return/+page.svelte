@@ -417,8 +417,8 @@
 					<BookUp class="h-8 w-8" />
 				</div>
 				<div class="text-white">
-					<h1 class="text-4xl font-bold drop-shadow-lg">{m.return_books()}</h1>
-					<p class="text-base opacity-90">{m.place_your_items_on_the_reader()}</p>
+					<h1 class="text-4xl font-bold drop-shadow-lg">{m.return_label()}</h1>
+					<p class="text-base opacity-90">{m.return_description()}</p>
 				</div>
 			</div>
 			<div class="flex flex-col gap-3 sm:flex-row sm:items-center md:ml-auto">

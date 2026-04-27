@@ -465,10 +465,9 @@
 						<BookDown class="h-8 w-8" />
 					</div>
 					<div class="text-white">
-						<h1 class="text-4xl font-bold drop-shadow-lg">{m.borrow_books()}</h1>
-
-						<p class="mt-3 text-base opacity-90">
-							{m.place_your_items_on_the_reader()}{#if data.account}: {data.account.name}{/if}
+						<h1 class="text-4xl font-bold drop-shadow-lg">{m.borrow_label()}</h1>
+						<p class="text-base opacity-90">
+							{m.borrow_description()}{#if data.account}: {data.account.name}{/if}
 						</p>
 					</div>
 				</div>
