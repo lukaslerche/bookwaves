@@ -3,7 +3,7 @@
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import LoginModal from '$lib/components/LoginModal.svelte';
 	import CheckoutSummaryModal from '$lib/components/CheckoutSummaryModal.svelte';
-	import { BookOpen, Check, X } from '@lucide/svelte';
+	import { BookOpen, BookDown, Check, X } from '@lucide/svelte';
 	import type { PageProps } from './$types';
 	import { onDestroy, onMount } from 'svelte';
 	import { fly, fade } from 'svelte/transition';
@@ -37,7 +37,7 @@
 	let showLoginModal = $derived(needsLogin);
 	let showSummaryModal = $state(false);
 	let countdownSeconds = $state(IDLE_TIMEOUT_SECONDS);
-	const countdownProgress = $derived(Math.round((countdownSeconds / IDLE_TIMEOUT_SECONDS) * 100));
+	//const countdownProgress = $derived(Math.round((countdownSeconds / IDLE_TIMEOUT_SECONDS) * 100));
 	let currentSession: CheckoutSession | null = $state(null);
 	let readerUnsubscribe: (() => void) | null = null;
 	let readerInstance: RFIDReader | null = null;
@@ -462,7 +462,7 @@
 			>
 				<div class="flex items-center gap-4">
 					<div class="rounded-2xl bg-base-100/20 p-3 text-white shadow-lg">
-						<BookOpen class="h-8 w-8" />
+						<BookDown class="h-8 w-8" />
 					</div>
 					<div class="text-white">
 						<h1 class="text-4xl font-bold drop-shadow-lg">{m.borrow_books()}</h1>
@@ -473,7 +473,7 @@
 					</div>
 				</div>
 				<div class="flex flex-col gap-3 sm:flex-row sm:items-center md:ml-auto">
-					<div
+					<!--<div
 						class="w-full rounded-xl bg-base-100/80 px-3 py-2 text-base-content shadow-lg sm:w-52"
 					>
 						<div
@@ -484,6 +484,12 @@
 						</div>
 						<progress class="progress w-full progress-primary" value={countdownProgress} max="100"
 						></progress>
+					</div>-->
+					<div
+						class="flex items-center justify-between gap-2 text-xs font-semibold tracking-wide uppercase"
+					>
+						<span>Timeout</span>
+						<span>{countdownSeconds}s</span>
 					</div>
 					<button class="btn shadow-xl btn-lg btn-accent" onclick={handleDoneClick}>
 						<Check />{m.i_am_done()}

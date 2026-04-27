@@ -1,6 +1,6 @@
 <script lang="ts">
 	import RFIDItem from '$lib/components/RFIDItem.svelte';
-	import { BookOpen, Library } from '@lucide/svelte';
+	import { BookOpen, BookSearch } from '@lucide/svelte';
 	import type { PageProps } from './$types';
 	import { onDestroy, onMount } from 'svelte';
 	import { fly, fade } from 'svelte/transition';
@@ -17,7 +17,7 @@
 	let detectedItems: Array<RFIDData> = $state([]);
 	let readerUnsubscribe: (() => void) | null = null;
 	let countdownSeconds = $state(IDLE_TIMEOUT_SECONDS);
-	const countdownProgress = $derived(Math.round((countdownSeconds / IDLE_TIMEOUT_SECONDS) * 100));
+	//const countdownProgress = $derived(Math.round((countdownSeconds / IDLE_TIMEOUT_SECONDS) * 100));
 	const missingReaderParams = $derived(
 		!data.readerConfig.middlewareId || !data.readerConfig.readerId
 	);
@@ -147,15 +147,15 @@
 		>
 			<div class="flex items-center gap-4">
 				<div class="rounded-2xl bg-base-100/20 p-3 text-white shadow-lg">
-					<Library class="h-8 w-8" />
+					<BookSearch class="h-8 w-8" />
 				</div>
 				<div class="text-white">
-					<h1 class="text-4xl font-bold drop-shadow-lg">{m.view_items()}</h1>
-					<p class="text-base opacity-90">{m.currently_on_the_device()}</p>
+					<h1 class="text-4xl font-bold drop-shadow-lg">{m.list_label()}</h1>
+					<p class="text-base opacity-90">{m.list_description()}</p>
 				</div>
 			</div>
 			<div class="flex flex-col gap-3 sm:flex-row sm:items-center md:ml-auto">
-				<div class="w-full rounded-xl bg-base-100/80 px-3 py-2 text-base-content shadow-lg sm:w-52">
+				<!--<div class="w-full rounded-xl bg-base-100/80 px-3 py-2 text-base-content shadow-lg sm:w-52">
 					<div
 						class="mb-1 flex items-center justify-between text-xs font-semibold tracking-wide uppercase"
 					>
@@ -164,6 +164,12 @@
 					</div>
 					<progress class="progress w-full progress-info" value={countdownProgress} max="100"
 					></progress>
+				</div>-->
+				<div
+					class="flex items-center justify-between gap-2 text-xs font-semibold tracking-wide uppercase"
+				>
+					<span>Timeout</span>
+					<span>{countdownSeconds}s</span>
 				</div>
 				<a
 					href="/checkout{queryString}"

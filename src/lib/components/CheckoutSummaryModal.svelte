@@ -14,7 +14,7 @@
 
 	let { session, onConfirm }: Props = $props();
 	let countdownSeconds = $state(IDLE_TIMEOUT_SECONDS);
-	const countdownProgress = $derived(Math.round((countdownSeconds / IDLE_TIMEOUT_SECONDS) * 100));
+	//const countdownProgress = $derived(Math.round((countdownSeconds / IDLE_TIMEOUT_SECONDS) * 100));
 	let didConfirm = false;
 
 	const successfulItems = $derived(getSuccessfulItems(session));
@@ -85,7 +85,7 @@
 		<div
 			class="modal-action mt-0 mb-6 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
 		>
-			<div class="w-full rounded-xl bg-base-200/70 px-3 py-2 sm:max-w-56">
+			<!--<div class="w-full rounded-xl bg-base-200/70 px-3 py-2 sm:max-w-56">
 				<div
 					class="mb-1 flex items-center justify-between text-xs font-semibold tracking-wide uppercase"
 				>
@@ -94,6 +94,12 @@
 				</div>
 				<progress class="progress w-full progress-primary" value={countdownProgress} max="100"
 				></progress>
+			</div>-->
+			<div
+				class="flex items-center justify-between gap-2 text-xs font-semibold tracking-wide uppercase"
+			>
+				<span>Timeout</span>
+				<span>{countdownSeconds}s</span>
 			</div>
 			<button class="btn btn-block btn-primary sm:w-auto" onclick={handleConfirm}>
 				{successfulItems.length > 0 ? m.finish_and_logout() : m.close()}

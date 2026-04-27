@@ -1,7 +1,7 @@
 <script lang="ts">
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import NavigationCard from '$lib/components/NavigationCard.svelte';
-	import { BookOpen, Library, User, HandHelping } from '@lucide/svelte';
+	import { BookDown, BookUp, User, BookSearch } from '@lucide/svelte';
 	import { page } from '$app/state';
 	import { m } from '$lib/paraglide/messages';
 
@@ -27,7 +27,7 @@
 		<NavigationCard
 			href="/checkout/borrow{queryString}"
 			title={m.borrow_label()}
-			icon={BookOpen}
+			icon={BookDown}
 			iconColorValue="var(--bw-checkout-icon-borrow)"
 			size="large"
 		/>
@@ -35,7 +35,7 @@
 		<NavigationCard
 			href="/checkout/return{queryString}"
 			title={m.return_label()}
-			icon={HandHelping}
+			icon={BookUp}
 			iconColorValue="var(--bw-checkout-icon-return)"
 			size="large"
 		/>
@@ -51,7 +51,7 @@
 		<NavigationCard
 			href="/checkout/list{queryString}"
 			title={m.list_label()}
-			icon={Library}
+			icon={BookSearch}
 			iconColorValue="var(--bw-checkout-icon-list)"
 			size="large"
 		/>

@@ -16,7 +16,7 @@
 	const loginMode = $derived(data.loginMode ?? 'username_password');
 	let showLoginModal = $derived(needsLogin);
 	let countdownSeconds = $state(IDLE_TIMEOUT_SECONDS);
-	const countdownProgress = $derived(Math.round((countdownSeconds / IDLE_TIMEOUT_SECONDS) * 100));
+	//const countdownProgress = $derived(Math.round((countdownSeconds / IDLE_TIMEOUT_SECONDS) * 100));
 
 	// Get current query string to preserve reader config
 	let queryString = $derived(page.url.search);
@@ -162,14 +162,14 @@
 						<User class="h-8 w-8" />
 					</div>
 					<div class="text-white">
-						<h1 class="text-4xl font-bold drop-shadow-lg">{m.your_account()}</h1>
+						<h1 class="text-4xl font-bold drop-shadow-lg">{m.account_label()}</h1>
 						<p class="text-base opacity-90">
-							{m.your_account_description()}{#if data.account}: {data.account.name}{/if}
+							{m.account_description()}{#if data.account}: {data.account.name}{/if}
 						</p>
 					</div>
 				</div>
 				<div class="flex flex-col gap-3 sm:flex-row sm:items-center md:ml-auto">
-					<div
+					<!--<div
 						class="w-full rounded-xl bg-base-100/80 px-3 py-2 text-base-content shadow-lg sm:w-52"
 					>
 						<div
@@ -180,6 +180,12 @@
 						</div>
 						<progress class="progress w-full progress-warning" value={countdownProgress} max="100"
 						></progress>
+					</div>-->
+					<div
+						class="flex items-center justify-between gap-2 text-xs font-semibold tracking-wide uppercase"
+					>
+						<span>Timeout</span>
+						<span>{countdownSeconds}s</span>
 					</div>
 					<button onclick={handleLogoutAndBack} class="btn shadow-xl btn-lg btn-accent">
 						← {m.logout()}
