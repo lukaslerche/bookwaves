@@ -11,6 +11,8 @@ login:
   mode: username_password # username_password (default) or username_only
 
 checkout:
+  # Optional image for the checkout list empty state; supports /absolute/path or https:// URL
+  #no_media_found_image: '/branding/place_book.png'
   profiles:
     # The profile id is used via the checkout_profile_id URL param on checkout pages
     - id: terminal1

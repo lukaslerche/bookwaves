@@ -43,6 +43,7 @@ export interface CheckoutProfileConfig {
 
 export interface CheckoutConfig {
 	profiles?: CheckoutProfileConfig[];
+	no_media_found_image?: string;
 }
 
 export interface ThemeGradientConfig {
@@ -91,7 +92,10 @@ const DEFAULT_TAGGING_CONFIG: Required<TaggingConfig> = {
 	formats: [],
 	focus: false
 };
-const DEFAULT_CHECKOUT_CONFIG: CheckoutConfig = { profiles: [] };
+const DEFAULT_CHECKOUT_CONFIG: CheckoutConfig = {
+	profiles: [],
+	no_media_found_image: undefined
+};
 const DEFAULT_THEME_CONFIG: ThemeConfig = {
 	page_backgrounds: {
 		home: { from: '#2563eb', to: '#3730a3' },
@@ -344,7 +348,10 @@ export function getConfig(): LMSConfig {
 		};
 
 		const parsedCheckoutConfig: CheckoutConfig = {
-			profiles: parseCheckoutProfiles()
+			profiles: parseCheckoutProfiles(),
+			no_media_found_image:
+				validateSource(data.checkout?.no_media_found_image) ??
+				DEFAULT_CHECKOUT_CONFIG.no_media_found_image
 		};
 
 		if (data.login?.mode && !VALID_LOGIN_MODES.includes(data.login.mode)) {
@@ -479,7 +486,10 @@ export function getConfig(): LMSConfig {
 	};
 
 	const parsedCheckoutConfig: CheckoutConfig = {
-		profiles: parseCheckoutProfiles()
+		profiles: parseCheckoutProfiles(),
+		no_media_found_image:
+			validateSource(data.checkout?.no_media_found_image) ??
+			DEFAULT_CHECKOUT_CONFIG.no_media_found_image
 	};
 
 	if (data.login?.mode && !VALID_LOGIN_MODES.includes(data.login.mode)) {

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import RFIDItem from '$lib/components/RFIDItem.svelte';
-	import { BookOpen, BookSearch } from '@lucide/svelte';
+	import { BookSearch } from '@lucide/svelte';
 	import type { PageProps } from './$types';
 	import { onDestroy, onMount } from 'svelte';
 	import { fly, fade } from 'svelte/transition';
@@ -12,6 +12,7 @@
 	import { m } from '$lib/paraglide/messages';
 	import { goto } from '$app/navigation';
 	import { createIdleCountdown, IDLE_TIMEOUT_SECONDS } from '$lib/client/idle-countdown';
+	import placeBooksDefaultImage from '$lib/assets/place_book.png';
 
 	let { data }: PageProps = $props();
 	let detectedItems: Array<RFIDData> = $state([]);
@@ -27,6 +28,9 @@
 			(missingReaderParams
 				? 'Reader configuration is missing. Add middleware_id and reader_id to the URL.'
 				: null)
+	);
+	const noMediaFoundImageUrl = $derived(
+		data.checkoutConfig?.noMediaFoundImageUrl || placeBooksDefaultImage
 	);
 
 	// Get current query string to preserve reader config
@@ -199,11 +203,17 @@
 							</div>
 						</li>
 					{:else}
-						<li class="px-6 py-8 text-center">
-							<div class="flex flex-col items-center gap-4 opacity-60">
-								<BookOpen class="h-20 w-20 text-base-content/30" />
-								<p class="text-xl">{m.no_items_detected()}</p>
-								<p class="text-base">{m.place_items_on_the_reader()}</p>
+						<li class="px-6 py-6 text-center">
+							<div class="flex flex-col items-center gap-4">
+								<div class="flex flex-col items-center gap-4">
+									<p class="text-lg">{m.place_items_on_the_reader_to_begin()}</p>
+								</div>
+								<img
+									src={noMediaFoundImageUrl}
+									alt={m.place_items_on_the_reader_to_begin()}
+									class="min-h-96 w-full max-w-xl rounded-2xl object-cover shadow-lg"
+									loading="lazy"
+								/>
 							</div>
 						</li>
 					{/each}

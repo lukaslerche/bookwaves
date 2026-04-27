@@ -18,10 +18,12 @@ export const load: LayoutServerLoad = async ({ url }) => {
 		type?: string;
 	} | null = null;
 	let lmsType: string | undefined;
+	let noMediaFoundImageUrl: string | null = null;
 
 	try {
 		const config = getConfig();
 		lmsType = config.lms.type;
+		noMediaFoundImageUrl = config.checkout?.no_media_found_image ?? null;
 
 		if (middlewareId) {
 			const middleware = config.middleware_instances.find((m) => m.id === middlewareId);
@@ -54,6 +56,9 @@ export const load: LayoutServerLoad = async ({ url }) => {
 			readerId: readerId || null,
 			middlewareUrl,
 			middlewareType
+		},
+		checkoutConfig: {
+			noMediaFoundImageUrl
 		},
 		checkoutProfileId: checkoutProfileId || null,
 		checkoutProfile,
