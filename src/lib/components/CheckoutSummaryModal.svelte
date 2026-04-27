@@ -101,7 +101,7 @@
 				<span>Timeout</span>
 				<span>{countdownSeconds}s</span>
 			</div>
-			<button class="btn btn-block btn-primary sm:w-auto" onclick={handleConfirm}>
+			<button class="btn btn-block btn-accent sm:w-auto" onclick={handleConfirm}>
 				{successfulItems.length > 0 ? m.finish_and_logout() : m.close()}
 			</button>
 		</div>

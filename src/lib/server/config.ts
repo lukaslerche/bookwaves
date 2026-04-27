@@ -3,7 +3,11 @@ import path from 'path';
 import YAML from 'yaml';
 import { type LogLevel, parseLogLevel } from '$lib/logger/levels';
 
-export type LoginMode = 'username_password' | 'username_only';
+export type LoginMode =
+	| 'username_password'
+	| 'username_only'
+	| 'scanner_only'
+	| 'username_or_scanner';
 
 export interface GateConfig {
 	show_all_detected_items?: boolean;
@@ -81,7 +85,12 @@ export interface LMSConfig {
 }
 
 const DEFAULT_LOGIN_MODE: LoginMode = 'username_password';
-const VALID_LOGIN_MODES: LoginMode[] = ['username_password', 'username_only'];
+const VALID_LOGIN_MODES: LoginMode[] = [
+	'username_password',
+	'username_only',
+	'scanner_only',
+	'username_or_scanner'
+];
 const DEFAULT_GATE_CONFIG: Required<GateConfig> = {
 	show_all_detected_items: true
 };
@@ -209,7 +218,7 @@ log_level: info # Logging level: fatal, error, warn, info, debug, trace, silent
 
 # Login flow configuration
 login:
-  mode: username_password # username_password (default) or username_only
+  mode: username_password # username_password (default) or username_only or scanner_only or username_or_scanner
 
 checkout:
   profiles:

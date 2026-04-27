@@ -48,7 +48,7 @@
 		} catch (error) {
 			clientLogger.error('Failed to fetch media item:', error);
 			mediaItem = null;
-			fetchError = 'Unable to load media information. Please try again.';
+			fetchError = m.unable_to_load_media_information();
 			if (onMediaItemLoaded) {
 				onMediaItemLoaded(null);
 			}

@@ -156,10 +156,15 @@
 	"offline": "Offline",
 	"no_readers_available": "No readers available",
 	"detected_at": "Detected at",
-	"media_information_unavailable": "Book information unavailable",
+	"media_information_unavailable": "Book data unavailable",
 	"reload": "Reload",
 	"borrowed": "borrowed",
 	"returned": "returned",
 	"tagging_crew_message": "Scan the next book using the barcode scanner",
-	"i_am_done": "I am done"
+	"i_am_done": "I am done",
+	"unable_to_load_media_information": "Unable to load book data. Please try again.",
+	"please_enter_a_username": "Please enter a username",
+	"please_enter_a_password": "Please enter a password",
+	"login_failed_please_try_again": "Login failed. Please try again.",
+	"an_error_occurred_please_try_again": "An error occurred. Please try again."
 }

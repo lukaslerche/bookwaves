@@ -6,7 +6,7 @@
 	import { clientLogger } from '$lib/client/logger';
 	import { m } from '$lib/paraglide/messages';
 
-	type LoginMode = 'username_password' | 'username_only';
+	type LoginMode = 'username_password' | 'username_only' | 'scanner_only' | 'username_or_scanner';
 
 	interface Props {
 		onSuccess: () => void;
@@ -16,17 +16,24 @@
 
 	let { onSuccess, onCancel, loginMode = 'username_password' }: Props = $props();
 
-	const requiresPassword = $derived(loginMode !== 'username_only');
+	const requiresPassword = $derived(loginMode === 'username_password');
+	const hasCameraToggle = $derived(loginMode === 'username_or_scanner');
+	const scannerOnlyMode = $derived(loginMode === 'scanner_only');
+	const supportsScanner = $derived(hasCameraToggle || scannerOnlyMode);
 	let username = $state('');
 	let password = $state('');
 	let isLoading = $state(false);
 	let errorMessage = $state('');
-	let usernameInput = $state<HTMLInputElement | null>(null);
-	let passwordInput = $state<HTMLInputElement | null>(null);
 	let scannerOpen = $state(false);
 	let scannerStatus = $state<'idle' | 'starting' | 'scanning' | 'error'>('idle');
 	let scannerError = $state('');
+	let isHandlingScan = $state(false);
+	let lastScannedCode = $state('');
+	let lastScannedAt = $state(0);
 	let scannerInstance: import('html5-qrcode').Html5Qrcode | null = null;
+	const SCAN_DUPLICATE_COOLDOWN_MS = 2500;
+	const usernameInputId = 'username';
+	const passwordInputId = 'password';
 	const scannerElementId = 'login-qr-reader';
 	const handleCancel = () => {
 		void stopScanner();
@@ -34,6 +41,12 @@
 	};
 
 	onMount(() => {
+		if (scannerOnlyMode) {
+			void startScanner();
+			return;
+		}
+
+		const usernameInput = document.getElementById(usernameInputId) as HTMLInputElement | null;
 		usernameInput?.focus();
 		usernameInput?.select();
 	});
@@ -64,7 +77,7 @@
 			scannerStatus = 'scanning';
 		} catch (error) {
 			scannerStatus = 'error';
-			scannerOpen = false;
+			scannerOpen = scannerOnlyMode;
 			scannerError = 'Unable to start the camera scanner.';
 			clientLogger.error('Scanner start error:', error);
 		}
@@ -94,31 +107,54 @@
 	async function handleScanSuccess(decodedText: string) {
 		const normalized = decodedText.trim();
 		if (!normalized) return;
+		if (isLoading || isHandlingScan) return;
 
-		username = normalized;
-		await stopScanner();
-
-		if (requiresPassword) {
-			await tick();
-			passwordInput?.focus();
+		const now = Date.now();
+		if (normalized === lastScannedCode && now - lastScannedAt < SCAN_DUPLICATE_COOLDOWN_MS) {
 			return;
 		}
 
-		void handleSubmit();
+		isHandlingScan = true;
+		lastScannedCode = normalized;
+		lastScannedAt = now;
+
+		try {
+			username = normalized;
+			await stopScanner();
+
+			if (requiresPassword) {
+				await tick();
+				const passwordInput = document.getElementById(passwordInputId) as HTMLInputElement | null;
+				passwordInput?.focus();
+				return;
+			}
+
+			await handleSubmit();
+		} finally {
+			isHandlingScan = false;
+		}
 	}
 
 	async function handleSubmit(event?: Event) {
 		event?.preventDefault();
+		if (isLoading) return;
 
 		const normalizedUsername = username.trim();
+		const shouldAutoRestartScanner = scannerOnlyMode;
 
 		if (!normalizedUsername) {
-			errorMessage = 'Please enter a username';
+			errorMessage = m.please_enter_a_username();
+			if (shouldAutoRestartScanner) {
+				void startScanner();
+			}
 			return;
 		}
 
 		if (requiresPassword && !password) {
-			errorMessage = 'Please enter a password';
+			errorMessage = m.please_enter_a_password();
+			if (shouldAutoRestartScanner) {
+				void startScanner();
+			}
 			return;
 		}
 
@@ -138,11 +174,21 @@
 				setAuthUser(normalizedUsername);
 				onSuccess();
 			} else {
-				errorMessage = 'Login failed. Please try again.';
+				errorMessage = m.login_failed_please_try_again();
+				lastScannedCode = normalizedUsername;
+				lastScannedAt = Date.now();
+				if (shouldAutoRestartScanner) {
+					void startScanner();
+				}
 			}
 		} catch (error) {
-			errorMessage = 'An error occurred. Please try again.';
+			errorMessage = m.an_error_occurred_please_try_again();
 			clientLogger.error('Login error:', error);
+			lastScannedCode = normalizedUsername;
+			lastScannedAt = Date.now();
+			if (shouldAutoRestartScanner) {
+				void startScanner();
+			}
 		} finally {
 			isLoading = false;
 		}
@@ -155,20 +201,7 @@
 	>
 		<div class="flex items-start justify-between gap-3">
 			<div>
-				<div
-					class="mb-3 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold tracking-wide text-primary uppercase"
-				>
-					<span>{requiresPassword ? m.username_password() : m.usename_only()}</span>
-				</div>
 				<h3 class="text-3xl leading-tight font-black">{m.login_required()}</h3>
-				<p class="mt-2 text-base-content/70">
-					{requiresPassword ? m.username_password_description() : m.password_only_description()}
-				</p>
-			</div>
-			<div
-				class="rounded-2xl bg-base-200/70 px-3 py-2 text-xs font-semibold tracking-wide text-base-content/70 uppercase"
-			>
-				{m.hid_ready()}
 			</div>
 		</div>
 
@@ -187,40 +220,47 @@
 					<span class="label-text text-sm font-semibold">{m.username()} / Barcode</span>
 				</label>
 				<input
-					id="username"
+					id={usernameInputId}
 					type="text"
 					inputmode="text"
 					autocomplete="username"
-					placeholder={m.scan_or_type_your_username()}
 					class="input-bordered input input-lg w-full"
-					bind:this={usernameInput}
 					bind:value={username}
+					readonly={scannerOnlyMode}
 					disabled={isLoading}
 				/>
-				<p class="text-xs text-base-content/60">
-					{m.focused_for_text()}
-				</p>
-				<div class="flex flex-wrap items-center gap-3">
-					<button
-						type="button"
-						class="btn btn-outline btn-sm"
-						disabled={isLoading || scannerStatus === 'starting'}
-						onclick={() => (scannerOpen ? stopScanner() : startScanner())}
-					>
-						{scannerOpen ? m.stop_camera() : m.start_with_camera()}
-					</button>
-					{#if scannerStatus === 'scanning'}
-						<span class="text-xs text-base-content/60"> {m.point_the_camera()} </span>
-					{/if}
-				</div>
-				{#if scannerOpen}
+				{#if hasCameraToggle}
+					<div class="flex flex-wrap items-center gap-3">
+						<button
+							type="button"
+							class="btn btn-outline btn-sm"
+							disabled={isLoading || scannerStatus === 'starting'}
+							onclick={() => (scannerOpen ? stopScanner() : startScanner())}
+						>
+							{scannerOpen ? m.stop_camera() : m.start_with_camera()}
+						</button>
+						{#if scannerStatus === 'scanning'}
+							<span class="text-xs text-base-content/60"> {m.point_the_camera()} </span>
+						{/if}
+					</div>
+				{:else if scannerOnlyMode && scannerStatus === 'scanning'}
+					<span class="text-xs text-base-content/60"> {m.point_the_camera()} </span>
+				{/if}
+				{#if supportsScanner && (scannerOpen || scannerOnlyMode)}
 					<div class="mt-4 rounded-2xl border border-base-300 bg-base-200/40 p-4">
-						<div class="text-[0.7rem] font-semibold tracking-wide text-base-content/60 uppercase">
-							{m.camera_scanner()}
-						</div>
-						<div id={scannerElementId} class="mt-3 overflow-hidden rounded-xl"></div>
+						<div id={scannerElementId} class="overflow-hidden rounded-xl"></div>
 						{#if scannerError}
 							<p class="mt-3 text-xs text-error">{scannerError}</p>
+							{#if scannerOnlyMode}
+								<button
+									type="button"
+									class="btn mt-3 btn-outline btn-xs"
+									disabled={isLoading || scannerStatus === 'starting'}
+									onclick={startScanner}
+								>
+									{m.start_with_camera()}
+								</button>
+							{/if}
 						{/if}
 					</div>
 				{/if}
@@ -232,13 +272,11 @@
 						<span class="label-text text-sm font-semibold">{m.password()} / PIN</span>
 					</label>
 					<input
-						id="password"
+						id={passwordInputId}
 						type="password"
 						autocomplete="current-password"
-						placeholder={m.enter_your_password()}
 						class="input-bordered input input-lg w-full"
 						bind:value={password}
-						bind:this={passwordInput}
 						disabled={isLoading}
 					/>
 				</div>
@@ -253,14 +291,16 @@
 				>
 					{m.cancel()}
 				</button>
-				<button class="btn px-6 btn-lg btn-primary" type="submit" disabled={isLoading}>
-					{#if isLoading}
-						<span class="loading loading-spinner"></span>
-						{m.logging_in()}...
-					{:else}
-						{m.login()}
-					{/if}
-				</button>
+				{#if !scannerOnlyMode}
+					<button class="btn px-6 btn-lg btn-accent" type="submit" disabled={isLoading}>
+						{#if isLoading}
+							<span class="loading loading-spinner"></span>
+							{m.logging_in()}...
+						{:else}
+							{m.login()}
+						{/if}
+					</button>
+				{/if}
 			</div>
 		</form>
 	</div>

@@ -156,10 +156,15 @@
 	"offline": "Offline",
 	"no_readers_available": "Keine Lesegeräte verfügbar",
 	"detected_at": "Erkannt am",
-	"media_information_unavailable": "Buchinformationen nicht verfügbar",
+	"media_information_unavailable": "Buchdaten nicht verfügbar",
 	"reload": "Neu laden",
 	"borrowed": "ausgeliehen",
 	"returned": "zurückgegeben",
 	"tagging_crew_message": "Scanne das nächste Buch mit dem Barcode-Scanner",
-	"i_am_done": "Ich bin fertig"
+	"i_am_done": "Ich bin fertig",
+	"unable_to_load_media_information": "Buchdaten konnten nicht geladen werden. Bitte versuche es erneut.",
+	"please_enter_a_username": "Bitte gib einen Benutzernamen ein",
+	"please_enter_a_password": "Bitte gib ein Passwort ein",
+	"login_failed_please_try_again": "Anmeldung fehlgeschlagen. Bitte versuche es erneut.",
+	"an_error_occurred_please_try_again": "Ein Fehler ist aufgetreten. Bitte versuche es erneut."
 }
