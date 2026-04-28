@@ -578,7 +578,7 @@
 										<img
 											src={noMediaFoundImageUrl}
 											alt={m.place_items_on_the_reader_to_begin()}
-											class="min-h-96 w-full max-w-xl rounded-2xl object-cover shadow-lg"
+											class="max-h-120 min-h-96 max-w-xl rounded-2xl object-cover shadow-lg"
 											loading="lazy"
 										/>
 									</div>
