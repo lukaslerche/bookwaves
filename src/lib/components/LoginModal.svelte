@@ -12,9 +12,10 @@
 		onSuccess: () => void;
 		onCancel?: () => void;
 		loginMode?: LoginMode;
+		loginHelpImage?: string;
 	}
 
-	let { onSuccess, onCancel, loginMode = 'username_password' }: Props = $props();
+	let { onSuccess, onCancel, loginMode = 'username_password', loginHelpImage }: Props = $props();
 
 	const requiresPassword = $derived(loginMode === 'username_password');
 	const hasCameraToggle = $derived(loginMode === 'username_or_scanner');
@@ -197,111 +198,125 @@
 
 <div class="modal-open modal">
 	<div
-		class="modal-box max-w-xl rounded-3xl bg-base-100/95 text-base-content shadow-2xl ring-1 ring-base-300/70"
+		class="modal-box max-w-4xl rounded-3xl bg-base-100/95 text-base-content shadow-2xl ring-1 ring-base-300/70"
 	>
-		<div class="flex items-start justify-between gap-3">
-			<div>
-				<h3 class="text-3xl leading-tight font-black">{m.login_required()}</h3>
-			</div>
-		</div>
-
-		{#if errorMessage}
-			<div class="mt-4 rounded-2xl border border-error/30 bg-error/10 px-4 py-3 text-error">
-				<div class="flex items-center gap-3">
-					<CircleX />
-					<span>{errorMessage}</span>
-				</div>
-			</div>
-		{/if}
-
-		<form class="mt-6 space-y-5" onsubmit={handleSubmit}>
-			<div class="form-control gap-2">
-				<label class="label" for="username">
-					<span class="label-text text-sm font-semibold">{m.username()} / Barcode</span>
-				</label>
-				<input
-					id={usernameInputId}
-					type="text"
-					inputmode="text"
-					autocomplete="username"
-					class="input-bordered input input-lg w-full"
-					bind:value={username}
-					readonly={scannerOnlyMode}
-					disabled={isLoading}
-				/>
-				{#if hasCameraToggle}
-					<div class="flex flex-wrap items-center gap-3">
-						<button
-							type="button"
-							class="btn btn-outline btn-sm"
-							disabled={isLoading || scannerStatus === 'starting'}
-							onclick={() => (scannerOpen ? stopScanner() : startScanner())}
-						>
-							{scannerOpen ? m.stop_camera() : m.start_with_camera()}
-						</button>
-						{#if scannerStatus === 'scanning'}
-							<span class="text-xs text-base-content/60"> {m.point_the_camera()} </span>
-						{/if}
-					</div>
-				{:else if scannerOnlyMode && scannerStatus === 'scanning'}
-					<span class="text-xs text-base-content/60"> {m.point_the_camera()} </span>
-				{/if}
-				{#if supportsScanner && (scannerOpen || scannerOnlyMode)}
-					<div class="mt-4 rounded-2xl border border-base-300 bg-base-200/40 p-4">
-						<div id={scannerElementId} class="overflow-hidden rounded-xl"></div>
-						{#if scannerError}
-							<p class="mt-3 text-xs text-error">{scannerError}</p>
-							{#if scannerOnlyMode}
-								<button
-									type="button"
-									class="btn mt-3 btn-outline btn-xs"
-									disabled={isLoading || scannerStatus === 'starting'}
-									onclick={startScanner}
-								>
-									{m.start_with_camera()}
-								</button>
-							{/if}
-						{/if}
-					</div>
-				{/if}
-			</div>
-
-			{#if requiresPassword}
-				<div class="form-control gap-2">
-					<label class="label" for="password">
-						<span class="label-text text-sm font-semibold">{m.password()} / PIN</span>
-					</label>
-					<input
-						id={passwordInputId}
-						type="password"
-						autocomplete="current-password"
-						class="input-bordered input input-lg w-full"
-						bind:value={password}
-						disabled={isLoading}
+		<div class="flex flex-col gap-6 md:flex-row md:items-stretch">
+			{#if loginHelpImage}
+				<div class="md:w-72 md:shrink-0">
+					<img
+						src={loginHelpImage}
+						alt={m.login_required()}
+						class="h-full w-full rounded-2xl object-cover shadow-xl"
 					/>
 				</div>
 			{/if}
 
-			<div class="modal-action mt-8 flex items-center justify-end gap-3">
-				<button
-					type="button"
-					class="btn px-5 btn-ghost"
-					onclick={handleCancel}
-					disabled={isLoading}
-				>
-					{m.cancel()}
-				</button>
-				{#if !scannerOnlyMode}
-					<button class="btn px-6 btn-lg btn-accent" type="submit" disabled={isLoading}>
-						{#if isLoading}
-							<span class="loading loading-spinner"></span>
-							{m.logging_in()}...
-						{:else}
-							{m.login()}
-						{/if}
-					</button>
+			<div class="min-w-0 flex-1">
+				<div class="flex items-start justify-between gap-3">
+					<div>
+						<h3 class="text-3xl leading-tight font-black">{m.login_required()}</h3>
+					</div>
+				</div>
+
+				{#if errorMessage}
+					<div class="mt-4 rounded-2xl border border-error/30 bg-error/10 px-4 py-3 text-error">
+						<div class="flex items-center gap-3">
+							<CircleX />
+							<span>{errorMessage}</span>
+						</div>
+					</div>
 				{/if}
+
+				<form class="mt-6 space-y-5" onsubmit={handleSubmit}>
+					<div class="form-control gap-2">
+						<label class="label" for="username">
+							<span class="label-text text-sm font-semibold">{m.username()} / Barcode</span>
+						</label>
+						<input
+							id={usernameInputId}
+							type="text"
+							inputmode="text"
+							autocomplete="username"
+							class="input-bordered input input-lg w-full"
+							bind:value={username}
+							readonly={scannerOnlyMode}
+							disabled={isLoading}
+						/>
+						{#if hasCameraToggle}
+							<div class="flex flex-wrap items-center gap-3">
+								<button
+									type="button"
+									class="btn btn-outline btn-sm"
+									disabled={isLoading || scannerStatus === 'starting'}
+									onclick={() => (scannerOpen ? stopScanner() : startScanner())}
+								>
+									{scannerOpen ? m.stop_camera() : m.start_with_camera()}
+								</button>
+								{#if scannerStatus === 'scanning'}
+									<span class="text-xs text-base-content/60"> {m.point_the_camera()} </span>
+								{/if}
+							</div>
+						{:else if scannerOnlyMode && scannerStatus === 'scanning'}
+							<span class="text-xs text-base-content/60"> {m.point_the_camera()} </span>
+						{/if}
+						{#if supportsScanner && (scannerOpen || scannerOnlyMode)}
+							<div class="mt-4 rounded-2xl border border-base-300 bg-base-200/40 p-4">
+								<div id={scannerElementId} class="overflow-hidden rounded-xl"></div>
+								{#if scannerError}
+									<p class="mt-3 text-xs text-error">{scannerError}</p>
+									{#if scannerOnlyMode}
+										<button
+											type="button"
+											class="btn mt-3 btn-outline btn-xs"
+											disabled={isLoading || scannerStatus === 'starting'}
+											onclick={startScanner}
+										>
+											{m.start_with_camera()}
+										</button>
+									{/if}
+								{/if}
+							</div>
+						{/if}
+					</div>
+
+					{#if requiresPassword}
+						<div class="form-control gap-2">
+							<label class="label" for="password">
+								<span class="label-text text-sm font-semibold">{m.password()} / PIN</span>
+							</label>
+							<input
+								id={passwordInputId}
+								type="password"
+								autocomplete="current-password"
+								class="input-bordered input input-lg w-full"
+								bind:value={password}
+								disabled={isLoading}
+							/>
+						</div>
+					{/if}
+
+					<div class="modal-action mt-8 flex items-center justify-end gap-3">
+						<button
+							type="button"
+							class="btn px-5 btn-ghost"
+							onclick={handleCancel}
+							disabled={isLoading}
+						>
+							{m.cancel()}
+						</button>
+						{#if !scannerOnlyMode}
+							<button class="btn px-6 btn-lg btn-accent" type="submit" disabled={isLoading}>
+								{#if isLoading}
+									<span class="loading loading-spinner"></span>
+									{m.logging_in()}...
+								{:else}
+									{m.login()}
+								{/if}
+							</button>
+						{/if}
+					</div>
+				</form>
 			</div>
-		</form>
+		</div>
 	</div>
 </div>

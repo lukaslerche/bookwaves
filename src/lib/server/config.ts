@@ -36,6 +36,7 @@ export interface MiddlewareInstanceConfig {
 
 export interface LoginConfig {
 	mode?: LoginMode;
+	login_help_image?: string;
 }
 
 export interface CheckoutProfileConfig {
@@ -219,6 +220,7 @@ log_level: info # Logging level: fatal, error, warn, info, debug, trace, silent
 # Login flow configuration
 login:
   mode: username_password # username_password (default) or username_only or scanner_only or username_or_scanner
+	# login_help_image: '/branding/login-help.png' # optional; supports /absolute/path or https:// URL
 
 checkout:
   profiles:
@@ -384,7 +386,10 @@ export function getConfig(): LMSConfig {
 		}
 
 		data.log_level = parseLogLevel(data.log_level, 'info');
-		data.login = { mode: parsedLoginMode };
+		data.login = {
+			mode: parsedLoginMode,
+			login_help_image: validateSource(data.login?.login_help_image)
+		};
 		data.gate = parsedGateConfig;
 		data.tagging = parsedTaggingConfig;
 		data.checkout = parsedCheckoutConfig;
@@ -517,7 +522,10 @@ export function getConfig(): LMSConfig {
 	}
 
 	data.log_level = parseLogLevel(data.log_level, 'info');
-	data.login = { mode: parsedLoginMode };
+	data.login = {
+		mode: parsedLoginMode,
+		login_help_image: validateSource(data.login?.login_help_image)
+	};
 	data.gate = parsedGateConfig;
 	data.tagging = parsedTaggingConfig;
 	data.checkout = parsedCheckoutConfig;

@@ -8,9 +8,12 @@ export const load = (async ({ cookies }) => {
 	const lms = getLms();
 	const userId = getAuthUserFromCookies(cookies);
 	let loginMode: LoginMode = 'username_password';
+	let loginHelpImage: string | undefined;
 
 	try {
-		loginMode = getConfig().login?.mode ?? 'username_password';
+		const config = getConfig();
+		loginMode = config.login?.mode ?? 'username_password';
+		loginHelpImage = config.login?.login_help_image;
 	} catch (error) {
 		logger.error({ err: error }, 'Failed to load login config; defaulting to username/password');
 	}
@@ -26,7 +29,8 @@ export const load = (async ({ cookies }) => {
 			fees: [],
 			authUser: null,
 			requiresAuth: true,
-			loginMode
+			loginMode,
+			loginHelpImage
 		};
 	}
 
@@ -44,7 +48,8 @@ export const load = (async ({ cookies }) => {
 			fees: [],
 			authUser: null,
 			requiresAuth: true,
-			loginMode
+			loginMode,
+			loginHelpImage
 		};
 	}
 
@@ -72,7 +77,8 @@ export const load = (async ({ cookies }) => {
 			fees,
 			authUser: userId,
 			requiresAuth: false,
-			loginMode
+			loginMode,
+			loginHelpImage
 		};
 	} catch (error) {
 		logger.error({ err: error }, 'Failed to load account data');
@@ -86,7 +92,8 @@ export const load = (async ({ cookies }) => {
 			fees: [],
 			authUser: null,
 			requiresAuth: true,
-			loginMode
+			loginMode,
+			loginHelpImage
 		};
 	}
 }) satisfies PageServerLoad;

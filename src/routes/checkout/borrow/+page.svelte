@@ -437,7 +437,12 @@
 			</a>
 		</div>
 	{/if}
-	<LoginModal onSuccess={handleLoginSuccess} onCancel={handleLogoutAndBack} {loginMode} />
+	<LoginModal
+		onSuccess={handleLoginSuccess}
+		onCancel={handleLogoutAndBack}
+		{loginMode}
+		loginHelpImage={data.loginHelpImage}
+	/>
 {:else}
 	<div class="app-page-bg-checkout min-h-screen p-8">
 		<div class="mx-auto max-w-6xl">
