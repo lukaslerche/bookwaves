@@ -10,6 +10,11 @@ log_level: info # Logging level: fatal, error, warn, info, debug, trace, silent
 login:
   mode: username_password # username_password (default) or username_only or scanner_only or username_or_scanner
   # login_help_image: '/branding/login-help.png' # optional; supports /absolute/path or https:// URL
+  # validation:
+  #   implementation: campus_id # empty/missing means scanner values are used directly for login
+  #   campus_id:
+  #     url: 'https://url-to-validate-login-scans/validate' # URL to validate CampusID login scans
+  #     api_key: 'replace_me'
 
 checkout:
   # Optional image for the checkout list empty state; supports /absolute/path or https:// URL

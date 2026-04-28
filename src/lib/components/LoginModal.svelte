@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onDestroy, onMount, tick } from 'svelte';
 	import { loginUser } from '$lib/lms/lms.remote';
+	import { validateLoginScanRemote } from '$lib/auth/validate.remote';
 	import { setAuthUser } from '$lib/stores/auth';
 	import { CircleX } from '@lucide/svelte';
 	import { clientLogger } from '$lib/client/logger';
@@ -120,7 +121,16 @@
 		lastScannedAt = now;
 
 		try {
-			username = normalized;
+			const validatedUsername = await validateLoginScanRemote(normalized);
+			if (!validatedUsername) {
+				errorMessage = 'Scanned code could not be validated.';
+				if (scannerOnlyMode) {
+					void startScanner();
+				}
+				return;
+			}
+
+			username = validatedUsername;
 			await stopScanner();
 
 			if (requiresPassword) {
