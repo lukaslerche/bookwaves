@@ -71,7 +71,7 @@ export const ItemSchema = v.object({
 				desc: v.optional(v.string())
 			})
 		),
-		alternative_call_number: v.optional((v.string())
+		alternative_call_number: v.optional(v.string())
 	})
 });
 
