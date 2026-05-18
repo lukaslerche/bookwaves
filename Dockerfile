@@ -5,6 +5,7 @@ RUN npm i -g pnpm
 WORKDIR /app
 COPY package.json ./
 COPY pnpm-lock.yaml ./
+COPY pnpm-workspace.yaml ./
 RUN pnpm i --frozen-lockfile
 
 COPY . .
@@ -20,9 +21,10 @@ FROM node:alpine AS run
 RUN npm i -g pnpm
 
 WORKDIR /app
-COPY package*.json ./
+COPY package.json ./
 COPY pnpm-lock.yaml ./
-RUN pnpm i --frozen-lockfile -P
+COPY pnpm-workspace.yaml ./
+RUN pnpm i --frozen-lockfile -P --ignore-scripts
 
 COPY --from=build /app/build ./build
 
@@ -34,4 +36,4 @@ ENV CONFIG_FILE_PATH=/app/config/config.yaml
 ENV NODE_ENV=production
 
 CMD ["node", "build"]
-EXPOSE 3000/tcp
+EXPOSE 3000
