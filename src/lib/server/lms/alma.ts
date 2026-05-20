@@ -41,12 +41,12 @@ export const ItemSchema = v.object({
 	bib_data: v.object({
 		title: v.string(),
 		author: v.string(),
-		complete_edition: v.string(),
-		isbn: v.string(),
-		place_of_publication: v.string(),
-		date_of_publication: v.string(),
-		publisher_const: v.string(),
-		mms_id: v.string()
+		mms_id: v.string(),
+		complete_edition: v.optional(v.string()),
+		isbn: v.optional(v.string()),
+		place_of_publication: v.optional(v.string()),
+		date_of_publication: v.optional(v.string()),
+		publisher_const: v.optional(v.string())
 	}),
 	holding_data: v.object({
 		holding_id: v.string()
@@ -71,7 +71,7 @@ export const ItemSchema = v.object({
 				desc: v.optional(v.string())
 			})
 		),
-		alternative_call_number: v.string()
+		alternative_call_number: v.optional(v.string())
 	})
 });
 
