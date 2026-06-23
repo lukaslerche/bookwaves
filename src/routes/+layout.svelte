@@ -45,7 +45,7 @@
 </svelte:head>
 
 <div class="h-screen overflow-y-auto" style={themeVarsStyle}>
-	<div class="fixed bottom-4 left-4 z-50 flex gap-2">
+	<div class="fixed bottom-4 left-4 z-50 flex flex-col gap-2">
 		<button
 			class="btn btn-outline"
 			onclick={() => setLocale('de')}
