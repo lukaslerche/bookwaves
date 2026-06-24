@@ -36,7 +36,7 @@
 	function initializeReader() {
 		const selectedConfig = getSelectedReaderConfig();
 		if (!selectedConfig) {
-			readerError = 'No reader selected. Please select a reader from the top menu.';
+            readerError = m.no_reader_selected_message()
 			return;
 		}
 
@@ -45,14 +45,14 @@
 			(middleware) => middleware.instance.id === selectedConfig.middleware
 		);
 		if (!middleware) {
-			readerError = `Middleware "${selectedConfig.middleware}" not found in configuration.`;
+            readerError = m.middelware_not_found_message({ middleware : selectedConfig.middleware });
 			return;
 		}
 
 		try {
 			reader = createReaderFromSelection(middleware.instance.url, middleware.instance.type);
 			if (!reader) {
-				readerError = 'Failed to create reader instance.';
+				readerError = m.reader_instance_creation_failure_message();
 				return;
 			}
 			readerError = null;
@@ -67,7 +67,7 @@
 			);
 			loadItems();
 		} catch (error) {
-			readerError = `Failed to initialize reader: ${error instanceof Error ? error.message : 'Unknown error'}`;
+            readerError = m.reader_initialisation_failure_message({ error : error instanceof Error ? error.message : m.unknown_error() });
 			clientLogger.error('Reader initialization error:', error);
 		}
 	}

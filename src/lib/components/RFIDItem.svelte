@@ -67,11 +67,11 @@
 	}
 
 	function getSignalStrength(rssi?: number): string {
-		if (!rssi) return 'Unknown';
-		if (rssi > -50) return 'Excellent';
-		if (rssi > -60) return 'Good';
-		if (rssi > -70) return 'Fair';
-		return 'Weak';
+		if (!rssi) return m.signal_strength_unknown();
+		if (rssi > -50) return m.signal_strength_excelent();
+		if (rssi > -60) return m.signal_strength_good();
+		if (rssi > -70) return m.signal_strength_fair();
+		return m.signal_strength_weak();
 	}
 
 	function getStatusBadgeClass(status?: string): string {
@@ -107,8 +107,8 @@
 	}
 
 	function getSecuredText(secured?: boolean): string {
-		if (secured === undefined) return 'Unknown';
-		return secured ? 'Secured' : 'Unsecured';
+		if (secured === undefined) return m.security_bit_state_unknown();
+		return secured ? m.security_bit_state_1() : m.security_bit_state_0();
 	}
 
 	function getDisplayTitle(currentItem: MediaItem | null): string {
@@ -240,7 +240,8 @@
 				<div class="flex-1">
 					<h3 class="card-title text-sm font-normal opacity-70">
 						<Tag size={16} />
-						EPC: {item.id} <br /> Barcode: {item?.mediaId ?? 'N/A'}
+                        <div>{ m.epc_label({ epc: item?.id ?? m.na() }) }</div>
+                        <div>{ m.barcode_label({ barcode: item?.mediaId ?? m.na() }) }</div>
 					</h3>
 					<p class="mt-1 text-xs opacity-60">
 						{m.detected_at()}
@@ -276,7 +277,7 @@
 				<div class="flex min-w-0 flex-1 flex-col gap-2 text-xs">
 					<div class="text-sm font-semibold">{m.media_information_unavailable()}</div>
 					<div class="italic opacity-60">
-						{fetchError ?? 'No media information found for this RFID tag'}
+						{fetchError ?? m.unable_to_load_media_information()}
 					</div>
 					<button class="btn w-full btn-outline btn-sm" onclick={fetchMediaItem}>
 						{m.reload()}

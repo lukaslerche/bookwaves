@@ -54,16 +54,16 @@
 	const readerWarning = $derived(
 		readerError ??
 			(missingReaderParams
-				? 'Reader configuration is missing. Add middleware_id and reader_id to the URL.'
+                ? m.reader_configuration_missing_message()
 				: null)
 	);
 	const checkoutProfileWarning = $derived.by(() => {
 		if (!checkoutProfileRequired) return null;
 		if (!checkoutProfileId) {
-			return 'Checkout profile is missing. Add checkout_profile_id to the URL.';
+            return m.checkout_profile_missing_message();
 		}
 		if (!checkoutProfile) {
-			return `Checkout profile "${checkoutProfileId}" not found in config.`;
+            return m.checkout_profile_not_found_message({checkoutProfileId});
 		}
 		return null;
 	});
@@ -131,7 +131,7 @@
 		processed.mediaItem = mediaItem;
 
 		if (!processed.actionReady) {
-			processed.message = 'Detected. Waiting for stable signal...';
+            processed.message = m.waiting_for_stable_signal_message();
 			processedItems = [...processedItems];
 			return;
 		}
@@ -155,7 +155,7 @@
 
 		if (!mediaItem) {
 			processed.status = 'failed';
-			processed.message = 'Item not found in library system';
+            processed.message = m.item_not_found_in_lms_message();
 			processedItems = [...processedItems];
 
 			// Add to session
@@ -172,7 +172,7 @@
 
 		// Try to lend the item
 		processed.status = 'lending';
-		processed.message = 'Processing...';
+        processed.message = m.awaiting_lms_response_message();
 		processedItems = [...processedItems];
 
 		let result: LmsActionResult | undefined;
@@ -185,12 +185,12 @@
 			});
 		} catch (error) {
 			clientLogger.error({ err: error }, 'Borrow item call failed');
-			result = { ok: false, reason: 'Unexpected error while borrowing item' };
+			result = { ok: false, reason: m.unexpected_error_lending_message() };
 		}
 
 		if (result?.ok) {
 			processed.status = 'success';
-			processed.message = result.message ?? 'Successfully borrowed';
+			processed.message = result.message ?? m.successfully_borrowed_message();
 			// Refresh the RFIDItem to show updated status
 			if (processed.component?.refresh) {
 				await processed.component.refresh();
@@ -202,7 +202,7 @@
 				try {
 					await readerInstance.unsecure(processed.rfidData.id);
 				} catch (err) {
-					clientLogger.error({ err }, 'Failed to unsecure item after borrow');
+					clientLogger.error({ err }, m.secure_failure_message());
 				}
 			}
 
@@ -216,7 +216,7 @@
 			});
 		} else {
 			processed.status = 'failed';
-			const reason = result?.reason ?? 'Failed to borrow item';
+			const reason = result?.reason ?? m.lending_failure_message();
 			//const details = result?.errors?.length ? `: ${result.errors.join('; ')}` : '';
 			processed.message = reason; // + details;
 
@@ -257,7 +257,7 @@
 			mediaResolved: false,
 			actionReady,
 			status: 'checking',
-			message: actionReady ? 'Preparing to borrow...' : 'Detected. Waiting for stable signal...'
+			message: actionReady ? m.preparing_to_borrow_message(): m.waiting_for_stable_signal_message()
 		};
 		processedItems = [processed, ...processedItems];
 	}
@@ -309,8 +309,7 @@
 			clientLogger.error(
 				'No reader configured. Please configure a reader via URL params or admin page.'
 			);
-			readerError =
-				'No reader configured. Add middleware_id and reader_id to the URL before borrowing.';
+			readerError = m.no_reader_found_while_borrowing_message();
 			return;
 		}
 
