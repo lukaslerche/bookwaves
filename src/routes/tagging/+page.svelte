@@ -46,7 +46,7 @@
 
 		const selectedConfig = getSelectedReaderConfig();
 		if (!selectedConfig) {
-			readerError = 'No reader selected. Please select a reader from the top menu.';
+            readerError = m.no_reader_selected_message()
 			return;
 		}
 
@@ -55,20 +55,20 @@
 			(middleware) => middleware.instance.id === selectedConfig.middleware
 		);
 		if (!middleware) {
-			readerError = `Middleware "${selectedConfig.middleware}" not found in configuration.`;
+            readerError = m.middelware_not_found_message({ middleware : selectedConfig.middleware });
 			return;
 		}
 
 		try {
 			reader = createReaderFromSelection(middleware.instance.url, middleware.instance.type);
 			if (!reader) {
-				readerError = 'Failed to create reader instance.';
+				readerError = m.reader_instance_creation_failure_message();
 				return;
 			}
 			readerError = null;
 			startPolling();
 		} catch (error) {
-			readerError = `Failed to initialize reader: ${error instanceof Error ? error.message : 'Unknown error'}`;
+            readerError = m.reader_initialisation_failure_message({ error : error instanceof Error ? error.message : m.unknown_error() });
 			clientLogger.error('Reader initialization error:', error);
 		}
 	}
@@ -130,20 +130,20 @@
 
 		if (detectedItems.length === 0) {
 			lastWriteStatus = 'error';
-			statusMessage = 'No tag detected. Please place a tag on the reader.';
+            statusMessage = m.no_tag_detected_message();
 			return;
 		}
 
 		if (detectedItems.length > 1) {
 			lastWriteStatus = 'error';
-			statusMessage = 'Multiple tags detected. Please ensure only one tag is on the reader.';
+            statusMessage = m.multiple_tags_detected_message();
 			return;
 		}
 
 		const tagId = detectedItems[0].id;
 		if (whitelistEnabled && !overrideWhitelist && !isWhitelisted(tagId)) {
 			lastWriteStatus = 'error';
-			statusMessage = 'Tag is not on the whitelist. Enable override to proceed.';
+			statusMessage = m.enable_override_message();
 			return;
 		}
 
@@ -154,16 +154,16 @@
 			const result = await reader.initialize(input.trim(), holder.trim());
 			if (!result.success) {
 				lastWriteStatus = 'error';
-				statusMessage = result.message || 'Failed to initialize tag. Please try again.';
+				statusMessage = result.message || m.tag_initialization_failure_message();
 				return;
 			}
 			lastWriteStatus = 'success';
-			statusMessage = `Initialized tag ${tagId} with "${input.trim()}"`;
+            statusMessage = m.tag_initialization_success_message({ tagId: tagId, input: input.trim() });
 			input = '';
 			await loadItems();
 		} catch (error) {
 			lastWriteStatus = 'error';
-			statusMessage = 'Failed to initialize tag. Please try again.';
+			statusMessage = m.tag_initialization_failure_message();
 			clientLogger.error('Failed to initialize tag:', error);
 		} finally {
 			writing = false;

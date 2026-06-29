@@ -26,7 +26,7 @@
 	const readerWarning = $derived(
 		readerError ??
 			(missingReaderParams
-				? 'Reader configuration is missing. Add middleware_id and reader_id to the URL.'
+                ? m.reader_configuration_missing_message()
 				: null)
 	);
 	const noMediaFoundImageUrl = $derived(
@@ -74,8 +74,7 @@
 			clientLogger.error(
 				'No reader configured. Please configure a reader via URL params or admin page.'
 			);
-			readerError =
-				'No reader configured. Add middleware_id and reader_id to the URL before viewing device items.';
+			readerError = m.no_reader_found_while_listing_message();
 			return;
 		}
 

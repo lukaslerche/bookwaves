@@ -31,7 +31,7 @@
 	const readerWarning = $derived(
 		readerError ??
 			(missingReaderParams
-				? 'Reader configuration is missing. Add middleware_id and reader_id to the URL.'
+                ? m.no_reader_found_message()
 				: null)
 	);
 
@@ -59,8 +59,7 @@
 			clientLogger.error(
 				'No reader configured. Please configure a reader via URL params or admin page.'
 			);
-			readerError =
-				'No reader configured. Add middleware_id and reader_id to the URL before monitoring the gate.';
+			readerError = m.no_reader_found_while_monitoring_message();
 			return;
 		}
 
