@@ -36,7 +36,7 @@
 	function initializeReader() {
 		const selectedConfig = getSelectedReaderConfig();
 		if (!selectedConfig) {
-            readerError = m.no_reader_selected_message()
+			readerError = m.no_reader_selected_message();
 			return;
 		}
 
@@ -45,7 +45,7 @@
 			(middleware) => middleware.instance.id === selectedConfig.middleware
 		);
 		if (!middleware) {
-            readerError = m.middelware_not_found_message({ middleware : selectedConfig.middleware });
+			readerError = m.middelware_not_found_message({ middleware: selectedConfig.middleware });
 			return;
 		}
 
@@ -67,7 +67,9 @@
 			);
 			loadItems();
 		} catch (error) {
-            readerError = m.reader_initialisation_failure_message({ error : error instanceof Error ? error.message : m.unknown_error() });
+			readerError = m.reader_initialisation_failure_message({
+				error: error instanceof Error ? error.message : m.unknown_error()
+			});
 			clientLogger.error('Reader initialization error:', error);
 		}
 	}

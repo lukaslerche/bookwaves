@@ -52,18 +52,15 @@
 	const checkoutProfileRequired = $derived(lmsType.toLowerCase() === 'alma');
 	let readerError: string | null = $state(null);
 	const readerWarning = $derived(
-		readerError ??
-			(missingReaderParams
-                ? m.reader_configuration_missing_message()
-				: null)
+		readerError ?? (missingReaderParams ? m.reader_configuration_missing_message() : null)
 	);
 	const checkoutProfileWarning = $derived.by(() => {
 		if (!checkoutProfileRequired) return null;
 		if (!checkoutProfileId) {
-            return m.checkout_profile_missing_message();
+			return m.checkout_profile_missing_message();
 		}
 		if (!checkoutProfile) {
-            return m.checkout_profile_not_found_message({checkoutProfileId});
+			return m.checkout_profile_not_found_message({ checkoutProfileId });
 		}
 		return null;
 	});
@@ -131,7 +128,7 @@
 		processed.mediaItem = mediaItem;
 
 		if (!processed.actionReady) {
-            processed.message = m.waiting_for_stable_signal_message();
+			processed.message = m.waiting_for_stable_signal_message();
 			processedItems = [...processedItems];
 			return;
 		}
@@ -155,7 +152,7 @@
 
 		if (!mediaItem) {
 			processed.status = 'failed';
-            processed.message = m.item_not_found_in_lms_message();
+			processed.message = m.item_not_found_in_lms_message();
 			processedItems = [...processedItems];
 
 			// Add to session
@@ -172,7 +169,7 @@
 
 		// Try to lend the item
 		processed.status = 'lending';
-        processed.message = m.awaiting_lms_response_message();
+		processed.message = m.awaiting_lms_response_message();
 		processedItems = [...processedItems];
 
 		let result: LmsActionResult | undefined;
@@ -257,7 +254,7 @@
 			mediaResolved: false,
 			actionReady,
 			status: 'checking',
-			message: actionReady ? m.preparing_to_borrow_message(): m.waiting_for_stable_signal_message()
+			message: actionReady ? m.preparing_to_borrow_message() : m.waiting_for_stable_signal_message()
 		};
 		processedItems = [processed, ...processedItems];
 	}

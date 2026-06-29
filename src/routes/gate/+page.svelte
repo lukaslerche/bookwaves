@@ -29,10 +29,7 @@
 	);
 	let readerError: string | null = $state(null);
 	const readerWarning = $derived(
-		readerError ??
-			(missingReaderParams
-                ? m.no_reader_found_message()
-				: null)
+		readerError ?? (missingReaderParams ? m.no_reader_found_message() : null)
 	);
 
 	// TODO: Hide them after a timeout

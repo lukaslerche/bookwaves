@@ -240,8 +240,8 @@
 				<div class="flex-1">
 					<h3 class="card-title text-sm font-normal opacity-70">
 						<Tag size={16} />
-                        <div>{ m.epc_label({ epc: item?.id ?? m.na() }) }</div>
-                        <div>{ m.barcode_label({ barcode: item?.mediaId ?? m.na() }) }</div>
+						<div>{m.epc_label({ epc: item?.id ?? m.na() })}</div>
+						<div>{m.barcode_label({ barcode: item?.mediaId ?? m.na() })}</div>
 					</h3>
 					<p class="mt-1 text-xs opacity-60">
 						{m.detected_at()}

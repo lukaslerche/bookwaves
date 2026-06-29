@@ -24,10 +24,7 @@
 	);
 	let readerError: string | null = $state(null);
 	const readerWarning = $derived(
-		readerError ??
-			(missingReaderParams
-                ? m.reader_configuration_missing_message()
-				: null)
+		readerError ?? (missingReaderParams ? m.reader_configuration_missing_message() : null)
 	);
 	const noMediaFoundImageUrl = $derived(
 		data.checkoutConfig?.noMediaFoundImageUrl || placeBooksDefaultImage
