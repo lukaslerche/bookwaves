@@ -369,13 +369,13 @@ export const mockLMS: LibraryManagementSystem = {
 		const item = mediaDatabase.get(barcode);
 
 		if (!item) {
-			return { ok: false, reason: 'Item not found' };
+			return { ok: false, reasonKey: 'error_item_not_found' };
 		}
 
 		if (item.status !== 'available') {
 			return {
 				ok: false,
-				reason: 'Item is not available',
+				reasonKey: 'error_item_not_available',
 				errors: [item.status ?? 'unknown status']
 			};
 		}
@@ -385,7 +385,7 @@ export const mockLMS: LibraryManagementSystem = {
 		return {
 			ok: true,
 			item: { ...item, returnDirective: getMockReturnDirective(item) },
-			message: 'Successfully borrowed'
+			messageKey: 'successfully_borrowed_message'
 		};
 	},
 	async returnItem(barcode: string): Promise<LmsActionResult> {
@@ -393,13 +393,13 @@ export const mockLMS: LibraryManagementSystem = {
 		const item = mediaDatabase.get(barcode);
 
 		if (!item) {
-			return { ok: false, reason: 'Item not found' };
+			return { ok: false, reasonKey: 'error_item_not_found' };
 		}
 
 		if (item.status !== 'borrowed') {
 			return {
 				ok: false,
-				reason: 'Item is not currently borrowed',
+				reasonKey: 'error_item_not_borrowed',
 				errors: [item.status ?? 'unknown status']
 			};
 		}
@@ -410,7 +410,7 @@ export const mockLMS: LibraryManagementSystem = {
 		return {
 			ok: true,
 			item: { ...item, returnDirective: directive },
-			message: 'Successfully returned',
+			messageKey: 'successfully_returned_message',
 			directive
 		};
 	},

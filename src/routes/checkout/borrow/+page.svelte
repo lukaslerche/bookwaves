@@ -187,7 +187,10 @@
 
 		if (result?.ok) {
 			processed.status = 'success';
-			processed.message = result.message ?? m.successfully_borrowed_message();
+			const msgFn = result.messageKey
+      			? (m as unknown as Record<string, () => string>)[result.messageKey]
+      			: undefined;
+  			processed.message = msgFn?.() ?? result.message ?? m.successfully_borrowed_message();
 			// Refresh the RFIDItem to show updated status
 			if (processed.component?.refresh) {
 				await processed.component.refresh();
@@ -213,7 +216,10 @@
 			});
 		} else {
 			processed.status = 'failed';
-			const reason = result?.reason ?? m.lending_failure_message();
+			const reasonFn = result?.reasonKey
+      			? (m as unknown as Record<string, () => string>)[result.reasonKey]
+      			: undefined;
+  			const reason = reasonFn?.() ?? result?.reason ?? m.lending_failure_message();
 			//const details = result?.errors?.length ? `: ${result.errors.join('; ')}` : '';
 			processed.message = reason; // + details;
 

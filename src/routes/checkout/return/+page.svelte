@@ -197,12 +197,15 @@
 			});
 		} catch (error) {
 			clientLogger.error({ err: error }, 'Return item call failed');
-			result = { ok: false, reason: 'Unexpected error while returning item' };
+			result = { ok: false, reasonKey: 'error_unexpected_return' };
 		}
 
 		if (result?.ok) {
 			processed.status = 'success';
-			processed.message = result.message ?? 'Successfully returned';
+			const msgFn = result.messageKey
+      			? (m as unknown as Record<string, () => string>)[result.messageKey]
+      			: undefined;
+  			processed.message = msgFn?.() ?? result.message ?? m.successfully_returned_message();
 			processed.directive =
 				result.directive ?? processed.directive ?? mediaItem?.returnDirective ?? null;
 			// Refresh the RFIDItem to show updated status
@@ -231,7 +234,10 @@
 			});
 		} else {
 			processed.status = 'failed';
-			const reason = result?.reason ?? 'Failed to return item';
+			const reasonFn = result?.reasonKey
+				? (m as unknown as Record<string, () => string>)[result.reasonKey]
+				: undefined;
+			const reason = reasonFn?.() ?? result?.reason ?? m.error_failed_to_return();
 			//const details = result?.errors?.length ? `: ${result.errors.join('; ')}` : '';
 			processed.message = reason; // + details;
 
@@ -273,7 +279,7 @@
 			mediaResolved: false,
 			actionReady,
 			status: 'checking',
-			message: 'Preparing to return...'
+			message: m.preparing_to_return_message()
 		};
 
 		if (!actionReady) {

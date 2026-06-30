@@ -240,7 +240,7 @@
 
 						{#if whitelistEnabled}
 							<div class="mt-2 flex flex-wrap items-center gap-2 text-sm">
-								<span class="badge badge-outline badge-primary">Whitelist active</span>
+								<span class="badge badge-outline badge-primary">{m.whitelist_active()}</span>
 								<span class="opacity-70">{m.allowed_prefixes()}: {whitelistValues.join(', ')}</span>
 							</div>
 						{/if}
@@ -313,7 +313,7 @@
 					</div>
 					<div class="form-control mb-4">
 						<label class="label" for="barcode-input">
-							<span class="label-text text-lg">Barcode</span>
+							<span class="label-text text-lg">{m.barcode()}</span>
 						</label>
 						<!-- svelte-ignore a11y_autofocus -->
 						<input

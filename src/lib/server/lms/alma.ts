@@ -285,14 +285,13 @@ export class AlmaLMS implements LibraryManagementSystem {
 		if (this.checkoutProfiles.size === 0) {
 			return {
 				ok: false,
-				reason: 'No checkout profile configured; provide library and circ_desk values'
+				reasonKey: 'error_no_checkout_profile'
 			};
 		}
 
 		return {
 			ok: false,
-			reason:
-				'Multiple checkout profiles configured; specify checkout_profile_id or provide library and circ_desk'
+			reasonKey: 'error_multiple_checkout_profiles'
 		};
 	}
 
@@ -526,7 +525,7 @@ export class AlmaLMS implements LibraryManagementSystem {
 	}
 
 	// Check all critical Alma API endpoints for availability
-	public async getHealth(): Promise<{ result: boolean; reason?: string }> {
+	public async getHealth(): Promise<{ result: boolean; reason?: string; reasonKey?: string }> {
 		const endpoints = [
 			{ name: 'users', url: `${this.apiUrl}users/operation/test` },
 			{ name: 'bibs', url: `${this.apiUrl}bibs/test` }
@@ -552,7 +551,7 @@ export class AlmaLMS implements LibraryManagementSystem {
 			}
 			return { result: true };
 		} catch {
-			return { result: false, reason: 'unexpected error during health check' };
+			return { result: false, reasonKey: 'error_health_check_failed' };
 		}
 	}
 
@@ -836,7 +835,7 @@ export class AlmaLMS implements LibraryManagementSystem {
 		logger.debug({ barcode }, 'AlmaLMS.borrowItem called');
 
 		if (!this.currentUserId) {
-			return { ok: false, reason: 'No user is currently logged in' };
+			return { ok: false, reasonKey: 'error_no_user_logged_in' };
 		}
 
 		const checkout = this.resolveCheckoutDetails(context);
@@ -867,7 +866,7 @@ export class AlmaLMS implements LibraryManagementSystem {
 			);
 		} catch (error) {
 			logger.error({ err: error }, 'Network error while borrowing item');
-			return { ok: false, reason: 'Network error while borrowing item' };
+			return { ok: false, reasonKey: 'error_network_borrow' };
 		}
 
 		if (!res.ok) {
@@ -890,18 +889,18 @@ export class AlmaLMS implements LibraryManagementSystem {
 			parsedBody = JSON.parse(rawText);
 		} catch (error) {
 			logger.error({ err: error }, 'Failed to parse Alma borrow response');
-			return { ok: false, reason: 'Unexpected response format from Alma' };
+			return { ok: false, reasonKey: 'error_unexpected_alma_response' };
 		}
 
 		logger.trace({ itemData: parsedBody }, 'Raw borrow item response');
 		const parsedLoanData = v.safeParse(ItemLoanSchema, parsedBody);
 		if (!parsedLoanData.success) {
 			logger.error({ issues: parsedLoanData.issues }, 'Parsed loan data error');
-			return { ok: false, reason: 'Invalid loan data format' };
+			return { ok: false, reasonKey: 'error_invalid_loan_data' };
 		}
 
 		const mediaItem = this.mapLoanToMediaItem(parsedLoanData.output);
-		return { ok: true, item: mediaItem, message: 'Successfully borrowed' };
+		return { ok: true, item: mediaItem, messageKey: 'successfully_borrowed_message' };
 	}
 
 	async returnItem(barcode: string, context?: CheckoutContext): Promise<LmsActionResult> {
@@ -920,7 +919,7 @@ export class AlmaLMS implements LibraryManagementSystem {
 			ids = this.getCachedItem(barcode);
 		}
 		if (!ids) {
-			return { ok: false, reason: 'Item not found for the given barcode' };
+			return { ok: false, reasonKey: 'error_item_not_found_for_barcode' };
 		}
 		const { mmsId, holdingId, itemId } = ids;
 
@@ -936,7 +935,7 @@ export class AlmaLMS implements LibraryManagementSystem {
 			);
 		} catch (error) {
 			logger.error({ err: error }, 'Network error while returning item');
-			return { ok: false, reason: 'Network error while returning item' };
+			return { ok: false, reasonKey: 'error_network_return' };
 		}
 
 		if (!res.ok) {
@@ -959,7 +958,7 @@ export class AlmaLMS implements LibraryManagementSystem {
 			parsedBody = JSON.parse(rawText);
 		} catch (error) {
 			logger.error({ err: error }, 'Failed to parse Alma return response');
-			return { ok: false, reason: 'Unexpected response format from Alma' };
+			return { ok: false, reasonKey: 'error_unexpected_alma_response' };
 		}
 
 		logger.trace({ itemData: parsedBody }, 'Raw return item response');
@@ -967,7 +966,7 @@ export class AlmaLMS implements LibraryManagementSystem {
 
 		if (!parsedItemData.success) {
 			logger.error({ issues: parsedItemData.issues }, 'Parsed return item data error');
-			return { ok: false, reason: 'Invalid item data format after return' };
+			return { ok: false, reasonKey: 'error_invalid_return_data'};
 		}
 
 		const mediaItem = this.mapItemToMediaItem(parsedItemData.output, barcode);
@@ -980,7 +979,7 @@ export class AlmaLMS implements LibraryManagementSystem {
 		return {
 			ok: true,
 			item: mediaItem,
-			message: 'Successfully returned',
+			messageKey: 'successfully_returned_message',
 			directive: this.buildReturnDirective(mediaItem)
 		};
 	}

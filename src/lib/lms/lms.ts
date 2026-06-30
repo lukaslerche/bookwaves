@@ -39,12 +39,14 @@ export type LmsActionSuccess = {
 	ok: true;
 	item?: MediaItem;
 	message?: string;
+	messageKey?: string;
 	directive?: LmsReturnDirective;
 };
 
 export type LmsActionFailure = {
 	ok: false;
-	reason: string;
+	reason?: string;
+	reasonKey?: string;
 	errors?: string[];
 	status?: number;
 };
@@ -125,5 +127,5 @@ export interface LibraryManagementSystem {
 	 * @returns The fee amount
 	 */
 	//getFees(userId?: string): Promise<number>;
-	getHealth(): Promise<{ result: boolean; reason?: string }>;
+	getHealth(): Promise<{ result: boolean; reason?: string; reasonKey?: string }>;
 }
