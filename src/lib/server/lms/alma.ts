@@ -10,14 +10,39 @@ import type {
 } from '../../lms/lms';
 import * as v from 'valibot';
 import { logger } from '$lib/server/logger';
+import { getLocale } from '$lib/paraglide/runtime';
 
 const DEFAULT_API_URL = 'https://api-eu.hosted.exlibrisgroup.com/almaws/v1/';
+
+type ReturnRule = {
+  field: string;
+  in?: string[];
+  equals?: string | boolean | number;
+  exists?: boolean;
+}
+
+type ReturnCondition = {
+  any?: ReturnRule[];
+  all?: ReturnRule[];
+  always?: boolean;
+}
+
+type ReturnDirective = {
+  binId: string;
+  priority: number;
+  message: Record<string, string>;
+  label: Record<string, string>;
+  color: string;
+  sort_order: number;
+  when?: ReturnCondition
+}
 
 type CheckoutProfile = {
 	id: string;
 	library: string;
 	circulation_desk: string;
 	type?: string;
+    return_directives?: ReturnDirective[];
 };
 
 interface AlmaLmsOptions {
@@ -202,39 +227,71 @@ export class AlmaLMS implements LibraryManagementSystem {
 	private params: URLSearchParams;
 	private itemCache = new Map<string, { mmsId: string; holdingId: string; itemId: string }>();
 	private checkoutProfiles = new Map<string, CheckoutProfile>();
+    private returnDirectives = new Map<string, Array<ReturnDirective>>();
 
-	// TODO this is still mocked
+    private matchesRule(rule: ReturnRule, item: MediaItem): boolean {
+        const value = item[rule.field as keyof MediaItem];
+        if (rule.exists !== undefined) {
+            return rule.exists
+                ? value !== undefined && value !== null
+                : value === undefined || value === null;
+        }
+        if (rule.in !== undefined) {
+            return value !== undefined &&
+                rule.in.includes(String(value));
+        }
+        if (rule.not_in !== undefined) {
+            return value === undefined ||
+                !rule.in.includes(String(value));
+        }
+        if (rule.equals !== undefined) {
+            return value === rule.equals;
+        }
+        return false;
+    }
+
+    private matches(condition: ReturnCondition | undefined, item: MediaItem): boolean {
+        if (!condition) { return false; }
+        if (condition.always === true) { return true; }
+        if (condition.any) { return condition.any.some(child => this.matchesRule(child, item)); }
+        if (condition.all) { return condition.all.every(child => this.matchesRule(child, item)); }
+        return false;
+    }
+
 	private buildReturnDirective(item: MediaItem): LmsReturnDirective | undefined {
-		const location = item.location?.toLowerCase() ?? '';
-		const library = item.library?.toLowerCase() ?? '';
-
-		if (location.includes('children') || library.includes('children')) {
-			return {
-				binId: 'blue',
-				label: 'Blue shelf',
-				color: 'blue',
-				message: 'Place this item in the blue sorting shelf',
-				sortOrder: 2
-			};
-		}
-
-		if (location.includes('fiction') || location.includes('fantasy')) {
-			return {
-				binId: 'red',
-				label: 'Red shelf',
-				color: 'red',
-				message: 'Place this item in the red sorting shelf',
-				sortOrder: 1
-			};
-		}
-
-		return {
-			binId: 'yellow',
-			label: 'Yellow shelf',
-			color: 'yellow',
-			message: 'Place this item in the yellow sorting shelf',
-			sortOrder: 3
-		};
+        const library = item.library_code?.toLowerCase() ?? '';
+        if (library === undefined || library === "") {
+            return {
+                binId: "",
+                label: "",
+                message: "",
+                color: "",
+                sortOrder: 1
+            };
+        }
+        const location = item.location_code?.toLowerCase() ?? '';
+        // const circulation_desk = "DEFAULT_CIRC_DESK".toLowerCase();
+        // const circulation_desk = item.location?.toLowerCase() ?? '';
+        const circulation_desk = item.circulation_desk_code?.toLowerCase() ?? "DEFAULT_CIRC_DESK".toLowerCase();
+        const key = `${library.trim()}:${circulation_desk.trim()}`.toLowerCase();
+        const returnDirectives = this.returnDirectives.get(key);
+        if (returnDirectives == undefined) {
+            throw new Error(`Return directives not defined for the library ${library} and ${circulation_desk}`);
+        }
+        logger.debug({ returnDirectives }, `Return directives of ${key}`);
+        for (const directive of returnDirectives.sort((a, b) => b.priority - a.priority)) {
+            if (this.matches(directive.when, item)) {
+                logger.debug({ directive }, `Matched directive of ${key}`);
+                const locale = getLocale();
+                return {
+                    binId: directive.binId,
+                    label: directive.label[locale] ?? directive.label.en,
+                    message: directive.message[locale] ?? directive.message.en,
+                    color: directive.color,
+                    sortOrder: directive.sort_order
+                };
+            }
+        }
 	}
 
 	private getCachedItem(barcode: string) {
@@ -406,7 +463,9 @@ export class AlmaLMS implements LibraryManagementSystem {
 			date: itemData.bib_data.date_of_publication,
 			publisher: itemData.bib_data.publisher_const,
 			library: itemData.item_data.library.desc,
+			library_code: itemData.item_data.library.value,
 			location: itemData.item_data.location.desc,
+			location_code: itemData.item_data.location.value,
 			shelfmark: itemData.item_data.alternative_call_number,
 			status:
 				itemData.item_data.base_status.desc + ': ' + (itemData.item_data.process_type?.desc ?? '-'),
@@ -502,6 +561,17 @@ export class AlmaLMS implements LibraryManagementSystem {
 
 		this.apiUrl = apiUrl;
 		this.apiKey = apiKey;
+        this.returnDirectives = new Map();
+        for (const profile of checkoutProfiles) {
+            const key = `${profile.library.trim()}:${profile.circulation_desk.trim()}`.toLowerCase();
+            logger.trace({ key }, "Map key to return directives");
+            const returnDirectives = profile.return_directives;
+            logger.trace({ returnDirectives }, `Return Directives of key ${key}`);
+            if (returnDirectives === undefined) {
+                throw new Error(`Return directives not configured for library ${profile.library} and circulation_desk ${profile.circulation_desk}`);
+            }
+            this.returnDirectives.set(key, returnDirectives);
+        }
 		this.checkoutProfiles = new Map(
 			checkoutProfiles
 				.filter((profile) => (profile.type ?? 'alma').toLowerCase() === 'alma')
@@ -815,6 +885,7 @@ export class AlmaLMS implements LibraryManagementSystem {
 			date: parsedItemData.output.bib_data.date_of_publication,
 			publisher: parsedItemData.output.bib_data.publisher_const,
 			library: parsedItemData.output.item_data.library.desc,
+			library_code: parsedItemData.output.item_data.library.value,
 			location: parsedItemData.output.item_data.location.desc,
 			shelfmark: parsedItemData.output.item_data.alternative_call_number,
 			status:

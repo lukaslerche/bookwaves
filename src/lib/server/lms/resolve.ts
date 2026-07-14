@@ -8,15 +8,16 @@ let cached: LibraryManagementSystem | null = null;
 export function getLms(): LibraryManagementSystem {
 	if (cached) return cached;
 
-	const { lms: lmsConfig, checkout } = getConfig();
+	// const { lms: lmsConfig, checkout } = getConfig();
+    const config = getConfig();
 
-	if (lmsConfig.type === 'alma') {
-		if (!lmsConfig.api_key) {
+	if (config.lms.type === 'alma') {
+		if (!config.lms.api_key) {
 			throw new Error('Missing Alma API key in configuration (lms.api_key)');
 		}
 		cached = new AlmaLMS({
-			apiKey: lmsConfig.api_key,
-			checkoutProfiles: checkout?.profiles
+			apiKey: config.lms.api_key,
+			checkoutProfiles: config.checkout?.profiles
 		});
 		return cached;
 	}
