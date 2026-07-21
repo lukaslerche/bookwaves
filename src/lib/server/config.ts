@@ -4,7 +4,7 @@ import YAML from 'yaml';
 import { type LogLevel, parseLogLevel } from '$lib/logger/levels';
 
 export type LoginMode =
-	'username_password' | 'username_only' | 'scanner_only' | 'username_or_scanner';
+	'username_password' | 'username_only' | 'scanner_only' | 'username_or_scanner' | 'username_password_or_pin';
 
 export type LoginValidationImplementation = 'campus_id';
 
@@ -100,7 +100,8 @@ const VALID_LOGIN_MODES: LoginMode[] = [
 	'username_password',
 	'username_only',
 	'scanner_only',
-	'username_or_scanner'
+	'username_or_scanner',
+	'username_password_or_pin'
 ];
 const DEFAULT_GATE_CONFIG: Required<GateConfig> = {
 	show_all_detected_items: true
