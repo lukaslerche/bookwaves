@@ -7,7 +7,7 @@
 	import { clientLogger } from '$lib/client/logger';
 	import { m } from '$lib/paraglide/messages';
 
-	type LoginMode = 'username_password' | 'username_only' | 'scanner_only' | 'username_or_scanner';
+	type LoginMode = 'username_password' | 'username_only' | 'scanner_only' | 'username_or_scanner' | 'username_password_or_pin';
 
 	interface Props {
 		onSuccess: () => void;
@@ -18,7 +18,7 @@
 
 	let { onSuccess, onCancel, loginMode = 'username_password', loginHelpImage }: Props = $props();
 
-	const requiresPassword = $derived(loginMode === 'username_password');
+	const requiresPassword = $derived(loginMode === 'username_password' || loginMode == 'username_password_or_pin');
 	const hasCameraToggle = $derived(loginMode === 'username_or_scanner');
 	const scannerOnlyMode = $derived(loginMode === 'scanner_only');
 	const supportsScanner = $derived(hasCameraToggle || scannerOnlyMode);

@@ -54,9 +54,9 @@ export const loginUser = command(
 	v.object({
 		user: v.string(),
 		password: v.optional(v.string())
-	}),
+    }),
 	async ({ user, password }) => {
-		const ok = await lms.loginUser(user, password);
+        const ok = await lms.loginUser(user, password);
 		const event = getRequestEvent();
 
 		if (event) {

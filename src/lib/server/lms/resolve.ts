@@ -8,7 +8,7 @@ let cached: LibraryManagementSystem | null = null;
 export function getLms(): LibraryManagementSystem {
 	if (cached) return cached;
 
-	const { lms: lmsConfig, checkout } = getConfig();
+	const { lms: lmsConfig, login, checkout } = getConfig();
 
 	if (lmsConfig.type === 'alma') {
 		if (!lmsConfig.api_key) {
@@ -16,6 +16,7 @@ export function getLms(): LibraryManagementSystem {
 		}
 		cached = new AlmaLMS({
 			apiKey: lmsConfig.api_key,
+            pinLogin: login?.mode === "username_password_or_pin",
 			checkoutProfiles: checkout?.profiles
 		});
 		return cached;

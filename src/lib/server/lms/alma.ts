@@ -23,6 +23,7 @@ type CheckoutProfile = {
 interface AlmaLmsOptions {
 	apiKey: string;
 	apiUrl?: string;
+    pinLogin?: boolean;
 	checkoutProfiles?: CheckoutProfile[];
 }
 
@@ -202,6 +203,7 @@ export class AlmaLMS implements LibraryManagementSystem {
 	private params: URLSearchParams;
 	private itemCache = new Map<string, { mmsId: string; holdingId: string; itemId: string }>();
 	private checkoutProfiles = new Map<string, CheckoutProfile>();
+    public pinLogin?: boolean;
 
 	// TODO this is still mocked
 	private buildReturnDirective(item: MediaItem): LmsReturnDirective | undefined {
@@ -494,13 +496,14 @@ export class AlmaLMS implements LibraryManagementSystem {
 		return parsedRequestsData.output.user_request ?? [];
 	}
 
-	constructor({ apiKey, apiUrl = DEFAULT_API_URL, checkoutProfiles = [] }: AlmaLmsOptions) {
+	constructor({ apiKey, pinLogin, apiUrl = DEFAULT_API_URL, checkoutProfiles = [] }: AlmaLmsOptions) {
 		if (!apiKey) {
 			throw new Error('Alma API key is required');
 		}
 
 		this.apiUrl = apiUrl;
 		this.apiKey = apiKey;
+        this.pinLogin = pinLogin;
 		this.checkoutProfiles = new Map(
 			checkoutProfiles
 				.filter((profile) => (profile.type ?? 'alma').toLowerCase() === 'alma')
@@ -733,6 +736,51 @@ export class AlmaLMS implements LibraryManagementSystem {
 			.sort((a, b) => (a.creationTime ?? '').localeCompare(b.creationTime ?? ''));
 	}
 
+    async verifyPinNumber(user: string, password: string): Promise<boolean> {
+        const params = new URLSearchParams(this.params.toString());
+        let response: Response;
+        try {
+            response = await fetch(
+                    `${this.apiUrl}users/${encodeURIComponent(user)}?${this.params.toString()}`,
+                    { method: 'GET' }
+            );
+        } catch {
+            this.currentUserId = undefined;
+            throw new Error('Network error while authenticating user');
+        }
+        const userData = await response.json();
+        const pin = userData["pin_number"];
+        if (pin === password) {
+            this.currentUserId = user;
+        }
+        return pin == password
+    }
+
+    async authentifyUser(user: string, password: string): Promise<boolean> {
+        const authParams = new URLSearchParams(this.params.toString());
+        authParams.set('op', 'auth');
+        authParams.set('password', password);
+        authParams.set('user_id_type', 'all_unique');
+        let response: Response;
+        try {
+            response = await fetch(
+                    `${this.apiUrl}users/${encodeURIComponent(user)}?${authParams.toString()}`,
+                    { method: 'POST' }
+            );
+        } catch {
+            this.currentUserId = undefined;
+            throw new Error('Network error while authenticating user');
+        }
+        if (!response.ok) {
+            logger.debug({ response }, "RAW login json resonse ");
+            this.currentUserId = undefined;
+            return false;
+        } else {
+            this.currentUserId = user;
+            return true;
+        }
+    }
+
 	async loginUser(user: string, password?: string): Promise<boolean> {
 		const trimmedUser = user?.trim();
 
@@ -745,6 +793,23 @@ export class AlmaLMS implements LibraryManagementSystem {
 		if (this.currentUserId === trimmedUser && !password) {
 			return true;
 		}
+
+        if (this.pinLogin) {
+            // Verify pin or password via Alma op=auth (only when password_or_pin login mode is provided)
+            if (password === undefined) {
+                logger.error('Pin login mode activated, undefined password must be defined to proceed with user authentication'); 
+            } else {
+                const pinVerified = await this.verifyPinNumber(trimmedUser, password);
+                if (pinVerified) {
+                    return true;
+                }
+                const userAuthentified = await this.authentifyUser(trimmedUser, password);
+                if (userAuthentified) {
+                    return true;
+                } 
+                return false;
+            }
+        }
 
 		// TODO: Alma API key auth does not support password verification; keep the parameter for future SSO
 		let res: Response;
