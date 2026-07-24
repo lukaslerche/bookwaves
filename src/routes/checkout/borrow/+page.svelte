@@ -265,7 +265,7 @@
 		processedItems = [processed, ...processedItems];
 	}
 
-	async function initSessionAndReader(activeUser: string) {
+	async function initSessionAndReader(activeUser: string): Promise<boolean> {
 		// Initialize or restore session once
 		if (!sessionInitialized) {
 			let session = getCheckoutSession();
@@ -289,12 +289,12 @@
 			}
 		}
 
-		if (!activeUser) return;
+		if (!activeUser) return false;
 
 		if (!(await resumeCurrentUserSession())) {
 			clearAuthUser();
 			showLoginModal = true;
-			return;
+			return false;
 		}
 
 		// Tear down any previous subscription before starting a new one
@@ -317,7 +317,7 @@
 				'No reader configured. Please configure a reader via URL params or admin page.'
 			);
 			readerError = m.no_reader_found_while_borrowing_message();
-			return;
+			return false;
 		}
 
 		readerError = null;
@@ -338,6 +338,8 @@
 				processItem(event.item, true);
 			}
 		});
+
+		return true;
 	}
 
 	onMount(async () => {
@@ -356,8 +358,9 @@
 			setAuthUser(data.authUser);
 		}
 
-		await initSessionAndReader(activeUser);
-		startIdleCountdown();
+		if (await initSessionAndReader(activeUser)) {
+			startIdleCountdown();
+		}
 	});
 
 	onDestroy(() => {
@@ -375,7 +378,9 @@
 		// Log in to LMS with stored user
 		const authUser = getAuthUser();
 		if (authUser) {
-			await initSessionAndReader(authUser);
+			if (!(await initSessionAndReader(authUser))) {
+				return;
+			}
 		}
 
 		startIdleCountdown();
