@@ -192,7 +192,7 @@
 						<span>Timeout</span>
 						<span>{countdownSeconds}s</span>
 					</div>
-					<button onclick={handleLogoutAndBack} class="btn shadow-xl btn-lg btn-accent">
+					<button onclick={handleLogoutAndBack} class="btn shadow-xl btn-accent btn-lg">
 						← {m.logout()}
 					</button>
 				</div>

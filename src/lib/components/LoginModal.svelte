@@ -247,7 +247,7 @@
 							type="text"
 							inputmode="text"
 							autocomplete="username"
-							class="input-bordered input input-lg w-full"
+							class="input-bordered input w-full input-lg"
 							bind:value={username}
 							readonly={scannerOnlyMode}
 							disabled={isLoading}
@@ -298,7 +298,7 @@
 								id={passwordInputId}
 								type="password"
 								autocomplete="current-password"
-								class="input-bordered input input-lg w-full"
+								class="input-bordered input w-full input-lg"
 								bind:value={password}
 								disabled={isLoading}
 							/>
@@ -308,14 +308,14 @@
 					<div class="modal-action mt-8 flex items-center justify-end gap-3">
 						<button
 							type="button"
-							class="btn px-5 btn-ghost"
+							class="btn btn-ghost px-5"
 							onclick={handleCancel}
 							disabled={isLoading}
 						>
 							{m.cancel()}
 						</button>
 						{#if !scannerOnlyMode}
-							<button class="btn px-6 btn-lg btn-accent" type="submit" disabled={isLoading}>
+							<button class="btn px-6 btn-accent btn-lg" type="submit" disabled={isLoading}>
 								{#if isLoading}
 									<span class="loading loading-spinner"></span>
 									{m.logging_in()}...

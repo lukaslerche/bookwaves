@@ -500,7 +500,7 @@
 						<span>Timeout</span>
 						<span>{countdownSeconds}s</span>
 					</div>
-					<button class="btn shadow-xl btn-lg btn-accent" onclick={handleDoneClick}>
+					<button class="btn shadow-xl btn-accent btn-lg" onclick={handleDoneClick}>
 						<Check />{m.i_am_done()}
 					</button>
 				</div>

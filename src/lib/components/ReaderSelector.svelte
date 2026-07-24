@@ -121,7 +121,7 @@
 
 		<div class="flex flex-wrap items-center gap-2">
 			<select
-				class="select-bordered select bg-white/20 select-xs text-white"
+				class="select-bordered select bg-white/20 text-white select-xs"
 				bind:value={selectedMiddleware}
 				onchange={(event) => handleMiddlewareSelect(event.currentTarget.value)}
 			>
@@ -133,7 +133,7 @@
 			</select>
 
 			<select
-				class="select-bordered select bg-white/20 select-xs text-white"
+				class="select-bordered select bg-white/20 text-white select-xs"
 				bind:value={selectedReader}
 				onchange={(event) => handleReaderSelect(event.currentTarget.value)}
 				disabled={!currentMiddleware || currentMiddleware.readers.length === 0}
