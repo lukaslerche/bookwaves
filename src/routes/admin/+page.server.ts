@@ -6,6 +6,7 @@ export const load = (async () => {
 
 	return {
 		lmsType: config.lms.type,
+		loginMode: config.login?.mode,
 		lmsApiKeyMasked: config.lms.api_key.substring(0, 10) + '***',
 		middlewareReaders,
 		checkoutProfiles: config.checkout?.profiles ?? []

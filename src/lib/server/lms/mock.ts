@@ -294,8 +294,15 @@ function getMockReturnDirective(item: MediaItem): LmsReturnDirective {
 }
 
 export const mockLMS: LibraryManagementSystem = {
-	async loginUser(user: string /*, password?: string*/): Promise<boolean> {
-		// Accept any username, password is optional
+	async loginUser(user: string /*, loginSecret?: string*/): Promise<boolean> {
+		// Accept any username, login secret is optional in mock mode.
+		if (user) {
+			currentUser = user;
+			return true;
+		}
+		return false;
+	},
+	async resumeUserSession(user: string): Promise<boolean> {
 		if (user) {
 			currentUser = user;
 			return true;

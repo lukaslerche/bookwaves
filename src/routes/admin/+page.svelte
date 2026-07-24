@@ -12,7 +12,7 @@
 	let { data }: PageProps = $props();
 	let currentSelection = $state<{ middleware: string; reader: string } | null>(null);
 	let username = $state('');
-	let password = $state('');
+	let loginSecret = $state('');
 	let loginStatus = $state('');
 	let accountResult = $state('');
 	let mediaId = $state('');
@@ -24,6 +24,14 @@
 	let busyAction = $state<string | null>(null);
 	let library = $state('');
 	let circDesk = $state('');
+	const loginSecretLabel = $derived(
+		data.loginMode === 'username_password_or_pin' ? 'Password or PIN' : 'Password'
+	);
+	const loginSecretHelp = $derived(
+		data.loginMode === 'username_password_or_pin'
+			? 'Tests PIN first, then Alma password fallback.'
+			: 'Optional for login modes that do not require a password.'
+	);
 
 	onMount(() => {
 		currentSelection = getSelectedReaderConfig();
@@ -45,7 +53,7 @@
 
 	const handleLogin = async () => {
 		await run('login', async () => {
-			const ok = await lms.loginUser({ user: username, password: password || undefined });
+			const ok = await lms.loginUser({ user: username, loginSecret: loginSecret || undefined });
 			loginStatus = ok ? `${m.logged_in_as()} ${username}` : m.login_failed();
 		});
 	};
@@ -206,13 +214,14 @@
 									/>
 								</label>
 								<label class="form-control w-full">
-									<span class="label-text font-semibold">Password (optional)</span>
+									<span class="label-text font-semibold">{loginSecretLabel}</span>
 									<input
 										type="password"
-										bind:value={password}
-										aria-label="Password"
+										bind:value={loginSecret}
+										aria-label={loginSecretLabel}
 										class="input-bordered input w-full"
 									/>
+									<span class="label-text-alt text-base-content/60">{loginSecretHelp}</span>
 								</label>
 								<div class="mt-2 flex flex-wrap gap-3">
 									<button class="btn btn-primary" onclick={handleLogin} disabled={!!busyAction}

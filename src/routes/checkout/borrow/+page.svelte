@@ -10,7 +10,7 @@
 	import type { SvelteComponent } from 'svelte';
 	import { createReaderFromParams } from '$lib/stores/reader-selection';
 	import type { RFIDData, RFIDReader } from '$lib/reader/interface';
-	import { borrowItem, loginUser, logoutUser } from '$lib/lms/lms.remote';
+	import { borrowItem, logoutUser, resumeCurrentUserSession } from '$lib/lms/lms.remote';
 	import type { LmsActionResult, MediaItem } from '$lib/lms/lms';
 	import { getAuthUser, clearAuthUser, setAuthUser } from '$lib/stores/auth';
 	import { goto, invalidateAll } from '$app/navigation';
@@ -291,7 +291,11 @@
 
 		if (!activeUser) return;
 
-		await loginUser({ user: activeUser });
+		if (!(await resumeCurrentUserSession())) {
+			clearAuthUser();
+			showLoginModal = true;
+			return;
+		}
 
 		// Tear down any previous subscription before starting a new one
 		if (readerUnsubscribe) {
@@ -340,9 +344,10 @@
 		clientLogger.debug('Page data:', data);
 
 		const storedUser = getAuthUser();
-		const activeUser = data.authUser || storedUser;
+		const activeUser = data.authUser;
 
 		if (!activeUser) {
+			clearAuthUser();
 			showLoginModal = true;
 			return;
 		}

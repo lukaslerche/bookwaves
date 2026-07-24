@@ -4,7 +4,11 @@ import YAML from 'yaml';
 import { type LogLevel, parseLogLevel } from '$lib/logger/levels';
 
 export type LoginMode =
-	'username_password' | 'username_only' | 'scanner_only' | 'username_or_scanner' | 'username_password_or_pin';
+	| 'username_password'
+	| 'username_only'
+	| 'scanner_only'
+	| 'username_or_scanner'
+	| 'username_password_or_pin';
 
 export type LoginValidationImplementation = 'campus_id';
 
@@ -387,7 +391,7 @@ log_level: info # Logging level: fatal, error, warn, info, debug, trace, silent
 
 # Login flow configuration
 login:
-  mode: username_password # username_password (default) or username_only or scanner_only or username_or_scanner
+  mode: username_password # username_password (default), username_password_or_pin, username_only, scanner_only, or username_or_scanner
 	# login_help_image: '/branding/login-help.png' # optional; supports /absolute/path or https:// URL
 	# validation:
 	#   implementation: campus_id # empty/missing means scanner values are used directly for login
