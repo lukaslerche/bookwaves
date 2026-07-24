@@ -16,19 +16,93 @@ login:
   #     url: 'https://url-to-validate-login-scans/validate' # URL to validate CampusID login scans
   #     api_key: 'replace_me'
 
+global_return_directives:  
+  - binId: fatal
+    color: red
+    priority: 100
+    label:
+      de: "Rote Regal"
+      en: "red shelf"
+    message:
+      de: "Bitte wenden Sie sich an einem Bibliothekmitarbeiter."
+      en: "Please go to the main desk"
+    sort_order: 1
+    # when defines when a book is assigned to the bin 
+    # any if only one condition must be true
+    # all if all conditions must be true
+    # and the rules can be:
+    # - in to check if the field value is in the specified list  
+    # - not_in to check if the field value is not in the specified list  
+    # - equals to check if the field value equals the specified value
+    # - to check if the field exists
+    when: 
+      any: 
+        - field: process_type
+          in: ["LOST_LOAN", "LOST_AND_PAID", "CLAIMED_RETURNED_LOAN", "MISSING"] 
+      all:
+        - field: library_code
+          in: ["TWIST", "OTHER"]
+        - field: process_type
+          in: ["HOLD_SHELF"]
+  - binId: warning
+    color: yellow
+    label:
+      de: "Gelbe Regal"
+      en: "Yellow shelf"
+    message:
+      de: "Bitte legen Sie das Medium in das blaue Regal."
+      en: "Please place this item in the blue shelf."
+    sort_order: 1
+    when: 
+      any: 
+        - field: process_type
+          in: ["HOLD_SHELF", "LOST_AND_PAID", "CLAIMED_RETURNED_LOAN", "MISSING"] 
+        - field: destination_library_code
+          exists: true
+        - field: has_request
+          equal: true
+        - field: process_type
+          not_in: ["LOST_LOAN", "MISSING"]
+  - binId: main
+    color: blue
+    label:
+      de: "Blaue Regal"
+      en: "Blue shelf"
+    message:
+      de: "Bitte legen Sie das Medium in das blaue Regal."
+      en: "Please place this item in the blue shelf."
+    sort_order: 1
+    when:
+      always: true
+
 checkout:
   # Optional image for the checkout list empty state; supports /absolute/path or https:// URL
   #no_media_found_image: '/branding/place_book.png'
   profiles:
     # The profile id is used via the checkout_profile_id URL param on checkout pages
+    # Each return directive must at least define one return directive with binId: main, 
+    # and to link the bin just add the bin if to the list of return_directives
+    # Untouched configuration of the bin will default to the logic defined in global return directives
     - id: terminal1
       type: alma
       library: MAIN_LIBRARY
       circulation_desk: SELF-CHECKOUT-CIRC1
+      return_directives:
+        - binId: main
+        - binId: warning
+        - binId: fatal
+          label:
+            de: "Blaue Regal"
+            en: "Blue shelf"
+          message:
+            de: "Bitte legen Sie das Medium in das blaue Regal."
+            en: "Please place this item in the blue shelf."
     - id: terminal2
       type: alma
       library: MAIN_LIBRARY
       circulation_desk: SELF-CHECKOUT-CIRC2
+      return_directives:
+        - binId: main
 
 # Security gate display configuration
 gate:

@@ -49,11 +49,41 @@ export interface LoginValidationConfig {
 	campus_id?: LoginValidationCampusIdConfig;
 }
 
+export interface ShelfCheck {
+    check: string,
+    value: string
+}
+
+export interface ReturnRule {
+  field: string;
+  in?: string[];
+  not_in?: string[];
+  equals?: string | boolean | number;
+  exists?: boolean;
+}
+
+export interface ReturnCondition {
+  any?: ReturnRule[];
+  all?: ReturnRule[];
+  always?: boolean;
+}
+
+export interface ReturnDirective {
+  binId: string;
+  priority: number;
+  message: Record<string, string>;
+  label: Record<string, string>;
+  color: string;
+  sort_order: number;
+  when?: ReturnCondition
+}
+
 export interface CheckoutProfileConfig {
 	id: string;
 	type?: string;
 	library: string;
 	circulation_desk: string;
+    return_directives: ReturnDirective[]
 }
 
 export interface CheckoutConfig {
@@ -93,6 +123,7 @@ export interface LMSConfig {
 	checkout?: CheckoutConfig;
 	theme?: ThemeConfig;
 	middleware_instances: MiddlewareInstanceConfig[];
+    global_return_directives?: ReturnDirective[];
 }
 
 const DEFAULT_LOGIN_MODE: LoginMode = 'username_password';
@@ -127,6 +158,26 @@ const DEFAULT_THEME_CONFIG: ThemeConfig = {
 	},
 	logo: undefined
 };
+const DEFAULT_RETURN_DIRECTIVE_COLOR_CONFIG: string = "blue";
+const DEFAULT_RETURN_DIRECTIVE_MESSAGE_CONFIG: Record<string, string> = {
+    de: "Bitte legen Sie das Medium in das blaue Regal.",
+    en: "lease place this item in the blue shelf."
+}
+const DEFAULT_RETURN_DIRECTIVE_LABEL_CONFIG: Record<string, string> = {
+    de: "Blaue Regal",
+    en: "Blue shelf"
+}
+const DEFAULT_RETURN_DIRECTIVES_CONFIG: ReturnDirective[] = [
+    {
+        binId: "main",
+        priority: 0,
+        message: DEFAULT_RETURN_DIRECTIVE_MESSAGE_CONFIG,
+        label: DEFAULT_RETURN_DIRECTIVE_LABEL_CONFIG,
+        color: DEFAULT_RETURN_DIRECTIVE_COLOR_CONFIG,
+        sort_order: 2,
+        when: {always: true}
+    }
+]
 
 function normalizeCssColor(value: unknown): string | undefined {
 	if (typeof value !== 'string') return undefined;
@@ -217,6 +268,44 @@ function parseTaggingConfig(data: LMSConfig): TaggingConfig {
 	};
 }
 
+function parseGlobalReturnDirectiveConfig(data: LMSConfig): ReturnDirective[] {
+	if (data.global_return_directives === undefined) return DEFAULT_RETURN_DIRECTIVES_CONFIG;
+    
+    return data.global_return_directives.map((returnDirective) => {
+        return {
+            binId: returnDirective.binId,
+            priority: returnDirective.priority,
+            label: returnDirective.label,
+            message: returnDirective.message,
+            color: returnDirective.color,
+            when: returnDirective.when,
+            sort_order: returnDirective.sort_order
+        }
+    })
+}
+
+function parseSpecialReturnDirectiveConfig(global: ReturnDirective[], override: Record<string, any>): ReturnDirective { 
+    const globalReturnDirectiveOfBin = global.find((returnDirective) => returnDirective.binId === override.binId);
+    if (globalReturnDirectiveOfBin === undefined) {
+        throw new Error(`Global return directive not found for binId ${override.binId}`);
+    }
+    const priority = override.priority === undefined ? globalReturnDirectiveOfBin.priority: override.priority;
+    const label = override.label === undefined ? globalReturnDirectiveOfBin.label : override.label;
+    const message = override.message === undefined ? globalReturnDirectiveOfBin.message : override.message;
+    const color = override.color === undefined ? globalReturnDirectiveOfBin.color : override.color;
+    const sortOrder = override.sort_order === undefined ? globalReturnDirectiveOfBin.sort_order : override.sort_order;
+    const when = override.when === undefined ? globalReturnDirectiveOfBin.when : override.when;
+    return {
+        binId: override.binId,
+        priority: priority,
+        label: label,
+        message: message,
+        color: color,
+        when: when,
+        sort_order: sortOrder
+    }
+}
+
 function parseCheckoutProfiles(data: LMSConfig): CheckoutProfileConfig[] {
 	if (data.checkout?.profiles === undefined) return DEFAULT_CHECKOUT_CONFIG.profiles ?? [];
 
@@ -225,6 +314,7 @@ function parseCheckoutProfiles(data: LMSConfig): CheckoutProfileConfig[] {
 	}
 
 	const lmsType = typeof data.lms?.type === 'string' ? data.lms.type : '';
+    const globalReturnDirectives = parseGlobalReturnDirectiveConfig(data);
 
 	return data.checkout.profiles.map((profile, index) => {
 		if (!profile || typeof profile !== 'object') {
@@ -233,9 +323,16 @@ function parseCheckoutProfiles(data: LMSConfig): CheckoutProfileConfig[] {
 
 		const id = typeof profile.id === 'string' ? profile.id.trim() : '';
 		const library = typeof profile.library === 'string' ? profile.library.trim() : '';
-		const circulationDesk =
-			typeof profile.circulation_desk === 'string' ? profile.circulation_desk.trim() : '';
+		const circulationDesk = typeof profile.circulation_desk === 'string' ? profile.circulation_desk.trim() : '';
 		const type = typeof profile.type === 'string' ? profile.type.trim() : lmsType;
+        var returnDirectives;
+        if (profile.return_directives === undefined) {
+            returnDirectives = globalReturnDirectives;
+        } else {
+            returnDirectives = profile.return_directives.map((returnDirective) => {
+                return parseSpecialReturnDirectiveConfig(globalReturnDirectives, returnDirective)
+            }); 
+        }
 
 		if (!id || !library || !circulationDesk) {
 			throw new Error(
@@ -252,7 +349,8 @@ function parseCheckoutProfiles(data: LMSConfig): CheckoutProfileConfig[] {
 			id,
 			type,
 			library,
-			circulation_desk: circulationDesk
+			circulation_desk: circulationDesk,
+            return_directives: returnDirectives
 		};
 	});
 }
