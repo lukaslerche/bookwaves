@@ -253,7 +253,7 @@ export class FeigRFIDReader implements RFIDReader {
 				success: result.success === true,
 				epc: result.epc ?? epc,
 				tagType: result.tagType,
-				message: result.message,
+				message: result.message ?? result.error,
 				secured: result.secured
 			};
 		} catch (error) {
@@ -286,7 +286,7 @@ export class FeigRFIDReader implements RFIDReader {
 				success: result.success === true,
 				epc: result.epc ?? epc,
 				tagType: result.tagType,
-				message: result.message,
+				message: result.message ?? result.error,
 				secured: result.secured
 			};
 		} catch (error) {
@@ -387,7 +387,7 @@ export class FeigRFIDReader implements RFIDReader {
 				oldEpc: result.oldEpc ?? epc,
 				newEpc: result.newEpc,
 				tagType: result.tagType,
-				message: result.message
+				message: result.message ?? result.error
 			};
 		} catch (error) {
 			clientLogger.error('Failed to edit item:', error);
@@ -421,7 +421,7 @@ export class FeigRFIDReader implements RFIDReader {
 				oldEpc: result.oldEpc ?? epc,
 				newPc: result.newPc,
 				tid: result.tid,
-				message: result.message
+				message: result.message ?? result.error
 			};
 		} catch (error) {
 			clientLogger.error('Failed to clear item:', error);

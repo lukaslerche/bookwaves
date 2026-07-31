@@ -28,6 +28,8 @@
 	let editingItem = $state<string | null>(null);
 	let editData = $state('');
 	let readerError = $state<string | null>(null);
+	let errorMessages = $state<Record<string, string>>({});
+	let errorDetails = $state<Record<string, string>>({});
 
 	onMount(async () => {
 		initializeReader();
@@ -87,16 +89,79 @@
 		}
 	}
 
+	const ERROR_AUTO_CLEAR_MS = 5000;
+	const errorTimeouts: Record<string, ReturnType<typeof setTimeout>> = {};
+
+	function reportReaderError(itemId: string, operationTitleKey: string, err: unknown) {
+		const raw = err instanceof Error ? err.message : String(err);
+		errorDetails[itemId] = raw;
+
+		let reasonKey = 'reader_error_unknown';
+
+		const rawLower = raw.toLowerCase();
+		if (
+			raw.includes('ISO error: 4') ||
+			rawLower.includes('insufficient') ||
+			rawLower.includes('authent')
+		) {
+			reasonKey = 'reader_error_wrong_password';
+		} else if (raw.includes('ISO error: 3') || rawLower.includes('locked')) {
+			reasonKey = 'reader_error_tag_locked';
+		} else if (rawLower.includes('no transponder') || rawLower.includes('no tags found')) {
+			reasonKey = 'reader_error_no_transponder';
+		} else if (rawLower.includes('reader not found') || rawLower.includes('connection')) {
+			reasonKey = 'reader_error_reader_not_reachable';
+		}
+
+		// Look up messages dynamically via Paraglide
+		const messages = m as unknown as Record<string, () => string>;
+		const title = messages[operationTitleKey]?.() ?? operationTitleKey;
+		const reason = messages[reasonKey]?.() ?? '';
+
+		// For unknown errors, append the raw backend message so user has something actionable
+		const displayReason =
+			reasonKey === 'reader_error_unknown' && raw ? `${reason}: ${raw}` : reason;
+
+		errorMessages[itemId] = displayReason ? `${title}: ${displayReason}` : title;
+
+		// Cancel any pending auto-clear for this item, then schedule a new one
+		if (errorTimeouts[itemId]) {
+			clearTimeout(errorTimeouts[itemId]);
+		}
+		errorTimeouts[itemId] = setTimeout(() => {
+			clearItemError(itemId);
+		}, ERROR_AUTO_CLEAR_MS);
+	}
+
+	function clearItemError(itemId: string) {
+		delete errorMessages[itemId];
+		delete errorDetails[itemId];
+		if (errorTimeouts[itemId]) {
+			clearTimeout(errorTimeouts[itemId]);
+			delete errorTimeouts[itemId];
+		}
+	}
+
 	async function handleSecure(itemId: string) {
 		if (!reader || operationInProgress) return;
 		operationInProgress = itemId;
+		clearItemError(itemId);
 		try {
-			await reader.secure(itemId);
+			const result = await reader.secure(itemId);
+			if (!result.success) {
+				reportReaderError(
+					itemId,
+					'reader_secure_failed',
+					new Error(result.message ?? 'Unknown error')
+				);
+				return;
+			}
 			// sleep 100 ms
 			await new Promise((resolve) => setTimeout(resolve, 200));
 			await loadItems();
 		} catch (error) {
 			clientLogger.error('Failed to secure item:', error);
+			reportReaderError(itemId, 'reader_secure_failed', error);
 		} finally {
 			operationInProgress = null;
 		}
@@ -105,13 +170,23 @@
 	async function handleUnsecure(itemId: string) {
 		if (!reader || operationInProgress) return;
 		operationInProgress = itemId;
+		clearItemError(itemId);
 		try {
-			await reader.unsecure(itemId);
+			const result = await reader.unsecure(itemId);
+			if (!result.success) {
+				reportReaderError(
+					itemId,
+					'reader_unsecure_failed',
+					new Error(result.message ?? 'Unknown error')
+				);
+				return;
+			}
 			// sleep 100 ms
 			await new Promise((resolve) => setTimeout(resolve, 200));
 			await loadItems();
 		} catch (error) {
 			clientLogger.error('Failed to unsecure item:', error);
+			reportReaderError(itemId, 'reader_unsecure_failed', error);
 		} finally {
 			operationInProgress = null;
 		}
@@ -130,13 +205,23 @@
 	async function saveEdit(itemId: string) {
 		if (!reader || operationInProgress) return;
 		operationInProgress = itemId;
+		clearItemError(itemId);
 		try {
-			await reader.edit(itemId, editData);
+			const result = await reader.edit(itemId, editData);
+			if (!result.success) {
+				reportReaderError(
+					itemId,
+					'reader_edit_failed',
+					new Error(result.message ?? 'Unknown error')
+				);
+				return;
+			}
 			await loadItems();
 			editingItem = null;
 			editData = '';
 		} catch (error) {
 			clientLogger.error('Failed to write item:', error);
+			reportReaderError(itemId, 'reader_edit_failed', error);
 		} finally {
 			operationInProgress = null;
 		}
@@ -146,12 +231,22 @@
 		if (!reader || operationInProgress) return;
 		if (!confirm(m.confirm_clear())) return;
 		operationInProgress = itemId;
+		clearItemError(itemId);
 		try {
-			await reader.clear(itemId);
+			const result = await reader.clear(itemId);
+			if (!result.success) {
+				reportReaderError(
+					itemId,
+					'reader_clear_failed',
+					new Error(result.message ?? 'Unknown error')
+				);
+				return;
+			}
 			await new Promise((resolve) => setTimeout(resolve, 200));
 			await loadItems();
 		} catch (error) {
 			clientLogger.error('Failed to clear item:', error);
+			reportReaderError(itemId, 'reader_clear_failed', error);
 		} finally {
 			operationInProgress = null;
 		}
@@ -231,7 +326,8 @@
 												id={'edit-data-' + item.id}
 												class="textarea-bordered textarea h-24"
 												bind:value={editData}
-												placeholder="{m.enter_tag_data()}..."></textarea>
+												placeholder="{m.enter_tag_data()}..."
+											></textarea>
 											<div class="flex gap-2">
 												<button
 													class="btn flex-1 btn-primary btn-sm"
@@ -320,6 +416,13 @@
 									{/if}
 								</div>
 							</div>
+
+							{#if errorMessages[item.id]}
+								<div class="mt-4 alert alert-error">
+									<CircleX />
+									<span>{errorMessages[item.id]}</span>
+								</div>
+							{/if}
 						</div>
 					</div>
 				{:else}
