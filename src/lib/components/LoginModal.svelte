@@ -6,6 +6,7 @@
 	import { CircleX } from '@lucide/svelte';
 	import { clientLogger } from '$lib/client/logger';
 	import { m } from '$lib/paraglide/messages';
+    import { getLocale, type Locale } from "$lib/paraglide/runtime";
 
 	type LoginMode =
 		| 'username_password'
@@ -18,10 +19,19 @@
 		onSuccess: () => void;
 		onCancel?: () => void;
 		loginMode?: LoginMode;
-		loginHelpImage?: string;
+        loginHelpImage?: Record<Locale, string> | string;
 	}
 
 	let { onSuccess, onCancel, loginMode = 'username_password', loginHelpImage }: Props = $props();
+
+    const locale = getLocale().toUpperCase();
+    const helpImage = $derived.by(() => {
+        if (!loginHelpImage) return undefined;
+        if (typeof loginHelpImage === "string") {
+            return loginHelpImage;
+        }
+        return loginHelpImage[getLocale()];
+    });
 
 	const requiresLoginSecret = $derived(
 		loginMode === 'username_password' || loginMode === 'username_password_or_pin'
@@ -228,10 +238,10 @@
 		class="modal-box max-w-4xl rounded-3xl bg-base-100/95 text-base-content shadow-2xl ring-1 ring-base-300/70"
 	>
 		<div class="flex flex-col gap-6 md:flex-row md:items-stretch">
-			{#if loginHelpImage}
+			{#if helpImage}
 				<div class="md:w-72 md:shrink-0">
 					<img
-						src={loginHelpImage}
+						src={helpImage}
 						alt={m.login_required()}
 						class="h-full w-full rounded-2xl object-cover shadow-xl"
 					/>
