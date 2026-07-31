@@ -8,7 +8,7 @@ log_level: info # Logging level: fatal, error, warn, info, debug, trace, silent
 
 # Login flow configuration
 login:
-  mode: username_password # username_password (default) or username_only
+  mode: username_password # username_password (default), username_password_or_pin, username_only, scanner_only, or username_or_scanner
 
 checkout:
   profiles:

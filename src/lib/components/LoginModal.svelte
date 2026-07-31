@@ -8,7 +8,12 @@
 	import { m } from '$lib/paraglide/messages';
     import { getLocale, type Locale } from "$lib/paraglide/runtime";
 
-	type LoginMode = 'username_password' | 'username_only' | 'scanner_only' | 'username_or_scanner';
+	type LoginMode =
+		| 'username_password'
+		| 'username_only'
+		| 'scanner_only'
+		| 'username_or_scanner'
+		| 'username_password_or_pin';
 
 	interface Props {
 		onSuccess: () => void;
@@ -28,12 +33,22 @@
         return loginHelpImage[getLocale()];
     });
 
-	const requiresPassword = $derived(loginMode === 'username_password');
+	const requiresLoginSecret = $derived(
+		loginMode === 'username_password' || loginMode === 'username_password_or_pin'
+	);
+	const loginSecretLabel = $derived(
+		loginMode === 'username_password_or_pin' ? `${m.password()} / PIN` : m.password()
+	);
+	const missingLoginSecretMessage = $derived(
+		loginMode === 'username_password_or_pin'
+			? m.please_enter_a_password_or_pin()
+			: m.please_enter_a_password()
+	);
 	const hasCameraToggle = $derived(loginMode === 'username_or_scanner');
 	const scannerOnlyMode = $derived(loginMode === 'scanner_only');
 	const supportsScanner = $derived(hasCameraToggle || scannerOnlyMode);
 	let username = $state('');
-	let password = $state('');
+	let loginSecret = $state('');
 	let isLoading = $state(false);
 	let errorMessage = $state('');
 	let scannerOpen = $state(false);
@@ -45,7 +60,7 @@
 	let scannerInstance: import('html5-qrcode').Html5Qrcode | null = null;
 	const SCAN_DUPLICATE_COOLDOWN_MS = 2500;
 	const usernameInputId = 'username';
-	const passwordInputId = 'password';
+	const loginSecretInputId = 'login-secret';
 	const scannerElementId = 'login-qr-reader';
 	const handleCancel = () => {
 		void stopScanner();
@@ -143,10 +158,12 @@
 			username = validatedUsername;
 			await stopScanner();
 
-			if (requiresPassword) {
+			if (requiresLoginSecret) {
 				await tick();
-				const passwordInput = document.getElementById(passwordInputId) as HTMLInputElement | null;
-				passwordInput?.focus();
+				const loginSecretInput = document.getElementById(
+					loginSecretInputId
+				) as HTMLInputElement | null;
+				loginSecretInput?.focus();
 				return;
 			}
 
@@ -171,8 +188,8 @@
 			return;
 		}
 
-		if (requiresPassword && !password) {
-			errorMessage = m.please_enter_a_password();
+		if (requiresLoginSecret && !loginSecret) {
+			errorMessage = missingLoginSecretMessage;
 			if (shouldAutoRestartScanner) {
 				void startScanner();
 			}
@@ -186,8 +203,8 @@
 			if (scannerOpen) {
 				await stopScanner();
 			}
-			const payload = requiresPassword
-				? { user: normalizedUsername, password }
+			const payload = requiresLoginSecret
+				? { user: normalizedUsername, loginSecret }
 				: { user: normalizedUsername };
 			const success = await loginUser(payload);
 
@@ -257,7 +274,7 @@
 							type="text"
 							inputmode="text"
 							autocomplete="username"
-							class="input-bordered input input-lg w-full"
+							class="input-bordered input w-full input-lg"
 							bind:value={username}
 							readonly={scannerOnlyMode}
 							disabled={isLoading}
@@ -299,17 +316,17 @@
 						{/if}
 					</div>
 
-					{#if requiresPassword}
+					{#if requiresLoginSecret}
 						<div class="form-control gap-2">
-							<label class="label" for="password">
-								<span class="label-text text-sm font-semibold">{m.password()} / PIN</span>
+							<label class="label" for={loginSecretInputId}>
+								<span class="label-text text-sm font-semibold">{loginSecretLabel}</span>
 							</label>
 							<input
-								id={passwordInputId}
+								id={loginSecretInputId}
 								type="password"
 								autocomplete="current-password"
-								class="input-bordered input input-lg w-full"
-								bind:value={password}
+								class="input-bordered input w-full input-lg"
+								bind:value={loginSecret}
 								disabled={isLoading}
 							/>
 						</div>
@@ -318,14 +335,14 @@
 					<div class="modal-action mt-8 flex items-center justify-end gap-3">
 						<button
 							type="button"
-							class="btn px-5 btn-ghost"
+							class="btn btn-ghost px-5"
 							onclick={handleCancel}
 							disabled={isLoading}
 						>
 							{m.cancel()}
 						</button>
 						{#if !scannerOnlyMode}
-							<button class="btn px-6 btn-lg btn-accent" type="submit" disabled={isLoading}>
+							<button class="btn px-6 btn-accent btn-lg" type="submit" disabled={isLoading}>
 								{#if isLoading}
 									<span class="loading loading-spinner"></span>
 									{m.logging_in()}...

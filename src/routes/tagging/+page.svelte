@@ -300,7 +300,7 @@
 
 						<select
 							id="format-select"
-							class="input-bordered input input-lg w-full"
+							class="input-bordered input w-full input-lg"
 							bind:value={holder}
 							disabled={writing}
 						>
@@ -323,7 +323,7 @@
 							bind:this={barcodeInput}
 							onkeypress={handleKeyPress}
 							placeholder="{m.scan_barcode_or()}..."
-							class="input-bordered input input-lg w-full"
+							class="input-bordered input w-full input-lg"
 							disabled={writing}
 							autofocus
 						/>
@@ -367,7 +367,7 @@
 		{/if}
 
 		<div class="mt-8 flex justify-center {displayBackButton}">
-			<a href="/" class="btn text-white shadow-xl btn-ghost btn-lg"> ← {m.back()} </a>
+			<a href="/" class="btn btn-ghost text-white shadow-xl btn-lg"> ← {m.back()} </a>
 		</div>
 	</div>
 	<MockReaderOverlay />

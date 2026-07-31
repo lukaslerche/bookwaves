@@ -165,6 +165,7 @@
 	"unable_to_load_media_information": "Unable to load book data. Please try again.",
 	"please_enter_a_username": "Please enter a username",
 	"please_enter_a_password": "Please enter a password",
+	"please_enter_a_password_or_pin": "Please enter a password or PIN",
 	"login_failed_please_try_again": "Login failed. Please try again.",
 	"an_error_occurred_please_try_again": "An error occurred. Please try again.",
 

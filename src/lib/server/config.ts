@@ -5,7 +5,11 @@ import { type LogLevel, parseLogLevel } from '$lib/logger/levels';
 import { type Locale } from "$lib/paraglide/runtime";
 
 export type LoginMode =
-	'username_password' | 'username_only' | 'scanner_only' | 'username_or_scanner';
+	| 'username_password'
+	| 'username_only'
+	| 'scanner_only'
+	| 'username_or_scanner'
+	| 'username_password_or_pin';
 
 export type LoginValidationImplementation = 'campus_id';
 
@@ -101,7 +105,8 @@ const VALID_LOGIN_MODES: LoginMode[] = [
 	'username_password',
 	'username_only',
 	'scanner_only',
-	'username_or_scanner'
+	'username_or_scanner',
+	'username_password_or_pin'
 ];
 const DEFAULT_GATE_CONFIG: Required<GateConfig> = {
 	show_all_detected_items: true
@@ -396,7 +401,7 @@ log_level: info # Logging level: fatal, error, warn, info, debug, trace, silent
 
 # Login flow configuration
 login:
-  mode: username_password # username_password (default) or username_only or scanner_only or username_or_scanner
+  mode: username_password # username_password (default), username_password_or_pin, username_only, scanner_only, or username_or_scanner
 	# login_help_image: '/branding/login-help.png' # optional; supports /absolute/path or https:// URL
 	# login_help_image: # optional
     #   de: '/branding/login-help-de.png supports /absolute/path or https:// URL

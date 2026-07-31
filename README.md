@@ -52,7 +52,8 @@ Copy `config.example.yaml` to `config.yaml` and edit:
 
 - Keep `config.yaml` out of git. Set `CONFIG_FILE_PATH` if you store it elsewhere.
 - `middleware_instances` drives all reader pickers; at least one entry is required. The mock entry works without hardware.
-- Alma requires a valid API key; mock LMS needs no credentials. Login mode controls the checkout dialogs.
+- Alma requires a valid API key; mock LMS needs no credentials. `login.mode` controls the checkout dialogs and accepts `username_password` (default), `username_password_or_pin`, `username_only`, `scanner_only`, or `username_or_scanner`.
+- `username_password_or_pin` is Alma-only: the entered login secret is checked against the user's Alma `pin_number` first, then falls back to standard Alma password authentication if the PIN check fails.
 - Tagging:
   - `whitelist` blocks writes unless the EPC starts with an allowed prefix (override toggle available in UI).
   - `formats` lets you select which tag format you want to write (must match the tag types your middleware supports).

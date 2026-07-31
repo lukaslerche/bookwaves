@@ -102,7 +102,8 @@ export interface CheckoutContext {
 }*/
 
 export interface LibraryManagementSystem {
-	loginUser(user: string, password?: string): Promise<boolean>;
+	loginUser(user: string, loginSecret?: string): Promise<boolean>;
+	resumeUserSession(user: string): Promise<boolean>;
 	getAccount(): Promise<{ name: string; fees: number; loans: number }>;
 	getLoans(): Promise<MediaItem[]>;
 	getRequests(): Promise<LmsRequest[]>;

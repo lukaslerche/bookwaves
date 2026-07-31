@@ -10,7 +10,7 @@
 	import type { SvelteComponent } from 'svelte';
 	import { createReaderFromParams } from '$lib/stores/reader-selection';
 	import type { RFIDData, RFIDReader } from '$lib/reader/interface';
-	import { borrowItem, loginUser, logoutUser } from '$lib/lms/lms.remote';
+	import { borrowItem, logoutUser, resumeCurrentUserSession } from '$lib/lms/lms.remote';
 	import type { LmsActionResult, MediaItem } from '$lib/lms/lms';
 	import { getAuthUser, clearAuthUser, setAuthUser } from '$lib/stores/auth';
 	import { goto, invalidateAll } from '$app/navigation';
@@ -265,7 +265,7 @@
 		processedItems = [processed, ...processedItems];
 	}
 
-	async function initSessionAndReader(activeUser: string) {
+	async function initSessionAndReader(activeUser: string): Promise<boolean> {
 		// Initialize or restore session once
 		if (!sessionInitialized) {
 			let session = getCheckoutSession();
@@ -289,9 +289,13 @@
 			}
 		}
 
-		if (!activeUser) return;
+		if (!activeUser) return false;
 
-		await loginUser({ user: activeUser });
+		if (!(await resumeCurrentUserSession())) {
+			clearAuthUser();
+			showLoginModal = true;
+			return false;
+		}
 
 		// Tear down any previous subscription before starting a new one
 		if (readerUnsubscribe) {
@@ -313,7 +317,7 @@
 				'No reader configured. Please configure a reader via URL params or admin page.'
 			);
 			readerError = m.no_reader_found_while_borrowing_message();
-			return;
+			return false;
 		}
 
 		readerError = null;
@@ -334,15 +338,18 @@
 				processItem(event.item, true);
 			}
 		});
+
+		return true;
 	}
 
 	onMount(async () => {
 		clientLogger.debug('Page data:', data);
 
 		const storedUser = getAuthUser();
-		const activeUser = data.authUser || storedUser;
+		const activeUser = data.authUser;
 
 		if (!activeUser) {
+			clearAuthUser();
 			showLoginModal = true;
 			return;
 		}
@@ -351,8 +358,9 @@
 			setAuthUser(data.authUser);
 		}
 
-		await initSessionAndReader(activeUser);
-		startIdleCountdown();
+		if (await initSessionAndReader(activeUser)) {
+			startIdleCountdown();
+		}
 	});
 
 	onDestroy(() => {
@@ -370,7 +378,9 @@
 		// Log in to LMS with stored user
 		const authUser = getAuthUser();
 		if (authUser) {
-			await initSessionAndReader(authUser);
+			if (!(await initSessionAndReader(authUser))) {
+				return;
+			}
 		}
 
 		startIdleCountdown();
@@ -500,7 +510,7 @@
 						<span>Timeout</span>
 						<span>{countdownSeconds}s</span>
 					</div>
-					<button class="btn shadow-xl btn-lg btn-accent" onclick={handleDoneClick}>
+					<button class="btn shadow-xl btn-accent btn-lg" onclick={handleDoneClick}>
 						<Check />{m.i_am_done()}
 					</button>
 				</div>

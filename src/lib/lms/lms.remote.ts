@@ -21,8 +21,13 @@ async function resumeUserFromCookie() {
 	const cookieUser = event?.cookies.get(AUTH_COOKIE_NAME);
 
 	if (cookieUser) {
-		await lms.loginUser(cookieUser);
-		return cookieUser;
+		const ok = await lms.resumeUserSession(cookieUser);
+		if (ok) return cookieUser;
+
+		if (event) {
+			clearAuthCookie(event.cookies, event.url);
+		}
+		await lms.logoutUser();
 	}
 
 	return null;
@@ -53,15 +58,16 @@ export const getFees = query(async (): Promise<LmsFee[]> => {
 export const loginUser = command(
 	v.object({
 		user: v.string(),
-		password: v.optional(v.string())
+		loginSecret: v.optional(v.string())
 	}),
-	async ({ user, password }) => {
-		const ok = await lms.loginUser(user, password);
+	async ({ user, loginSecret }) => {
+		const normalizedUser = user.trim();
+		const ok = await lms.loginUser(normalizedUser, loginSecret);
 		const event = getRequestEvent();
 
 		if (event) {
 			if (ok) {
-				setAuthCookie(event.cookies, user, event.url);
+				setAuthCookie(event.cookies, normalizedUser, event.url);
 			} else {
 				clearAuthCookie(event.cookies, event.url);
 			}
@@ -70,6 +76,8 @@ export const loginUser = command(
 		return ok;
 	}
 );
+
+export const resumeCurrentUserSession = command(async () => Boolean(await resumeUserFromCookie()));
 
 export const logoutUser = command(async () => {
 	const event = getRequestEvent();

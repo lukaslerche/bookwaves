@@ -174,7 +174,7 @@
 				</div>
 				<a
 					href="/checkout{queryString}"
-					class="btn shadow-xl btn-lg btn-accent"
+					class="btn shadow-xl btn-accent btn-lg"
 					onclick={stopIdleCountdown}
 				>
 					← {m.back()}

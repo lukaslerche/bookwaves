@@ -8,7 +8,7 @@ log_level: info # Logging level: fatal, error, warn, info, debug, trace, silent
 
 # Login flow configuration
 login:
-  mode: username_password # username_password (default) or username_only or scanner_only or username_or_scanner
+  mode: username_password # username_password (default), username_password_or_pin, username_only, scanner_only, or username_or_scanner
   # If the login help image must be localised this the second configuration must be chosen. 
   # If the image is languistically neutral the first cofiguration is enough
   # login_help_image: '/branding/login-help.png' # optional; supports /absolute/path or https:// URL

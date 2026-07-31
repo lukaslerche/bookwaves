@@ -5,7 +5,7 @@
 	import { User, ShoppingCart, Package, Receipt } from '@lucide/svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import { getAuthUser, clearAuthUser, setAuthUser } from '$lib/stores/auth';
-	import { loginUser, logoutUser } from '$lib/lms/lms.remote';
+	import { logoutUser, resumeCurrentUserSession } from '$lib/lms/lms.remote';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { m } from '$lib/paraglide/messages';
 	import { createIdleCountdown, IDLE_TIMEOUT_SECONDS } from '$lib/client/idle-countdown';
@@ -47,9 +47,10 @@
 	onMount(async () => {
 		// Check if user is authenticated
 		const storedUser = getAuthUser();
-		const activeUser = data.authUser || storedUser;
+		const activeUser = data.authUser;
 
 		if (!activeUser) {
+			clearAuthUser();
 			showLoginModal = true;
 			return;
 		}
@@ -58,8 +59,12 @@
 			setAuthUser(data.authUser);
 		}
 
-		// Log in to LMS with stored user
-		await loginUser({ user: activeUser });
+		if (!(await resumeCurrentUserSession())) {
+			clearAuthUser();
+			showLoginModal = true;
+			return;
+		}
+
 		startIdleCountdown();
 	});
 
@@ -69,12 +74,6 @@
 
 	async function handleLoginSuccess() {
 		showLoginModal = false;
-
-		// Log in to LMS with stored user
-		const authUser = getAuthUser();
-		if (authUser) {
-			await loginUser({ user: authUser });
-		}
 
 		startIdleCountdown();
 
@@ -192,7 +191,7 @@
 						<span>Timeout</span>
 						<span>{countdownSeconds}s</span>
 					</div>
-					<button onclick={handleLogoutAndBack} class="btn shadow-xl btn-lg btn-accent">
+					<button onclick={handleLogoutAndBack} class="btn shadow-xl btn-accent btn-lg">
 						← {m.logout()}
 					</button>
 				</div>

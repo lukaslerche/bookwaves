@@ -23,6 +23,7 @@ type CheckoutProfile = {
 interface AlmaLmsOptions {
 	apiKey: string;
 	apiUrl?: string;
+	pinLogin?: boolean;
 	checkoutProfiles?: CheckoutProfile[];
 }
 
@@ -36,6 +37,10 @@ export const UserSchema = v.object({
 	fees: v.optional(ValueLinkSchema),
 	loans: v.optional(ValueLinkSchema)
 });
+
+type AlmaUserData = v.InferOutput<typeof UserSchema> & {
+	pin_number?: unknown;
+};
 
 export const ItemSchema = v.object({
 	bib_data: v.object({
@@ -202,6 +207,7 @@ export class AlmaLMS implements LibraryManagementSystem {
 	private params: URLSearchParams;
 	private itemCache = new Map<string, { mmsId: string; holdingId: string; itemId: string }>();
 	private checkoutProfiles = new Map<string, CheckoutProfile>();
+	public pinLogin?: boolean;
 
 	// TODO this is still mocked
 	private buildReturnDirective(item: MediaItem): LmsReturnDirective | undefined {
@@ -494,13 +500,19 @@ export class AlmaLMS implements LibraryManagementSystem {
 		return parsedRequestsData.output.user_request ?? [];
 	}
 
-	constructor({ apiKey, apiUrl = DEFAULT_API_URL, checkoutProfiles = [] }: AlmaLmsOptions) {
+	constructor({
+		apiKey,
+		pinLogin,
+		apiUrl = DEFAULT_API_URL,
+		checkoutProfiles = []
+	}: AlmaLmsOptions) {
 		if (!apiKey) {
 			throw new Error('Alma API key is required');
 		}
 
 		this.apiUrl = apiUrl;
 		this.apiKey = apiKey;
+		this.pinLogin = pinLogin;
 		this.checkoutProfiles = new Map(
 			checkoutProfiles
 				.filter((profile) => (profile.type ?? 'alma').toLowerCase() === 'alma')
@@ -733,7 +745,68 @@ export class AlmaLMS implements LibraryManagementSystem {
 			.sort((a, b) => (a.creationTime ?? '').localeCompare(b.creationTime ?? ''));
 	}
 
-	async loginUser(user: string, password?: string): Promise<boolean> {
+	private async fetchUserData(user: string): Promise<AlmaUserData | null> {
+		const params = new URLSearchParams(this.params.toString());
+		params.set('user_id_type', 'all_unique');
+
+		let response: Response;
+		try {
+			response = await fetch(
+				`${this.apiUrl}users/${encodeURIComponent(user)}?${params.toString()}`
+			);
+		} catch {
+			this.currentUserId = undefined;
+			throw new Error('Network error while verifying user');
+		}
+
+		if (!response.ok) return null;
+
+		try {
+			const userData = await response.json();
+			const parsedUserData = v.safeParse(UserSchema, userData);
+
+			if (!parsedUserData.success) return null;
+
+			return userData as AlmaUserData;
+		} catch {
+			return null;
+		}
+	}
+
+	private async verifyPinNumber(user: string, loginSecret: string): Promise<boolean> {
+		const userData = await this.fetchUserData(user);
+		return typeof userData?.pin_number === 'string' && userData.pin_number === loginSecret;
+	}
+
+	private async authenticateUser(user: string, loginSecret: string): Promise<boolean> {
+		const authParams = new URLSearchParams(this.params.toString());
+		authParams.set('op', 'auth');
+		authParams.set('password', loginSecret);
+		authParams.set('user_id_type', 'all_unique');
+		let response: Response;
+		try {
+			response = await fetch(
+				`${this.apiUrl}users/${encodeURIComponent(user)}?${authParams.toString()}`,
+				{
+					method: 'POST'
+				}
+			);
+		} catch {
+			this.currentUserId = undefined;
+			throw new Error('Network error while authenticating user');
+		}
+
+		if (!response.ok) {
+			logger.debug({ response }, 'Raw login response');
+			this.currentUserId = undefined;
+			return false;
+		}
+
+		this.currentUserId = user;
+		return true;
+	}
+
+	async resumeUserSession(user: string): Promise<boolean> {
 		const trimmedUser = user?.trim();
 
 		if (!trimmedUser) {
@@ -741,34 +814,43 @@ export class AlmaLMS implements LibraryManagementSystem {
 			return false;
 		}
 
-		// If the same user is already active and no password check is requested, skip revalidation
-		if (this.currentUserId === trimmedUser && !password) {
-			return true;
-		}
+		this.currentUserId = trimmedUser;
+		return true;
+	}
 
-		// TODO: Alma API key auth does not support password verification; keep the parameter for future SSO
-		let res: Response;
-		const loginParams = new URLSearchParams(this.params.toString());
-		loginParams.set('user_id_type', 'all_unique');
+	async loginUser(user: string, loginSecret?: string): Promise<boolean> {
+		const trimmedUser = user?.trim();
+		const trimmedLoginSecret = loginSecret?.trim();
 
-		try {
-			res = await fetch(
-				`${this.apiUrl}users/${encodeURIComponent(trimmedUser)}?${loginParams.toString()}`
-			);
-		} catch {
-			this.currentUserId = undefined;
-			throw new Error('Network error while verifying user');
-		}
-
-		if (!res.ok) {
+		if (!trimmedUser) {
 			this.currentUserId = undefined;
 			return false;
 		}
 
-		const userData = await res.json();
-		const parsedUserData = v.safeParse(UserSchema, userData);
+		if (this.pinLogin) {
+			if (!trimmedLoginSecret) {
+				this.currentUserId = undefined;
+				return false;
+			}
 
-		if (!parsedUserData.success) {
+			const pinVerified = await this.verifyPinNumber(trimmedUser, trimmedLoginSecret);
+			if (pinVerified) {
+				this.currentUserId = trimmedUser;
+				return true;
+			}
+
+			return this.authenticateUser(trimmedUser, trimmedLoginSecret);
+		}
+
+		// If the same user is already active and no login secret check is requested, skip revalidation.
+		if (this.currentUserId === trimmedUser && !trimmedLoginSecret) {
+			return true;
+		}
+
+		// TODO: Alma API key auth does not support password verification; keep the parameter for future SSO
+		const userData = await this.fetchUserData(trimmedUser);
+
+		if (!userData) {
 			this.currentUserId = undefined;
 			return false;
 		}

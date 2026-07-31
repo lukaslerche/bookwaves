@@ -35,7 +35,7 @@ export const load = (async ({ cookies }) => {
 		};
 	}
 
-	const loggedIn = await lms.loginUser(userId);
+	const loggedIn = await lms.resumeUserSession(userId);
 
 	if (!loggedIn) {
 		logger.warn({ userId }, 'Stored auth cookie failed to login in checkout/account');

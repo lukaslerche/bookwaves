@@ -197,7 +197,7 @@
 					<span class="text-2xl font-bold">{detectedItems.length}</span>
 					<span class="ml-2 text-lg opacity-90">{m.items_detected()}</span>
 				</div>
-				<button class="btn shadow-xl btn-lg btn-accent" onclick={loadItems} disabled={loading}>
+				<button class="btn shadow-xl btn-accent btn-lg" onclick={loadItems} disabled={loading}>
 					{#if loading}
 						<span class="loading loading-spinner"></span>
 						{m.loading()}...
@@ -234,7 +234,7 @@
 												placeholder="{m.enter_tag_data()}..."></textarea>
 											<div class="flex gap-2">
 												<button
-													class="btn flex-1 btn-sm btn-primary"
+													class="btn flex-1 btn-primary btn-sm"
 													onclick={() => saveEdit(item.id)}
 													disabled={operationInProgress === item.id}
 												>
@@ -269,7 +269,7 @@
 												</button>
 											{:else}
 												<button
-													class="btn btn-sm btn-error"
+													class="btn btn-error btn-sm"
 													onclick={() => handleSecure(item.id)}
 													disabled={operationInProgress === item.id}
 												>
@@ -283,7 +283,7 @@
 											{/if}
 
 											<button
-												class="btn btn-sm btn-info"
+												class="btn btn-info btn-sm"
 												onclick={() => startEdit(item)}
 												disabled={operationInProgress === item.id}
 											>
@@ -305,7 +305,7 @@
 											</button>
 
 											<button
-												class="btn btn-outline btn-sm btn-error"
+												class="btn btn-outline btn-error btn-sm"
 												onclick={() => handleKill(item.id)}
 												disabled={operationInProgress === item.id}
 											>
@@ -337,7 +337,7 @@
 		{/if}
 
 		<div class="mt-8 flex justify-center">
-			<a href="/" class="btn text-white shadow-xl btn-ghost btn-lg"> ← {m.back()} </a>
+			<a href="/" class="btn btn-ghost text-white shadow-xl btn-lg"> ← {m.back()} </a>
 		</div>
 	</div>
 

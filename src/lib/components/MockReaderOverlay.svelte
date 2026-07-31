@@ -135,7 +135,7 @@
 				</div>
 			</div>
 			<button
-				class="btn btn-circle text-primary-content btn-ghost btn-xs"
+				class="btn btn-circle btn-ghost text-primary-content btn-xs"
 				onclick={() => (isOpen = !isOpen)}
 				aria-label={isOpen ? 'Collapse mock reader overlay' : 'Expand mock reader overlay'}
 			>
@@ -163,7 +163,7 @@
 								: 'Tags appear and drift automatically.'}
 						</p>
 					</div>
-					<button class="btn btn-sm btn-primary" onclick={toggleMode}>
+					<button class="btn btn-primary btn-sm" onclick={toggleMode}>
 						{mode === 'manual' ? 'Switch to auto' : 'Switch to manual'}
 						<MoveRight class="h-4 w-4" />
 					</button>
@@ -191,7 +191,7 @@
 									{/each}
 								</select>
 								<button
-									class="btn btn-sm btn-secondary"
+									class="btn btn-secondary btn-sm"
 									onclick={addFromPool}
 									disabled={!selectedPoolId}
 								>
@@ -209,13 +209,13 @@
 							<div class="flex gap-2">
 								<input
 									id={customIdInputId}
-									class="input-bordered input input-sm flex-1"
+									class="input-bordered input flex-1 input-sm"
 									placeholder="EPC / barcode"
 									bind:value={customId}
 								/>
 								<input
 									id={customLabelInputId}
-									class="input-bordered input input-sm flex-1"
+									class="input-bordered input flex-1 input-sm"
 									placeholder="Display label (optional)"
 									bind:value={customLabel}
 								/>
