@@ -2,7 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import YAML from 'yaml';
 import { type LogLevel, parseLogLevel } from '$lib/logger/levels';
-import { type Locale } from "$lib/paraglide/runtime";
+import { locales, type Locale } from '$lib/paraglide/runtime';
+import type { LoginHelpImageConfig } from '$lib/types/login';
 
 export type LoginMode =
 	| 'username_password'
@@ -40,7 +41,7 @@ export interface MiddlewareInstanceConfig {
 
 export interface LoginConfig {
 	mode?: LoginMode;
-    login_help_image?: Record<Locale, string> | string;
+	login_help_image?: LoginHelpImageConfig;
 	validation?: LoginValidationConfig;
 }
 
@@ -160,6 +161,25 @@ function validateHttpUrl(value: unknown): string | undefined {
 	if (!trimmed || trimmed.length > 2048) return undefined;
 	if (/^https?:\/\//i.test(trimmed)) return trimmed;
 	return undefined;
+}
+
+function parseLoginHelpImageConfig(value: unknown): LoginHelpImageConfig | undefined {
+	const source = validateSource(value);
+	if (source) return source;
+
+	if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+
+	const localizedSources: Partial<Record<Locale, string>> = {};
+	const values = value as Partial<Record<Locale, unknown>>;
+
+	for (const locale of locales) {
+		const localizedSource = validateSource(values[locale]);
+		if (localizedSource) {
+			localizedSources[locale] = localizedSource;
+		}
+	}
+
+	return Object.keys(localizedSources).length > 0 ? localizedSources : undefined;
 }
 
 function sanitizeNonEmptyString(value: unknown): string | undefined {
@@ -290,14 +310,6 @@ function validateConfigData(data: LMSConfig, requireTaggingFormats: boolean): vo
 	if (!data.middleware_instances || !Array.isArray(data.middleware_instances)) {
 		throw new Error('Invalid configuration: middleware_instances must be an array');
 	}
-    
-    // if (data.login?.login_help_image) { 
-    //     for (const [locale, source] of Object.entries(data.login.login_help_image)) {
-    //         if (validateSource(source) === undefined) {
-    //             throw new Error('Invalid configuration: login_help_image must be a path');
-    //         }
-    //     }
-    // }
 }
 
 function normalizeConfigData(data: LMSConfig, requireTaggingFormats: boolean): LMSConfig {
@@ -308,8 +320,7 @@ function normalizeConfigData(data: LMSConfig, requireTaggingFormats: boolean): L
 	data.log_level = parseLogLevel(data.log_level, 'info');
 	data.login = {
 		mode: parsedLoginMode,
-		// login_help_image: data.login?.login_help_image,
-		login_help_image: data.login?.login_help_image,
+		login_help_image: parseLoginHelpImageConfig(data.login?.login_help_image),
 		validation: parseLoginValidationConfig(data.login)
 	};
 	data.gate = parseGateConfig(data);
@@ -403,9 +414,9 @@ log_level: info # Logging level: fatal, error, warn, info, debug, trace, silent
 login:
   mode: username_password # username_password (default), username_password_or_pin, username_only, scanner_only, or username_or_scanner
 	# login_help_image: '/branding/login-help.png' # optional; supports /absolute/path or https:// URL
-	# login_help_image: # optional
-    #   de: '/branding/login-help-de.png supports /absolute/path or https:// URL
-    #   en: '/branding/login-help-en.png supports /absolute/path or https:// URL
+	# login_help_image: # optional; supports /absolute/path or https:// URL per locale
+	#   de: '/branding/login-help-de.png'
+	#   en: '/branding/login-help-en.png'
 	# validation:
 	#   implementation: campus_id # empty/missing means scanner values are used directly for login
 	#   campus_id:

@@ -3,18 +3,18 @@ import { getLms } from '$lib/server/lms/resolve';
 import { clearAuthCookie, getAuthUserFromCookies } from '$lib/server/auth-cookies';
 import { getConfig, type LoginMode } from '$lib/server/config';
 import { logger } from '$lib/server/logger';
-import { type Locale } from "$lib/paraglide/runtime";
+import type { LoginHelpImageConfig } from '$lib/types/login';
 
 export const load = (async ({ cookies }) => {
 	const lms = getLms();
 	const userId = getAuthUserFromCookies(cookies);
 	let loginMode: LoginMode = 'username_password';
-	let loginHelpImage: Record<Locale, string> | string | undefined;
+	let loginHelpImage: LoginHelpImageConfig | undefined;
 
 	try {
 		const config = getConfig();
 		loginMode = config.login?.mode ?? 'username_password';
-        loginHelpImage = config.login?.login_help_image;
+		loginHelpImage = config.login?.login_help_image;
 	} catch (error) {
 		logger.error({ err: error }, 'Failed to load login config; defaulting to username/password');
 	}

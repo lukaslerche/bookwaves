@@ -9,12 +9,12 @@ log_level: info # Logging level: fatal, error, warn, info, debug, trace, silent
 # Login flow configuration
 login:
   mode: username_password # username_password (default), username_password_or_pin, username_only, scanner_only, or username_or_scanner
-  # If the login help image must be localised this the second configuration must be chosen. 
-  # If the image is languistically neutral the first cofiguration is enough
+  # If the login help image must be localized, use the second configuration.
+  # If the image is linguistically neutral, the first configuration is enough.
   # login_help_image: '/branding/login-help.png' # optional; supports /absolute/path or https:// URL
-  # login_help_image: # optional
-  #   en: '/branding/login-help-en.png' # supports /absolute/path or https:// URL
-  #   de: '/branding/login-help-de.png' # supports /absolute/path or https:// URL
+  # login_help_image: # optional; supports /absolute/path or https:// URL per locale
+  #   en: '/branding/login-help-en.png'
+  #   de: '/branding/login-help-de.png'
   # validation:
   #   implementation: campus_id # empty/missing means scanner values are used directly for login
   #   campus_id:
