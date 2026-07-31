@@ -3,6 +3,14 @@
 lms:
   type: mock # LMS type: alma, koha, etc.
   api_key: your_api_key # API key for authentication
+  # Optional Cover image provider. Configure a base endpoint; BookWaves appends
+  # one comma-separated isbn query parameter, e.g. ?isbn=9780747591078,0747591079.
+  # The mock LMS includes ISBN-bearing books, so this can be tested without Alma.
+  # When configured, items without ISBNs do not fall back to generated covers.
+  # When omitted, generated covers remain the default behaviour.
+  # Provider misses/placeholders are handled by the provider, not by BookWaves.
+  # cover_image_provider:
+  #   url: 'https://api.ub.tu-dortmund.de/ccm/cover'
 
 log_level: info # Logging level: fatal, error, warn, info, debug, trace, silent
 

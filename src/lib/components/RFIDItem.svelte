@@ -151,13 +151,15 @@
 		{:else if mediaItem}
 			<!-- Media Item Information -->
 			<div class="flex items-stretch gap-3">
-				{#if mediaItem.cover}
-					<img
-						alt={mediaItem.title}
-						class="h-45 shrink-0 rounded-box object-cover"
-						src={mediaItem.cover}
-					/>
-				{/if}
+				<div class="h-[180px] w-[120px] shrink-0">
+					{#if mediaItem.cover}
+						<img
+							alt={mediaItem.title}
+							class="h-full w-full rounded-box object-cover"
+							src={mediaItem.cover}
+						/>
+					{/if}
+				</div>
 				<div class="min-w-0 flex-1">
 					<h3 class="card-title truncate text-2xl font-semibold">
 						{getDisplayTitle(mediaItem)}

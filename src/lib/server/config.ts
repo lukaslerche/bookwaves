@@ -4,6 +4,7 @@ import YAML from 'yaml';
 import { type LogLevel, parseLogLevel } from '$lib/logger/levels';
 import { locales, type Locale } from '$lib/paraglide/runtime';
 import type { LoginHelpImageConfig } from '$lib/types/login';
+import type { CoverImageProvider } from './lms/cover-image-provider';
 
 export type LoginMode =
 	| 'username_password'
@@ -92,6 +93,7 @@ export interface LMSConfig {
 	lms: {
 		type: string;
 		api_key: string;
+		cover_image_provider?: CoverImageProvider;
 	};
 	login?: LoginConfig;
 	gate?: GateConfig;
@@ -209,6 +211,20 @@ function parseLoginValidationConfig(
 	};
 }
 
+function parseCoverImageProviderConfig(value: unknown): CoverImageProvider | undefined {
+	if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+
+	const url = validateHttpUrl((value as { url?: unknown }).url);
+	return url ? { url } : undefined;
+}
+
+function parseLmsConfig(data: LMSConfig): LMSConfig['lms'] {
+	return {
+		...data.lms,
+		cover_image_provider: parseCoverImageProviderConfig(data.lms.cover_image_provider)
+	};
+}
+
 function parseGateConfig(data: LMSConfig): GateConfig {
 	return {
 		show_all_detected_items:
@@ -318,6 +334,7 @@ function normalizeConfigData(data: LMSConfig, requireTaggingFormats: boolean): L
 	const parsedLoginMode = data.login?.mode ?? DEFAULT_LOGIN_MODE;
 
 	data.log_level = parseLogLevel(data.log_level, 'info');
+	data.lms = parseLmsConfig(data);
 	data.login = {
 		mode: parsedLoginMode,
 		login_help_image: parseLoginHelpImageConfig(data.login?.login_help_image),
@@ -407,6 +424,10 @@ const EMBEDDED_CONFIG_YAML = `# Copy this file to config.yaml and update with yo
 lms:
   type: mock # LMS type: alma, koha, etc.
   api_key: your_api_key # API key for authentication
+  # cover_image_provider:
+  #   # Optional base endpoint. BookWaves appends ?isbn=ISBN1,ISBN2.
+  #   # When configured, items without ISBNs do not fall back to generated covers.
+  #   url: 'https://api.ub.tu-dortmund.de/ccm/cover'
 
 log_level: info # Logging level: fatal, error, warn, info, debug, trace, silent
 

@@ -10,6 +10,7 @@ import type {
 } from '../../lms/lms';
 import * as v from 'valibot';
 import { logger } from '$lib/server/logger';
+import { buildProviderCoverUrl, type CoverImageProvider } from './cover-image-provider';
 
 const DEFAULT_API_URL = 'https://api-eu.hosted.exlibrisgroup.com/almaws/v1/';
 
@@ -20,11 +21,19 @@ type CheckoutProfile = {
 	type?: string;
 };
 
+type KnownItemIdentity = {
+	mmsId: string;
+	holdingId: string;
+	itemId: string;
+	isbns?: string[];
+};
+
 interface AlmaLmsOptions {
 	apiKey: string;
 	apiUrl?: string;
 	pinLogin?: boolean;
 	checkoutProfiles?: CheckoutProfile[];
+	coverImageProvider?: CoverImageProvider;
 }
 
 const ValueLinkSchema = v.object({
@@ -199,13 +208,31 @@ function parseBalance(input: unknown): number {
 	return 0;
 }
 
+function extractIsbns(value: string | undefined): string[] {
+	if (!value) return [];
+
+	const seen = new Set<string>();
+	const isbns: string[] = [];
+	const matches = value.match(/[0-9Xx](?:[0-9Xx]|[\s-](?=[0-9Xx])){8,}[0-9Xx]/g) ?? [];
+
+	for (const match of matches) {
+		const normalized = match.replace(/[\s-]/g, '').toUpperCase();
+		if (!/^(?:\d{9}[\dX]|\d{13})$/.test(normalized) || seen.has(normalized)) continue;
+		seen.add(normalized);
+		isbns.push(normalized);
+	}
+
+	return isbns;
+}
+
 export class AlmaLMS implements LibraryManagementSystem {
 	private apiUrl: string;
 	private currentUserId?: string;
 	private apiKey: string;
+	private coverImageProvider?: CoverImageProvider;
 
 	private params: URLSearchParams;
-	private itemCache = new Map<string, { mmsId: string; holdingId: string; itemId: string }>();
+	private itemCache = new Map<string, KnownItemIdentity>();
 	private checkoutProfiles = new Map<string, CheckoutProfile>();
 	public pinLogin?: boolean;
 
@@ -252,16 +279,18 @@ export class AlmaLMS implements LibraryManagementSystem {
 		return cached;
 	}
 
-	private setCachedItem(
-		barcode: string,
-		ids: { mmsId: string; holdingId: string; itemId: string }
-	): void {
+	private setCachedItem(barcode: string, identity: KnownItemIdentity): void {
 		if (this.itemCache.has(barcode)) this.itemCache.delete(barcode);
-		this.itemCache.set(barcode, ids);
+		this.itemCache.set(barcode, identity);
 		if (this.itemCache.size > 50) {
 			const oldestKey = this.itemCache.keys().next().value;
 			if (oldestKey !== undefined) this.itemCache.delete(oldestKey);
 		}
+	}
+
+	private buildCoverUrl(seed: string, isbns: string[] = []): string | undefined {
+		if (this.coverImageProvider) return buildProviderCoverUrl(this.coverImageProvider, isbns);
+		return `https://picsum.dev/120/180?seed=${encodeURIComponent(seed)}`;
 	}
 
 	private resolveCheckoutDetails(
@@ -359,6 +388,15 @@ export class AlmaLMS implements LibraryManagementSystem {
 	}
 
 	private mapLoanToMediaItem(loan: v.InferOutput<typeof ItemLoanSchema>): MediaItem {
+		const cachedIdentity = this.getCachedItem(loan.item_barcode);
+		const isbns = cachedIdentity?.isbns;
+		this.setCachedItem(loan.item_barcode, {
+			mmsId: loan.mms_id,
+			holdingId: loan.holding_id,
+			itemId: loan.item_id,
+			isbns
+		});
+
 		const mediaItem: MediaItem = {
 			barcode: loan.item_barcode,
 			title: loan.title,
@@ -375,7 +413,7 @@ export class AlmaLMS implements LibraryManagementSystem {
 			dueDate: loan.due_date,
 			returnLibrary: loan.library.desc ?? loan.library.value,
 			status: 'On loan',
-			cover: `https://picsum.dev/120/180?seed=${encodeURIComponent(loan.title)}`
+			cover: this.buildCoverUrl(loan.title, isbns)
 		};
 		mediaItem.returnDirective = this.buildReturnDirective(mediaItem);
 		return mediaItem;
@@ -402,6 +440,7 @@ export class AlmaLMS implements LibraryManagementSystem {
 		itemData: v.InferOutput<typeof ItemSchema>,
 		barcode: string
 	): MediaItem {
+		const isbns = extractIsbns(itemData.bib_data.isbn);
 		const mediaItem: MediaItem = {
 			barcode,
 			title: itemData.bib_data.title,
@@ -415,7 +454,7 @@ export class AlmaLMS implements LibraryManagementSystem {
 			shelfmark: itemData.item_data.alternative_call_number,
 			status:
 				itemData.item_data.base_status.desc + ': ' + (itemData.item_data.process_type?.desc ?? '-'),
-			cover: 'https://picsum.dev/120/180?seed=' + itemData.bib_data.isbn
+			cover: this.buildCoverUrl(itemData.bib_data.isbn ?? itemData.bib_data.title, isbns)
 		};
 		mediaItem.returnDirective = this.buildReturnDirective(mediaItem);
 		return mediaItem;
@@ -504,7 +543,8 @@ export class AlmaLMS implements LibraryManagementSystem {
 		apiKey,
 		pinLogin,
 		apiUrl = DEFAULT_API_URL,
-		checkoutProfiles = []
+		checkoutProfiles = [],
+		coverImageProvider
 	}: AlmaLmsOptions) {
 		if (!apiKey) {
 			throw new Error('Alma API key is required');
@@ -513,6 +553,7 @@ export class AlmaLMS implements LibraryManagementSystem {
 		this.apiUrl = apiUrl;
 		this.apiKey = apiKey;
 		this.pinLogin = pinLogin;
+		this.coverImageProvider = coverImageProvider;
 		this.checkoutProfiles = new Map(
 			checkoutProfiles
 				.filter((profile) => (profile.type ?? 'alma').toLowerCase() === 'alma')
@@ -887,28 +928,12 @@ export class AlmaLMS implements LibraryManagementSystem {
 		if (!parsedItemData.success) {
 			throw new Error('Invalid item data format');
 		}
-		const result: MediaItem = {
-			barcode: barcode,
-			title: parsedItemData.output.bib_data.title,
-			author: parsedItemData.output.bib_data.author,
-			edition: parsedItemData.output.bib_data.complete_edition,
-			place: parsedItemData.output.bib_data.place_of_publication,
-			date: parsedItemData.output.bib_data.date_of_publication,
-			publisher: parsedItemData.output.bib_data.publisher_const,
-			library: parsedItemData.output.item_data.library.desc,
-			location: parsedItemData.output.item_data.location.desc,
-			shelfmark: parsedItemData.output.item_data.alternative_call_number,
-			status:
-				parsedItemData.output.item_data.base_status.desc +
-				': ' +
-				(parsedItemData.output.item_data.process_type?.desc ?? '-'),
-			cover: 'https://picsum.dev/120/180?seed=' + parsedItemData.output.bib_data.isbn
-		};
-		result.returnDirective = this.buildReturnDirective(result);
+		const result = this.mapItemToMediaItem(parsedItemData.output, barcode);
 		this.setCachedItem(barcode, {
 			mmsId: parsedItemData.output.bib_data.mms_id,
 			holdingId: parsedItemData.output.holding_data.holding_id,
-			itemId: parsedItemData.output.item_data.pid
+			itemId: parsedItemData.output.item_data.pid,
+			isbns: extractIsbns(parsedItemData.output.bib_data.isbn)
 		});
 		return result;
 	}
@@ -1055,7 +1080,8 @@ export class AlmaLMS implements LibraryManagementSystem {
 		this.setCachedItem(barcode, {
 			mmsId: parsedItemData.output.bib_data.mms_id,
 			holdingId: parsedItemData.output.holding_data.holding_id,
-			itemId: parsedItemData.output.item_data.pid
+			itemId: parsedItemData.output.item_data.pid,
+			isbns: extractIsbns(parsedItemData.output.bib_data.isbn)
 		});
 
 		return {

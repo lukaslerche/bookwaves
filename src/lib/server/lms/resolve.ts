@@ -1,6 +1,6 @@
 import { getConfig } from '$lib/server/config';
 import type { LibraryManagementSystem } from '../../lms/lms';
-import { mockLMS } from './mock';
+import { createMockLMS } from './mock';
 import { AlmaLMS } from './alma';
 
 let cached: LibraryManagementSystem | null = null;
@@ -9,6 +9,7 @@ export function getLms(): LibraryManagementSystem {
 	if (cached) return cached;
 
 	const { lms: lmsConfig, login, checkout } = getConfig();
+	const coverImageProvider = lmsConfig.cover_image_provider;
 
 	if (lmsConfig.type === 'alma') {
 		if (!lmsConfig.api_key) {
@@ -17,11 +18,14 @@ export function getLms(): LibraryManagementSystem {
 		cached = new AlmaLMS({
 			apiKey: lmsConfig.api_key,
 			pinLogin: login?.mode === 'username_password_or_pin',
-			checkoutProfiles: checkout?.profiles
+			checkoutProfiles: checkout?.profiles,
+			coverImageProvider
 		});
 		return cached;
 	}
 
-	cached = mockLMS;
+	cached = createMockLMS({
+		coverImageProvider
+	});
 	return cached;
 }

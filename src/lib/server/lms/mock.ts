@@ -7,9 +7,18 @@ import type {
 	LmsReturnDirective,
 	MediaItem
 } from '../../lms/lms';
+import { buildProviderCoverUrl, type CoverImageProvider } from './cover-image-provider';
+
+type MockLmsOptions = {
+	coverImageProvider?: CoverImageProvider;
+};
+
+type MockMediaItem = MediaItem & {
+	isbns?: string[];
+};
 
 // Mock database of media items
-const mediaDatabase: Map<string, MediaItem> = new Map([
+const mockMediaItems: [string, MockMediaItem][] = [
 	[
 		'RFID001',
 		{
@@ -24,7 +33,8 @@ const mediaDatabase: Map<string, MediaItem> = new Map([
 			status: 'available',
 			library: 'Central Library',
 			location: 'Fiction Stacks',
-			shelfmark: 'FIC FIT'
+			shelfmark: 'FIC FIT',
+			isbns: ['9780743273565', '0743273567']
 		}
 	],
 	[
@@ -41,7 +51,8 @@ const mediaDatabase: Map<string, MediaItem> = new Map([
 			status: 'borrowed',
 			library: 'East Branch',
 			location: 'Fiction',
-			shelfmark: 'FIC ORW'
+			shelfmark: 'FIC ORW',
+			isbns: ['9780451524935', '0451524934']
 		}
 	],
 	[
@@ -58,7 +69,8 @@ const mediaDatabase: Map<string, MediaItem> = new Map([
 			status: 'borrowed',
 			library: 'Central Library',
 			location: 'Kinder',
-			shelfmark: 'J 510 FUR'
+			shelfmark: 'J 510 FUR',
+			isbns: ['9783923923076']
 		}
 	],
 	[
@@ -75,7 +87,8 @@ const mediaDatabase: Map<string, MediaItem> = new Map([
 			status: 'available',
 			library: 'Central Library',
 			location: 'Fiction Stacks',
-			shelfmark: 'FIC LEE'
+			shelfmark: 'FIC LEE',
+			isbns: ['9780061120084', '0061120081']
 		}
 	],
 	[
@@ -92,7 +105,8 @@ const mediaDatabase: Map<string, MediaItem> = new Map([
 			status: 'reserved',
 			library: 'West Branch',
 			location: 'Classics',
-			shelfmark: 'CLA AUS'
+			shelfmark: 'CLA AUS',
+			isbns: ['9780141439518', '0141439513']
 		}
 	],
 	[
@@ -126,7 +140,8 @@ const mediaDatabase: Map<string, MediaItem> = new Map([
 			status: 'borrowed',
 			library: 'Children’s Library',
 			location: 'Fantasy',
-			shelfmark: 'J FIC ROW'
+			shelfmark: 'J FIC ROW',
+			isbns: ['9780747591078', '0747591079']
 		}
 	],
 	[
@@ -143,7 +158,8 @@ const mediaDatabase: Map<string, MediaItem> = new Map([
 			status: 'available',
 			library: 'East Branch',
 			location: 'Fantasy',
-			shelfmark: 'FIC TOL'
+			shelfmark: 'FIC TOL',
+			isbns: ['9780261102217', '0261102214']
 		}
 	],
 	[
@@ -160,7 +176,8 @@ const mediaDatabase: Map<string, MediaItem> = new Map([
 			status: 'available',
 			library: 'Central Library',
 			location: 'Fiction',
-			shelfmark: 'FIC HUX'
+			shelfmark: 'FIC HUX',
+			isbns: ['9780099518471', '0099518473']
 		}
 	],
 	[
@@ -177,12 +194,11 @@ const mediaDatabase: Map<string, MediaItem> = new Map([
 			status: 'borrowed',
 			library: 'Central Library',
 			location: 'Fantasy',
-			shelfmark: 'FIC TOL'
+			shelfmark: 'FIC TOL',
+			isbns: ['9780261103252', '0261103253']
 		}
 	]
-]);
-
-let currentUser: string | null = null;
+];
 
 const mockRequests: LmsRequest[] = [
 	{
@@ -260,6 +276,30 @@ const mockFees: LmsFee[] = [
 	}
 ];
 
+function cloneMockMediaItem(item: MockMediaItem): MockMediaItem {
+	return {
+		...item,
+		isbns: item.isbns ? [...item.isbns] : undefined
+	};
+}
+
+function projectMediaItem(
+	item: MockMediaItem,
+	coverImageProvider: CoverImageProvider | undefined,
+	extra: Partial<MediaItem> = {}
+): MediaItem {
+	const { isbns, ...mediaItem } = item;
+	const cover = coverImageProvider
+		? buildProviderCoverUrl(coverImageProvider, isbns)
+		: mediaItem.cover;
+
+	return {
+		...mediaItem,
+		...extra,
+		cover
+	};
+}
+
 function getMockReturnDirective(item: MediaItem): LmsReturnDirective {
 	const location = item.location?.toLowerCase() ?? '';
 	const author = item.author?.toLowerCase() ?? '';
@@ -293,137 +333,154 @@ function getMockReturnDirective(item: MediaItem): LmsReturnDirective {
 	};
 }
 
-export const mockLMS: LibraryManagementSystem = {
-	async loginUser(user: string /*, loginSecret?: string*/): Promise<boolean> {
-		// Accept any username, login secret is optional in mock mode.
-		if (user) {
-			currentUser = user;
-			return true;
-		}
-		return false;
-	},
-	async resumeUserSession(user: string): Promise<boolean> {
-		if (user) {
-			currentUser = user;
-			return true;
-		}
-		return false;
-	},
-	async getAccount(): Promise<{ name: string; fees: number; loans: number }> {
-		const borrowed = Array.from(mediaDatabase.values())
-			.filter((item) => item.status === 'borrowed')
-			.map((item) => `${item.title} | ${item.date}`);
+export function createMockLMS({
+	coverImageProvider
+}: MockLmsOptions = {}): LibraryManagementSystem {
+	const mediaDatabase: Map<string, MockMediaItem> = new Map(
+		mockMediaItems.map(([barcode, item]) => [barcode, cloneMockMediaItem(item)])
+	);
+	let currentUser: string | null = null;
 
-		return {
-			name: currentUser || 'Mock User',
-			fees: 42.69,
-			loans: borrowed.length
-		};
-	},
-	async getLoans(): Promise<MediaItem[]> {
-		if (!currentUser) {
-			return [];
-		}
+	return {
+		async loginUser(user: string /*, loginSecret?: string*/): Promise<boolean> {
+			// Accept any username, login secret is optional in mock mode.
+			if (user) {
+				currentUser = user;
+				return true;
+			}
+			return false;
+		},
+		async resumeUserSession(user: string): Promise<boolean> {
+			if (user) {
+				currentUser = user;
+				return true;
+			}
+			return false;
+		},
+		async getAccount(): Promise<{ name: string; fees: number; loans: number }> {
+			const borrowed = Array.from(mediaDatabase.values())
+				.filter((item) => item.status === 'borrowed')
+				.map((item) => `${item.title} | ${item.date}`);
 
-		const borrowedItems = Array.from(mediaDatabase.values())
-			.filter((item) => item.status === 'borrowed')
-			.map((item, index) => ({
-				...item,
-				year: item.date,
-				loanDate: `2026-03-${String(index + 1).padStart(2, '0')}T09:00:00.000Z`,
-				dueDate: `2026-04-${String(index + 1).padStart(2, '0')}T17:00:00.000Z`,
-				returnLibrary: item.library
-			}));
-		return borrowedItems;
-	},
-	async getRequests(): Promise<LmsRequest[]> {
-		if (!currentUser) {
-			return [];
-		}
-
-		return mockRequests
-			.filter((request) => request.requestStatus !== 'ON_HOLD_SHELF')
-			.toSorted((a, b) => (a.requestDate ?? '').localeCompare(b.requestDate ?? ''));
-	},
-	async getPickups(): Promise<LmsPickup[]> {
-		if (!currentUser) {
-			return [];
-		}
-
-		return mockRequests
-			.filter((request) => request.requestStatus === 'ON_HOLD_SHELF')
-			.toSorted((a, b) => (a.expiryDate ?? '').localeCompare(b.expiryDate ?? ''));
-	},
-	async getFees(): Promise<LmsFee[]> {
-		if (!currentUser) {
-			return [];
-		}
-
-		return mockFees.toSorted((a, b) => (a.creationTime ?? '').localeCompare(b.creationTime ?? ''));
-	},
-	async logoutUser(): Promise<boolean> {
-		currentUser = null;
-		return true;
-	},
-	async getItem(barcode: string): Promise<MediaItem | null> {
-		await new Promise((resolve) => setTimeout(resolve, 100)); // Simulate network delay
-		const item = mediaDatabase.get(barcode);
-		if (!item) return null;
-		return { ...item, returnDirective: getMockReturnDirective(item) };
-	},
-	async borrowItem(barcode: string): Promise<LmsActionResult> {
-		await new Promise((resolve) => setTimeout(resolve, 200)); // Simulate network delay
-		const item = mediaDatabase.get(barcode);
-
-		if (!item) {
-			return { ok: false, reasonKey: 'error_item_not_found' };
-		}
-
-		if (item.status !== 'available') {
 			return {
-				ok: false,
-				reasonKey: 'error_item_not_available',
-				errors: [item.status ?? 'unknown status']
+				name: currentUser || 'Mock User',
+				fees: 42.69,
+				loans: borrowed.length
 			};
-		}
+		},
+		async getLoans(): Promise<MediaItem[]> {
+			if (!currentUser) {
+				return [];
+			}
 
-		item.status = 'borrowed';
+			const borrowedItems = Array.from(mediaDatabase.values())
+				.filter((item) => item.status === 'borrowed')
+				.map((item, index) =>
+					projectMediaItem(item, coverImageProvider, {
+						year: item.date,
+						loanDate: `2026-03-${String(index + 1).padStart(2, '0')}T09:00:00.000Z`,
+						dueDate: `2026-04-${String(index + 1).padStart(2, '0')}T17:00:00.000Z`,
+						returnLibrary: item.library
+					})
+				);
+			return borrowedItems;
+		},
+		async getRequests(): Promise<LmsRequest[]> {
+			if (!currentUser) {
+				return [];
+			}
 
-		return {
-			ok: true,
-			item: { ...item, returnDirective: getMockReturnDirective(item) },
-			messageKey: 'successfully_borrowed_message'
-		};
-	},
-	async returnItem(barcode: string): Promise<LmsActionResult> {
-		await new Promise((resolve) => setTimeout(resolve, 200)); // Simulate network delay
-		const item = mediaDatabase.get(barcode);
+			return mockRequests
+				.filter((request) => request.requestStatus !== 'ON_HOLD_SHELF')
+				.toSorted((a, b) => (a.requestDate ?? '').localeCompare(b.requestDate ?? ''));
+		},
+		async getPickups(): Promise<LmsPickup[]> {
+			if (!currentUser) {
+				return [];
+			}
 
-		if (!item) {
-			return { ok: false, reasonKey: 'error_item_not_found' };
-		}
+			return mockRequests
+				.filter((request) => request.requestStatus === 'ON_HOLD_SHELF')
+				.toSorted((a, b) => (a.expiryDate ?? '').localeCompare(b.expiryDate ?? ''));
+		},
+		async getFees(): Promise<LmsFee[]> {
+			if (!currentUser) {
+				return [];
+			}
 
-		if (item.status !== 'borrowed') {
+			return mockFees.toSorted((a, b) =>
+				(a.creationTime ?? '').localeCompare(b.creationTime ?? '')
+			);
+		},
+		async logoutUser(): Promise<boolean> {
+			currentUser = null;
+			return true;
+		},
+		async getItem(barcode: string): Promise<MediaItem | null> {
+			await new Promise((resolve) => setTimeout(resolve, 100)); // Simulate network delay
+			const item = mediaDatabase.get(barcode);
+			if (!item) return null;
+			const mediaItem = projectMediaItem(item, coverImageProvider);
+			return { ...mediaItem, returnDirective: getMockReturnDirective(mediaItem) };
+		},
+		async borrowItem(barcode: string): Promise<LmsActionResult> {
+			await new Promise((resolve) => setTimeout(resolve, 200)); // Simulate network delay
+			const item = mediaDatabase.get(barcode);
+
+			if (!item) {
+				return { ok: false, reasonKey: 'error_item_not_found' };
+			}
+
+			if (item.status !== 'available') {
+				return {
+					ok: false,
+					reasonKey: 'error_item_not_available',
+					errors: [item.status ?? 'unknown status']
+				};
+			}
+
+			item.status = 'borrowed';
+			const mediaItem = projectMediaItem(item, coverImageProvider);
+
 			return {
-				ok: false,
-				reasonKey: 'error_item_not_borrowed',
-				errors: [item.status ?? 'unknown status']
+				ok: true,
+				item: { ...mediaItem, returnDirective: getMockReturnDirective(mediaItem) },
+				messageKey: 'successfully_borrowed_message'
 			};
+		},
+		async returnItem(barcode: string): Promise<LmsActionResult> {
+			await new Promise((resolve) => setTimeout(resolve, 200)); // Simulate network delay
+			const item = mediaDatabase.get(barcode);
+
+			if (!item) {
+				return { ok: false, reasonKey: 'error_item_not_found' };
+			}
+
+			if (item.status !== 'borrowed') {
+				return {
+					ok: false,
+					reasonKey: 'error_item_not_borrowed',
+					errors: [item.status ?? 'unknown status']
+				};
+			}
+
+			item.status = 'available';
+			const mediaItem = projectMediaItem(item, coverImageProvider);
+			const directive = getMockReturnDirective(mediaItem);
+
+			return {
+				ok: true,
+				item: { ...mediaItem, returnDirective: directive },
+				messageKey: 'successfully_returned_message',
+				directive
+			};
+		},
+
+		async getHealth(): Promise<{ result: boolean; reason?: string }> {
+			return { result: true };
+			//return { result: false, reason: 'Mock LMS unhealthy for testing' };
 		}
+	};
+}
 
-		item.status = 'available';
-		const directive = getMockReturnDirective(item);
-
-		return {
-			ok: true,
-			item: { ...item, returnDirective: directive },
-			messageKey: 'successfully_returned_message',
-			directive
-		};
-	},
-
-	async getHealth(): Promise<{ result: boolean; reason?: string }> {
-		return { result: true };
-		//return { result: false, reason: 'Mock LMS unhealthy for testing' };
-	}
-};
+export const mockLMS: LibraryManagementSystem = createMockLMS();

@@ -54,6 +54,7 @@ Copy `config.example.yaml` to `config.yaml` and edit:
 - `middleware_instances` drives all reader pickers; at least one entry is required. The mock entry works without hardware.
 - Alma requires a valid API key; mock LMS needs no credentials. `login.mode` controls the checkout dialogs and accepts `username_password` (default), `username_password_or_pin`, `username_only`, `scanner_only`, or `username_or_scanner`.
 - `username_password_or_pin` is Alma-only: the entered login secret is checked against the user's Alma `pin_number` first, then falls back to standard Alma password authentication if the PIN check fails.
+- `lms.cover_image_provider.url` can point to a base cover endpoint. BookWaves appends one comma-separated `isbn` query parameter, for example `https://api.ub.tu-dortmund.de/ccm/cover?isbn=9780747591078`. When configured, ISBN-bearing Alma and mock LMS items use this provider and items without known ISBNs do not fall back to generated random covers. When omitted, generated random covers remain the default. Provider misses and placeholders are handled by the provider. The mock LMS includes ISBN-bearing books so provider integration can be tested locally without Alma credentials.
 - Tagging:
   - `whitelist` blocks writes unless the EPC starts with an allowed prefix (override toggle available in UI).
   - `formats` lets you select which tag format you want to write (must match the tag types your middleware supports).
