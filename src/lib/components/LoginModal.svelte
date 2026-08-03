@@ -77,10 +77,10 @@
 	function handlePasswordKeydown(e: KeyboardEvent) {
 		if (e.key === 'Tab' || e.key === 'Enter') {
 			const charInterval = lastCharTime - prevCharTime;
-			if (charInterval >= 0 && charInterval < 30 && password.length > 3) {
+			if (charInterval >= 0 && charInterval < 30 && loginSecret.length > 3) {
 				e.preventDefault();
-				username = password;
-				password = '';
+				username = loginSecret;
+				loginSecret = '';
 				errorMessage = '';
 				const usernameInput = document.getElementById(
 					usernameInputId
