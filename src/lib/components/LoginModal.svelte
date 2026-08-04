@@ -233,7 +233,7 @@
 	}
 </script>
 
-<div class="modal-open modal">
+<div class="modal modal-open">
 	<div
 		class="modal-box max-w-4xl rounded-3xl bg-base-100/95 text-base-content shadow-2xl ring-1 ring-base-300/70"
 	>

@@ -75,7 +75,7 @@
 	});
 </script>
 
-<dialog class="modal-open modal">
+<dialog class="modal modal-open">
 	<div class="modal-box max-w-3xl">
 		<h3 class="mb-6 text-2xl font-bold">
 			{session.type === 'borrow' ? m.borrow_label() : m.return_label()}

@@ -199,7 +199,7 @@
 
 			{#if data.account}
 				<div class="mt-6 mb-8">
-					<div role="tablist" class="tabs-lift tabs w-full tabs-lg">
+					<div role="tablist" class="tabs tabs-lift w-full tabs-lg">
 						<label class="tab">
 							<input type="radio" name="account_tabs" checked />
 							<User class="me-2 size-4" />
