@@ -283,7 +283,7 @@
 	}
 </script>
 
-<div class="modal-open modal" style="place-items: start center; padding-top: 3rem;">
+<div class="modal modal-open" style="place-items: start center; padding-top: 3rem;">
 	<div
 		class="modal-box max-w-4xl rounded-3xl bg-base-100/95 text-base-content shadow-2xl ring-1 ring-base-300/70"
 	>

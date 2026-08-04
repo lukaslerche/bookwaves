@@ -26,3 +26,4 @@ src/lib/paraglide
 project.inlang/cache/
 
 config.yaml
+.scratch/

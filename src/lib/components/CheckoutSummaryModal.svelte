@@ -75,7 +75,7 @@
 	});
 </script>
 
-<dialog class="modal-open modal">
+<dialog class="modal modal-open">
 	<div class="modal-box max-w-3xl">
 		<h3 class="mb-6 text-2xl font-bold">
 			{session.type === 'borrow' ? m.borrow_label() : m.return_label()}
@@ -129,6 +129,11 @@
 									{/if}
 									{#if item.mediaItem?.date}
 										<p class="mt-1 text-xs opacity-70">{item.mediaItem.date}</p>
+									{/if}
+									{#if item.rfidWarning}
+										<p class="mt-2 rounded-md bg-warning/20 px-2 py-1 text-sm text-warning">
+											{item.rfidWarning}
+										</p>
 									{/if}
 								</div>
 								<div

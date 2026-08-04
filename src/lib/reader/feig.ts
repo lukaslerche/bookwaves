@@ -147,6 +147,15 @@ const AnalyzeResponseSchema = v.object({
 
 type AnalyzeResponse = v.InferOutput<typeof AnalyzeResponseSchema>;
 
+type FeigOperationResponse = {
+	message?: string;
+	error?: string;
+};
+
+function getOperationMessage(result: FeigOperationResponse): string | undefined {
+	return result.message ?? result.error;
+}
+
 const NotificationRssiValueSchema = v.object({
 	antenna: v.optional(v.number()),
 	antennaNumber: v.optional(v.number()),
@@ -253,7 +262,7 @@ export class FeigRFIDReader implements RFIDReader {
 				success: result.success === true,
 				epc: result.epc ?? epc,
 				tagType: result.tagType,
-				message: result.message ?? result.error,
+				message: getOperationMessage(result),
 				secured: result.secured
 			};
 		} catch (error) {
@@ -286,7 +295,7 @@ export class FeigRFIDReader implements RFIDReader {
 				success: result.success === true,
 				epc: result.epc ?? epc,
 				tagType: result.tagType,
-				message: result.message ?? result.error,
+				message: getOperationMessage(result),
 				secured: result.secured
 			};
 		} catch (error) {
@@ -352,7 +361,7 @@ export class FeigRFIDReader implements RFIDReader {
 				pc: result.pc,
 				mediaId: result.mediaId,
 				secured: result.secured,
-				message: result.message || result.error
+				message: getOperationMessage(result)
 			};
 		} catch (error) {
 			clientLogger.error('Failed to initialize item:', error);
@@ -387,7 +396,7 @@ export class FeigRFIDReader implements RFIDReader {
 				oldEpc: result.oldEpc ?? epc,
 				newEpc: result.newEpc,
 				tagType: result.tagType,
-				message: result.message ?? result.error
+				message: getOperationMessage(result)
 			};
 		} catch (error) {
 			clientLogger.error('Failed to edit item:', error);
@@ -421,7 +430,7 @@ export class FeigRFIDReader implements RFIDReader {
 				oldEpc: result.oldEpc ?? epc,
 				newPc: result.newPc,
 				tid: result.tid,
-				message: result.message ?? result.error
+				message: getOperationMessage(result)
 			};
 		} catch (error) {
 			clientLogger.error('Failed to clear item:', error);
@@ -452,7 +461,7 @@ export class FeigRFIDReader implements RFIDReader {
 					success: false,
 					epc: output.epc ?? epc,
 					analysis: output.analysis,
-					message: output.message ?? output.error
+					message: getOperationMessage(output)
 				};
 			}
 
@@ -460,7 +469,7 @@ export class FeigRFIDReader implements RFIDReader {
 				success: true,
 				epc: output.epc ?? epc,
 				analysis: output.analysis,
-				message: output.message ?? output.error
+				message: getOperationMessage(output)
 			};
 		} catch (error) {
 			clientLogger.error('Failed to analyze item:', error);
