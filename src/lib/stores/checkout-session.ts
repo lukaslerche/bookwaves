@@ -11,6 +11,7 @@ export type SessionItem = {
 	timestamp: number;
 	status: 'success' | 'failed' | 'unavailable' | 'not-borrowed';
 	message: string;
+	rfidWarning?: string;
 };
 
 export type CheckoutSession = {

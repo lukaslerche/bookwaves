@@ -130,6 +130,11 @@
 									{#if item.mediaItem?.date}
 										<p class="mt-1 text-xs opacity-70">{item.mediaItem.date}</p>
 									{/if}
+									{#if item.rfidWarning}
+										<p class="mt-2 rounded-md bg-warning/20 px-2 py-1 text-sm text-warning">
+											{item.rfidWarning}
+										</p>
+									{/if}
 								</div>
 								<div
 									class="flex items-center justify-center px-2 text-sm font-semibold text-base-content/70"
