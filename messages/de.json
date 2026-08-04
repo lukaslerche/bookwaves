@@ -220,6 +220,7 @@
 	"preparing_to_borrow_message": "Vorbereitung der Ausleihe...",
 	"no_reader_found_message": "Kein Reader konfiguriert. Fügen Sie middleware_id und reader_id zur URL hinzu.",
 	"no_reader_found_while_borrowing_message": "Kein Reader konfiguriert. Fügen Sie middleware_id und reader_id zur URL hinzu, bevor Sie ausleihen.",
+	"no_reader_found_while_returning_message": "Kein Reader konfiguriert. Fügen Sie middleware_id und reader_id zur URL hinzu, bevor Sie zurückgeben.",
 	"no_reader_found_while_listing_message": "Kein Reader konfiguriert. Fügen Sie middleware_id und reader_id zur URL hinzu, bevor Sie die Geräteelemente aufrufen.",
 	"no_reader_found_while_monitoring_message": "Kein Reader konfiguriert. Fügen Sie middleware_id und reader_id zur URL hinzu, damit Sie das Gate überwachen.",
 	"no_reader_selected_message": "Kein Lesegerät ausgewählt. Bitte wählen Sie ein Lesegerät aus dem oberen Menü aus.",

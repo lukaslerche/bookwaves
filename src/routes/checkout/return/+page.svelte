@@ -378,7 +378,7 @@
 			clientLogger.error(
 				'No reader configured. Please configure a reader via URL params or admin page.'
 			);
-			readerError = m.no_reader_found_while_borrowing_message();
+			readerError = m.no_reader_found_while_returning_message();
 			return;
 		}
 

@@ -220,6 +220,7 @@
 	"preparing_to_borrow_message": "Perparing to borrow...",
 	"no_reader_found_message": "No reader configured. Add middleware_id and reader_id to the URL.",
 	"no_reader_found_while_borrowing_message": "No reader configured. Add middleware_id and reader_id to the URL before borrowing.",
+	"no_reader_found_while_returning_message": "No reader configured. Add middleware_id and reader_id to the URL before returning.",
 	"no_reader_found_while_listing_message": "No reader configured. Add middleware_id and reader_id to the URL before viewing device items",
 	"no_reader_found_while_monitoring_message": "No reader configured. Add middleware_id and reader_id to the URL before monitoring the gate.",
 	"no_reader_selected_message": "No reader selected. Please select a reader from the top menu",
