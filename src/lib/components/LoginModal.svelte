@@ -66,7 +66,34 @@
 		void stopScanner();
 		onCancel?.();
 	};
+	// --- Re-scan detection in password field ----------------------------------
+	// A scanner types the whole barcode + Tab in < 100 ms. If we see Tab arrive
+	// in the password field right after a series of characters, treat it as a
+	// second scan by a different patron: clear password, move the barcode to
+	// username, and refocus username.
+	let lastCharTime = 0;
+	let prevCharTime = 0;
 
+	function handlePasswordKeydown(e: KeyboardEvent) {
+		if (e.key === 'Tab' || e.key === 'Enter') {
+			const charInterval = lastCharTime - prevCharTime;
+			if (charInterval >= 0 && charInterval < 30 && loginSecret.length > 3) {
+				e.preventDefault();
+				username = loginSecret;
+				loginSecret = '';
+				errorMessage = '';
+				const usernameInput = document.getElementById(
+					usernameInputId
+				) as HTMLInputElement | null;
+				usernameInput?.focus();
+				usernameInput?.select();
+			}
+		} else if (e.key.length === 1) {
+			prevCharTime = lastCharTime;
+			lastCharTime = Date.now();
+		}
+	}
+	let cleanupRefocus: (() => void) | null = null;
 	onMount(() => {
 		if (scannerOnlyMode) {
 			void startScanner();
@@ -76,9 +103,32 @@
 		const usernameInput = document.getElementById(usernameInputId) as HTMLInputElement | null;
 		usernameInput?.focus();
 		usernameInput?.select();
+
+      // Refocus username when focus is lost — helps barcode scanner in kiosk mode
+		const refocusUsername = () => {
+			setTimeout(() => {
+				const active = document.activeElement;
+				const isInputOrButton = active && (active.tagName === 'INPUT' || active.tagName === 'BUTTON' || active.tagName === 'TEXTAREA');
+				if (!isInputOrButton) {
+					usernameInput?.focus();
+					usernameInput?.select();
+				}
+			}, 100);
+		
+		};
+
+		document.addEventListener('click', refocusUsername);
+		document.addEventListener('touchend', refocusUsername);
+
+		cleanupRefocus = () => {
+        	document.removeEventListener('click', refocusUsername);
+        	document.removeEventListener('touchend', refocusUsername);
+      };
+		
 	});
 
 	onDestroy(() => {
+		cleanupRefocus?.();
 		void stopScanner();
 	});
 
@@ -233,7 +283,7 @@
 	}
 </script>
 
-<div class="modal modal-open">
+<div class="modal modal-open" style="place-items: start center; padding-top: 3rem;">
 	<div
 		class="modal-box max-w-4xl rounded-3xl bg-base-100/95 text-base-content shadow-2xl ring-1 ring-base-300/70"
 	>
@@ -328,6 +378,8 @@
 								class="input-bordered input w-full input-lg"
 								bind:value={loginSecret}
 								disabled={isLoading}
+								onkeydown={handlePasswordKeydown}
+								onfocus={(e) => (e.target as HTMLInputElement).click()}
 							/>
 						</div>
 					{/if}
