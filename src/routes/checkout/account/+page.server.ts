@@ -10,11 +10,15 @@ export const load = (async ({ cookies }) => {
 	const userId = getAuthUserFromCookies(cookies);
 	let loginMode: LoginMode = 'username_password';
 	let loginHelpImage: LoginHelpImageConfig | undefined;
+	let scannerFocusAssist = false;
+	let topAlignedModal = false;
 
 	try {
 		const config = getConfig();
 		loginMode = config.login?.mode ?? 'username_password';
 		loginHelpImage = config.login?.login_help_image;
+		scannerFocusAssist = config.login?.scanner_focus_assist ?? false;
+		topAlignedModal = config.login?.top_aligned_modal ?? false;
 	} catch (error) {
 		logger.error({ err: error }, 'Failed to load login config; defaulting to username/password');
 	}
@@ -31,7 +35,9 @@ export const load = (async ({ cookies }) => {
 			authUser: null,
 			requiresAuth: true,
 			loginMode,
-			loginHelpImage
+			loginHelpImage,
+			scannerFocusAssist,
+			topAlignedModal
 		};
 	}
 
@@ -50,7 +56,9 @@ export const load = (async ({ cookies }) => {
 			authUser: null,
 			requiresAuth: true,
 			loginMode,
-			loginHelpImage
+			loginHelpImage,
+			scannerFocusAssist,
+			topAlignedModal
 		};
 	}
 
@@ -79,7 +87,9 @@ export const load = (async ({ cookies }) => {
 			authUser: userId,
 			requiresAuth: false,
 			loginMode,
-			loginHelpImage
+			loginHelpImage,
+			scannerFocusAssist,
+			topAlignedModal
 		};
 	} catch (error) {
 		logger.error({ err: error }, 'Failed to load account data');
@@ -94,7 +104,9 @@ export const load = (async ({ cookies }) => {
 			authUser: null,
 			requiresAuth: true,
 			loginMode,
-			loginHelpImage
+			loginHelpImage,
+			scannerFocusAssist,
+			topAlignedModal
 		};
 	}
 }) satisfies PageServerLoad;

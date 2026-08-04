@@ -7,6 +7,7 @@
 	import { clientLogger } from '$lib/client/logger';
 	import { m } from '$lib/paraglide/messages';
 	import { getLocale } from '$lib/paraglide/runtime';
+	import type { Attachment } from 'svelte/attachments';
 	import type { LoginHelpImageConfig } from '$lib/types/login';
 
 	type LoginMode =
@@ -21,9 +22,18 @@
 		onCancel?: () => void;
 		loginMode?: LoginMode;
 		loginHelpImage?: LoginHelpImageConfig;
+		scannerFocusAssist?: boolean;
+		topAlignedModal?: boolean;
 	}
 
-	let { onSuccess, onCancel, loginMode = 'username_password', loginHelpImage }: Props = $props();
+	let {
+		onSuccess,
+		onCancel,
+		loginMode = 'username_password',
+		loginHelpImage,
+		scannerFocusAssist = false,
+		topAlignedModal = false
+	}: Props = $props();
 
 	const helpImage = $derived.by(() => {
 		if (!loginHelpImage) return undefined;
@@ -59,76 +69,96 @@
 	let lastScannedAt = $state(0);
 	let scannerInstance: import('html5-qrcode').Html5Qrcode | null = null;
 	const SCAN_DUPLICATE_COOLDOWN_MS = 2500;
+	const LOGIN_SECRET_SCAN_MAX_CHAR_INTERVAL_MS = 30;
+	const LOGIN_SECRET_SCAN_MIN_LENGTH = 4;
+	const FOCUS_RECOVERY_DELAY_MS = 100;
 	const usernameInputId = 'username';
 	const loginSecretInputId = 'login-secret';
 	const scannerElementId = 'login-qr-reader';
+	let usernameInput: HTMLInputElement | undefined;
+	let loginSecretInput: HTMLInputElement | undefined;
+	let lastLoginSecretCharacterAt = 0;
+	let loginSecretScanCandidate = '';
+	const captureUsernameInput: Attachment<HTMLInputElement> = (element) => {
+		usernameInput = element;
+		return () => {
+			if (usernameInput === element) usernameInput = undefined;
+		};
+	};
+	const captureLoginSecretInput: Attachment<HTMLInputElement> = (element) => {
+		loginSecretInput = element;
+		return () => {
+			if (loginSecretInput === element) loginSecretInput = undefined;
+		};
+	};
+
+	function focusUsernameInput() {
+		usernameInput?.focus();
+		usernameInput?.select();
+	}
+
+	function isInteractiveElement(element: Element): boolean {
+		return Boolean(
+			element.closest('input, button, textarea, select, label, a, [role="button"], [tabindex]')
+		);
+	}
+
+	function handleDocumentFocusRecovery(event: Event) {
+		if (!scannerFocusAssist) return;
+		if (event.target instanceof Element && isInteractiveElement(event.target)) return;
+
+		setTimeout(() => {
+			focusUsernameInput();
+		}, FOCUS_RECOVERY_DELAY_MS);
+	}
+
+	function handleLoginSecretCharacter(key: string) {
+		const now = Date.now();
+		const charInterval = now - lastLoginSecretCharacterAt;
+
+		loginSecretScanCandidate =
+			charInterval >= 0 && charInterval < LOGIN_SECRET_SCAN_MAX_CHAR_INTERVAL_MS
+				? loginSecretScanCandidate + key
+				: key;
+		lastLoginSecretCharacterAt = now;
+	}
 	const handleCancel = () => {
 		void stopScanner();
 		onCancel?.();
 	};
-	// --- Re-scan detection in password field ----------------------------------
-	// A scanner types the whole barcode + Tab in < 100 ms. If we see Tab arrive
-	// in the password field right after a series of characters, treat it as a
-	// second scan by a different patron: clear password, move the barcode to
-	// username, and refocus username.
-	let lastCharTime = 0;
-	let prevCharTime = 0;
 
-	function handlePasswordKeydown(e: KeyboardEvent) {
+	function handleLoginSecretKeydown(e: KeyboardEvent) {
+		if (!scannerFocusAssist) return;
+
 		if (e.key === 'Tab' || e.key === 'Enter') {
-			const charInterval = lastCharTime - prevCharTime;
-			if (charInterval >= 0 && charInterval < 30 && loginSecret.length > 3) {
+			const scannedIdentifier = loginSecretScanCandidate.trim();
+			if (scannedIdentifier.length >= LOGIN_SECRET_SCAN_MIN_LENGTH) {
 				e.preventDefault();
-				username = loginSecret;
+				username = scannedIdentifier;
 				loginSecret = '';
 				errorMessage = '';
-				const usernameInput = document.getElementById(
-					usernameInputId
-				) as HTMLInputElement | null;
-				usernameInput?.focus();
-				usernameInput?.select();
+				focusUsernameInput();
 			}
+			loginSecretScanCandidate = '';
 		} else if (e.key.length === 1) {
-			prevCharTime = lastCharTime;
-			lastCharTime = Date.now();
+			handleLoginSecretCharacter(e.key);
+		} else {
+			loginSecretScanCandidate = '';
 		}
 	}
-	let cleanupRefocus: (() => void) | null = null;
+
 	onMount(() => {
+		if (!scannerOnlyMode || scannerFocusAssist) {
+			focusUsernameInput();
+		}
+
 		if (scannerOnlyMode) {
 			void startScanner();
 			return;
 		}
-
-		const usernameInput = document.getElementById(usernameInputId) as HTMLInputElement | null;
-		usernameInput?.focus();
-		usernameInput?.select();
-
-      // Refocus username when focus is lost — helps barcode scanner in kiosk mode
-		const refocusUsername = () => {
-			setTimeout(() => {
-				const active = document.activeElement;
-				const isInputOrButton = active && (active.tagName === 'INPUT' || active.tagName === 'BUTTON' || active.tagName === 'TEXTAREA');
-				if (!isInputOrButton) {
-					usernameInput?.focus();
-					usernameInput?.select();
-				}
-			}, 100);
-		
-		};
-
-		document.addEventListener('click', refocusUsername);
-		document.addEventListener('touchend', refocusUsername);
-
-		cleanupRefocus = () => {
-        	document.removeEventListener('click', refocusUsername);
-        	document.removeEventListener('touchend', refocusUsername);
-      };
-		
 	});
 
 	onDestroy(() => {
-		cleanupRefocus?.();
 		void stopScanner();
 	});
 
@@ -210,9 +240,6 @@
 
 			if (requiresLoginSecret) {
 				await tick();
-				const loginSecretInput = document.getElementById(
-					loginSecretInputId
-				) as HTMLInputElement | null;
 				loginSecretInput?.focus();
 				return;
 			}
@@ -283,7 +310,13 @@
 	}
 </script>
 
-<div class="modal modal-open" style="place-items: start center; padding-top: 3rem;">
+<svelte:document onclick={handleDocumentFocusRecovery} ontouchend={handleDocumentFocusRecovery} />
+
+<div
+	class="modal modal-open"
+	style:place-items={topAlignedModal ? 'start center' : undefined}
+	style:padding-top={topAlignedModal ? '3rem' : undefined}
+>
 	<div
 		class="modal-box max-w-4xl rounded-3xl bg-base-100/95 text-base-content shadow-2xl ring-1 ring-base-300/70"
 	>
@@ -326,6 +359,7 @@
 							autocomplete="username"
 							class="input-bordered input w-full input-lg"
 							bind:value={username}
+							{@attach captureUsernameInput}
 							readonly={scannerOnlyMode}
 							disabled={isLoading}
 						/>
@@ -377,9 +411,9 @@
 								autocomplete="current-password"
 								class="input-bordered input w-full input-lg"
 								bind:value={loginSecret}
+								{@attach captureLoginSecretInput}
 								disabled={isLoading}
-								onkeydown={handlePasswordKeydown}
-								onfocus={(e) => (e.target as HTMLInputElement).click()}
+								onkeydown={handleLoginSecretKeydown}
 							/>
 						</div>
 					{/if}

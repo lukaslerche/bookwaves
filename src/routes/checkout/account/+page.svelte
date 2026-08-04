@@ -154,6 +154,8 @@
 		onCancel={handleLogoutAndBack}
 		{loginMode}
 		loginHelpImage={data.loginHelpImage}
+		scannerFocusAssist={data.scannerFocusAssist}
+		topAlignedModal={data.topAlignedModal}
 	/>
 {:else}
 	<div class="app-page-bg-checkout min-h-screen p-8">

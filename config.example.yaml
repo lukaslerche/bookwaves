@@ -17,6 +17,14 @@ log_level: info # Logging level: fatal, error, warn, info, debug, trace, silent
 # Login flow configuration
 login:
   mode: username_password # username_password (default), username_password_or_pin, username_only, scanner_only, or username_or_scanner
+  # scanner_focus_assist keeps scanner-driven login focused in kiosk workflows.
+  # When enabled, a user identifier scan entered in the password/PIN field replaces
+  # the username and clears the password/PIN. The scanner is expected to send fast
+  # input of at least 4 characters and finish with Tab or Enter.
+  # scanner_focus_assist: false
+  # top_aligned_modal moves the login modal near the top with 3rem spacing, useful
+  # when an on-screen keyboard would otherwise cover the form.
+  # top_aligned_modal: false
   # If the login help image must be localized, use the second configuration.
   # If the image is linguistically neutral, the first configuration is enough.
   # login_help_image: '/branding/login-help.png' # optional; supports /absolute/path or https:// URL

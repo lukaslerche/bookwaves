@@ -16,6 +16,18 @@ _Avoid_: username-password login, PIN login
 The currently logged-in library user on a kiosk device. The session may be resumed from the auth cookie after a browser reload, regardless of the login mode that created it.
 _Avoid_: cached login, remembered username
 
+**User identifier scan**:
+A scanner-produced identifier for a library user during login. The scanner may read a barcode, QR code, or another scannable credential; the domain concept is the resulting user identifier, not the physical code format.
+_Avoid_: barcode scan, QR scan, username scan
+
+**Scanner focus assist**:
+An optional login behavior for scanner-driven kiosk workflows that keeps accidental focus loss from interrupting user identifier scans and treats a scan in the login secret field as a new login attempt.
+_Avoid_: kiosk mode, barcode refocus, forced focus trap
+
+**Top-aligned login modal**:
+An optional login modal placement that keeps the form near the top of the screen to reduce overlap from on-screen keyboards.
+_Avoid_: keyboard-safe modal, modal padding top
+
 **Kiosk device**:
 A browser environment dedicated to library self-service workflows where preserving the active user session across reloads is expected.
 _Avoid_: personal browser, staff workstation

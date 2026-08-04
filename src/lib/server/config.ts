@@ -43,6 +43,8 @@ export interface MiddlewareInstanceConfig {
 export interface LoginConfig {
 	mode?: LoginMode;
 	login_help_image?: LoginHelpImageConfig;
+	scanner_focus_assist?: boolean;
+	top_aligned_modal?: boolean;
 	validation?: LoginValidationConfig;
 }
 
@@ -104,6 +106,8 @@ export interface LMSConfig {
 }
 
 const DEFAULT_LOGIN_MODE: LoginMode = 'username_password';
+const DEFAULT_SCANNER_FOCUS_ASSIST = false;
+const DEFAULT_TOP_ALIGNED_MODAL = false;
 const VALID_LOGIN_MODES: LoginMode[] = [
 	'username_password',
 	'username_only',
@@ -338,6 +342,14 @@ function normalizeConfigData(data: LMSConfig, requireTaggingFormats: boolean): L
 	data.login = {
 		mode: parsedLoginMode,
 		login_help_image: parseLoginHelpImageConfig(data.login?.login_help_image),
+		scanner_focus_assist:
+			typeof data.login?.scanner_focus_assist === 'boolean'
+				? data.login.scanner_focus_assist
+				: DEFAULT_SCANNER_FOCUS_ASSIST,
+		top_aligned_modal:
+			typeof data.login?.top_aligned_modal === 'boolean'
+				? data.login.top_aligned_modal
+				: DEFAULT_TOP_ALIGNED_MODAL,
 		validation: parseLoginValidationConfig(data.login)
 	};
 	data.gate = parseGateConfig(data);
@@ -434,15 +446,17 @@ log_level: info # Logging level: fatal, error, warn, info, debug, trace, silent
 # Login flow configuration
 login:
   mode: username_password # username_password (default), username_password_or_pin, username_only, scanner_only, or username_or_scanner
-	# login_help_image: '/branding/login-help.png' # optional; supports /absolute/path or https:// URL
-	# login_help_image: # optional; supports /absolute/path or https:// URL per locale
-	#   de: '/branding/login-help-de.png'
-	#   en: '/branding/login-help-en.png'
-	# validation:
-	#   implementation: campus_id # empty/missing means scanner values are used directly for login
-	#   campus_id:
-	#     url: 'https://katalog.ub.tu-dortmund.de/account/api/validate'
-	#     api_key: 'replace_me'
+  # login_help_image: '/branding/login-help.png' # optional; supports /absolute/path or https:// URL
+  # login_help_image: # optional; supports /absolute/path or https:// URL per locale
+  #   de: '/branding/login-help-de.png'
+  #   en: '/branding/login-help-en.png'
+  # scanner_focus_assist: false # optional; for scanner-driven kiosks. Expects fast input of at least 4 characters ending with Tab or Enter.
+  # top_aligned_modal: false # optional; moves the login modal near the top with 3rem spacing for on-screen keyboards.
+  # validation:
+  #   implementation: campus_id # empty/missing means scanner values are used directly for login
+  #   campus_id:
+  #     url: 'https://katalog.ub.tu-dortmund.de/account/api/validate'
+  #     api_key: 'replace_me'
 
 checkout:
   profiles:
@@ -529,7 +543,11 @@ export function getConfig(): LMSConfig {
 		cachedConfig = {
 			log_level: 'info',
 			lms: { type: 'mock', api_key: '' },
-			login: { mode: DEFAULT_LOGIN_MODE },
+			login: {
+				mode: DEFAULT_LOGIN_MODE,
+				scanner_focus_assist: DEFAULT_SCANNER_FOCUS_ASSIST,
+				top_aligned_modal: DEFAULT_TOP_ALIGNED_MODAL
+			},
 			gate: DEFAULT_GATE_CONFIG,
 			tagging: DEFAULT_TAGGING_CONFIG,
 			checkout: DEFAULT_CHECKOUT_CONFIG,
