@@ -65,8 +65,8 @@ type AlmaUserData = v.InferOutput<typeof UserSchema> & {
 export const ItemSchema = v.object({
 	bib_data: v.object({
 		title: v.string(),
-		author: v.string(),
 		mms_id: v.string(),
+		author: v.optional(v.string()),
 		complete_edition: v.optional(v.string()),
 		isbn: v.optional(v.string()),
 		place_of_publication: v.optional(v.string()),
