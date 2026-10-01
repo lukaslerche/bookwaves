@@ -149,6 +149,7 @@
 
 					<div class="mt-4 space-y-6">
 						<!-- LMS Configuration -->
+						{#if data.showLms}
 						<div>
 							<h3 class="mb-2 text-xl font-semibold">{m.lms_configuration()}</h3>
 							<div class="rounded-lg bg-base-200 p-4">
@@ -162,7 +163,7 @@
 								</div>
 							</div>
 						</div>
-
+						{/if}
 						<!-- Middleware Instances & Readers -->
 						<div>
 							<h3 class="mb-2 text-xl font-semibold">{m.middleware_instances()} & {m.readers()}</h3>

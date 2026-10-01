@@ -155,6 +155,7 @@ export interface LMSConfig {
 	lms: {
 		type: string;
 		api_key: string;
+		show_lms_config?: boolean;
 		cover_image_provider?: CoverImageProvider;
 	};
 	login?: LoginConfig;
