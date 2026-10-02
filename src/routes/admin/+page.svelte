@@ -162,7 +162,6 @@
 								</div>
 							</div>
 						</div>
-
 						<!-- Middleware Instances & Readers -->
 						<div>
 							<h3 class="mb-2 text-xl font-semibold">{m.middleware_instances()} & {m.readers()}</h3>
