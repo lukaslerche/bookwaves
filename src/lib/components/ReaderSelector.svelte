@@ -22,8 +22,7 @@
 
 	let selectedMiddleware = $state('');
 	let selectedReader = $state('');
-    let selectedReaderMode = $state('');
-	let initialized = $state(false);
+	let selectedReaderMode = $state('');
 
 	onMount(() => {
 		const saved = getSelectedReaderConfig();
@@ -47,7 +46,6 @@
 			!saved || saved.middleware !== selectedMiddleware || saved.reader !== selectedReader;
 
 		applySelection(selectionChanged);
-		initialized = true;
 	});
 
 	const currentMiddleware = $derived(
@@ -65,7 +63,7 @@
 
 		if (!currentMiddleware.readers.some((reader) => reader.name === selectedReader)) {
 			selectedReader = currentMiddleware.readers[0]?.name ?? '';
-            selectedReaderMode = currentMiddleware.readers[0]?.mode ?? '';
+			selectedReaderMode = currentMiddleware.readers[0]?.mode ?? '';
 		}
 	}
 
@@ -84,21 +82,17 @@
 	}
 
 	function handleReaderSelect(readerName: string) {
-        const reader = currentMiddleware?.readers.find(
-            (reader) => reader.name === readerName
-        );
+		const reader = currentMiddleware?.readers.find((reader) => reader.name === readerName);
 
-        if (reader) {
-            selectedReader = readerName;
-            selectedReaderMode = reader.mode;
-            applySelection(true);
-        }
+		if (reader) {
+			selectedReader = readerName;
+			selectedReaderMode = reader.mode;
+			applySelection(true);
+		}
 	}
 
-    function handleReaderBlur() {
-		const reader = currentMiddleware?.readers.find(
-			(reader) => reader.name === selectedReader
-		);
+	function handleReaderBlur() {
+		const reader = currentMiddleware?.readers.find((reader) => reader.name === selectedReader);
 
 		if (reader) {
 			handleReaderSelect(selectedReader);
@@ -123,7 +117,7 @@
 				<div class="text-sm font-semibold">
 					{selectedMiddleware && selectedReader
 						? `${selectedMiddleware} / ${selectedReader} - ${selectedReaderMode}`
-						: m.no_selection()} 
+						: m.no_selection()}
 				</div>
 				{#if currentMiddleware}
 					<div class="text-[11px] opacity-70">
@@ -145,23 +139,23 @@
 					</option>
 				{/each}
 			</select>
-            
-            <input 
-                class="input-bordered input bg-white/20 text-white input-xs" 
-                bind:value={selectedReader} 
-                list="readers" 
-                onblur={handleReaderBlur}
-                placeholder={m.select_reader()}
-            /> 
-            <datalist id="readers">
-                {#if currentMiddleware?.readers.length} 
-                {#each currentMiddleware.readers as reader} 
-                    <option value={reader.name} label={`${reader.name} — ${reader.mode}`} />
-                {/each} 
-                {:else} 
-                <option value="" label={m.no_readers()} />
-                {/if} 
-            </datalist>
+
+			<input
+				class="input-bordered input bg-white/20 text-white input-xs"
+				bind:value={selectedReader}
+				list="readers"
+				onblur={handleReaderBlur}
+				placeholder={m.select_reader()}
+			/>
+			<datalist id="readers">
+				{#if currentMiddleware?.readers.length}
+					{#each currentMiddleware.readers as reader}
+						<option value={reader.name}>{`${reader.name} — ${reader.mode}`}</option>
+					{/each}
+				{:else}
+					<option value="">{m.no_readers()}</option>
+				{/if}
+			</datalist>
 
 			{#if currentReader}
 				<span class="badge badge-sm {currentReader.isConnected ? 'badge-success' : 'badge-error'}">

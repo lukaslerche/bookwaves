@@ -120,7 +120,7 @@
 
 <div class="fixed right-4 bottom-4 z-50 w-90 max-w-[92vw] text-base-content">
 	<div
-		class="flex flex-col max-h-[calc(100dvh-(--spacing(8)))] overflow-hidden rounded-2xl border border-primary/40 bg-base-100/90 shadow-2xl shadow-primary/30 backdrop-blur"
+		class="flex max-h-[calc(100dvh-(--spacing(8)))] flex-col overflow-hidden rounded-2xl border border-primary/40 bg-base-100/90 shadow-2xl shadow-primary/30 backdrop-blur"
 	>
 		<header
 			class="flex items-center justify-between bg-linear-to-r from-primary to-secondary px-4 py-3 text-primary-content"
@@ -148,7 +148,7 @@
 		</header>
 
 		{#if isOpen}
-			<div class="space-y-4 p-4 min-h-0 overflow-y-auto">
+			<div class="min-h-0 space-y-4 overflow-y-auto p-4">
 				<div
 					class="flex items-start justify-between gap-3 rounded-xl border border-base-200 bg-base-200/40 px-3 py-2"
 				>

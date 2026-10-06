@@ -243,6 +243,6 @@
 	"security_bit_state_0": "Entsichert",
 	"epc_label": "EPC: {epc}",
 	"barcode_label": "Barcode: {barcode}",
-    "select_reader": "Wähle ein Lesegerät aus...",
+	"select_reader": "Wähle ein Lesegerät aus...",
 	"na": "k. A."
 }

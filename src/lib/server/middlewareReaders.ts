@@ -14,8 +14,8 @@ export async function loadMiddlewareReaders(options: LoadMiddlewareReadersOption
 	const middlewareReaders = await Promise.all(
 		config.middleware_instances.map(async (instance) => {
 			try {
-				var readers = await getAllReaders(instance);
-                
+				let readers = await getAllReaders(instance);
+
 				if (options.onlyInNotificationMode) {
 					readers = readers.filter((reader) => reader.mode === 'notification');
 				}

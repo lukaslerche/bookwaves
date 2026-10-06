@@ -42,7 +42,7 @@
 
 	onMount(async () => {
 		const savedFormat = getSelectedFormat();
-        if (savedFormat) holder = savedFormat;
+		if (savedFormat) holder = savedFormat;
 		initializeReader();
 	});
 

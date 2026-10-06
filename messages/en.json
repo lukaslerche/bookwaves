@@ -243,6 +243,6 @@
 	"security_bit_state_0": "Unsecured",
 	"epc_label": "EPC: {epc}",
 	"barcode_label": "Barcode: {barcode}",
-    "select_reader": "Please select a reader...",
+	"select_reader": "Please select a reader...",
 	"na": "N/A"
 }
