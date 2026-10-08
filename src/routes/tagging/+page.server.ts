@@ -2,9 +2,7 @@ import { loadMiddlewareReaders } from '$lib/server/middlewareReaders';
 import type { TaggingConfig } from '$lib/server/config';
 
 export async function load() {
-	const { config, middlewareReaders } = await loadMiddlewareReaders({
-		onlyInHostMode: true
-	});
+	const { config, middlewareReaders } = await loadMiddlewareReaders({ operatingMode: 'host' });
 
 	const tagging = (config as { tagging?: TaggingConfig }).tagging;
 	const taggingFormats = tagging?.formats ?? [];

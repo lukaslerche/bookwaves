@@ -70,7 +70,6 @@
 	"type": "Typ",
 	"middleware_instances": "Middleware-Instanzen",
 	"readers": "Lesegeräte",
-	"currently_selected": "Derzeit ausgewählt",
 	"lms_test_console": "LMS-Testkonsole",
 	"lms_test_console_text": "Nutze die aktuell konfigurierten LMS-Endpunkte direkt aus dem Adminbereich.",
 	"items": "Bücher",
@@ -243,6 +242,6 @@
 	"security_bit_state_0": "Entsichert",
 	"epc_label": "EPC: {epc}",
 	"barcode_label": "Barcode: {barcode}",
-	"select_reader": "Wähle ein Lesegerät aus...",
+	"filter_readers": "Lesegeräte filtern...",
 	"na": "k. A."
 }

@@ -70,7 +70,6 @@
 	"type": "Type",
 	"middleware_instances": "Middleware Instances",
 	"readers": "Readers",
-	"currently_selected": "Currently selected",
 	"lms_test_console": "LMS Test Console",
 	"lms_test_console_text": "Use the currently configured LMS endpoints directly from the admin area.",
 	"items": "Items",
@@ -243,6 +242,6 @@
 	"security_bit_state_0": "Unsecured",
 	"epc_label": "EPC: {epc}",
 	"barcode_label": "Barcode: {barcode}",
-	"select_reader": "Please select a reader...",
+	"filter_readers": "Filter readers...",
 	"na": "N/A"
 }

@@ -3,28 +3,21 @@ import type { ReaderInfo } from '$lib/reader/interface';
 import { getConfig } from '$lib/server/config';
 import { logger } from '$lib/server/logger';
 
-type LoadMiddlewareReadersOptions = {
-	onlyInNotificationMode?: boolean;
-	onlyInHostMode?: boolean;
-};
-
-export async function loadMiddlewareReaders(options: LoadMiddlewareReadersOptions = {}) {
+export async function loadMiddlewareReaders(
+	options: { operatingMode?: 'host' | 'notification' } = {}
+) {
 	const config = getConfig();
 
 	const middlewareReaders = await Promise.all(
 		config.middleware_instances.map(async (instance) => {
 			try {
-				let readers = await getAllReaders(instance);
-
-				if (options.onlyInNotificationMode) {
-					readers = readers.filter((reader) => reader.mode === 'notification');
-				}
-
-				if (options.onlyInHostMode) {
-					readers = readers.filter((reader) => reader.mode === 'host');
-				}
-
-				return { instance, readers };
+				const readers = await getAllReaders(instance);
+				return {
+					instance,
+					readers: options.operatingMode
+						? readers.filter((reader) => reader.mode === options.operatingMode)
+						: readers
+				};
 			} catch (error) {
 				logger.error({ err: error, instance: instance.id }, 'Error fetching readers');
 				return {

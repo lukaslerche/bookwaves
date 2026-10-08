@@ -16,7 +16,7 @@ Try BookWaves without hardware at https://bookwaves-demo.vercel.app
 - **Security gate** – Live monitoring with audio/visual alerts for secured items.
 - **Reader console** – Inspect items on a reader, secure/unsecure, edit media IDs, clear, or kill tags.
 - **Tagging** – Batch-initialize blank tags from barcodes.
-- **Admin tooling** – Pick middleware/reader pairs, inspect config, and exercise LMS endpoints via a test console.
+- **Admin tooling** – Inspect config and all middleware readers, and exercise LMS endpoints via a test console.
 - **LMS integration** – Integrated into Alma staff UI via official Alma RFID integration.
 - **Try-it-first** – Built-in mock LMS and mock reader for demos without hardware; Feig middleware supported for production.
 
@@ -95,7 +95,7 @@ Copy `config.example.yaml` to `config.yaml` and edit:
 
 ### Reader Selection while using
 
-- **Persistent selection**: Choosing a reader in the Admin/Reader/Tagging pages stores `selectedMiddleware`/`selectedReader` in `localStorage`. IMPORTANT: These must be Feig "host" mode readers.
+- **Saved reader**: Choosing a reader on the Reader or Tagging page stores `selectedMiddleware`/`selectedReader` in `localStorage`. Only Feig "host" mode readers are offered there; type in the filter box to narrow a long reader list.
 - **URL selection**: Gate and Checkout use `?middleware_id=ID&reader_id=NAME` query params (useful to fix a certain reader in a kiosk environment). Checkout also requires `checkout_profile_id=ID` to select the LMS checkout profile (aka the library/circ desk combo for Alma). IMPORTANT: These must be Feig "notification" mode readers.
 - **Mock helpers**: Quick links set `middleware_id=mock1&reader_id=MockReader1`.
 

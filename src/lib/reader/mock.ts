@@ -281,7 +281,7 @@ export class MockRFIDReader implements RFIDReader {
 		await this.delay(50);
 		return {
 			connected: true,
-			mode: 'mock',
+			mode: 'host',
 			model: 'Mock RFID Reader v1.0',
 			antennas: [1, 2, 3, 4],
 			antennaMask: '0x0F',
@@ -440,7 +440,7 @@ export class MockRFIDReader implements RFIDReader {
 				name: 'MockReader1',
 				address: '192.168.1.100',
 				port: 10001,
-				mode: 'LRU1002',
+				mode: 'host',
 				antennas: [1, 2, 3, 4],
 				antennaMask: '0x0F',
 				isConnected: true,
@@ -451,7 +451,7 @@ export class MockRFIDReader implements RFIDReader {
 				name: 'MockReader2',
 				address: '192.168.1.101',
 				port: 10002,
-				mode: 'LRU3000',
+				mode: 'host',
 				antennas: [1, 2],
 				antennaMask: '0x03',
 				isConnected: true,
