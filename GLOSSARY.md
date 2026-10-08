@@ -1,8 +1,36 @@
 # BookWaves
 
-BookWaves is a library self-service and staff-integration system that connects RFID workflows with library management systems.
+Self-service library circulation, tagging and gate monitoring on top of RFID middleware and an LMS.
 
-## Language
+## Readers
+
+**Middleware instance**:
+A configured RFID middleware server that BookWaves talks to; it exposes one or more readers.
+_Avoid_: Server, backend
+
+**Reader**:
+A physical RFID reader exposed by a middleware instance, identified by its name within that instance.
+_Avoid_: Device, antenna
+
+**Operating mode**:
+How a reader delivers tag data: either `host` or `notification`. Nothing else is an operating mode.
+_Avoid_: Mode (unqualified), model
+
+**Host-mode reader**:
+A reader in the `host` operating mode, queried on demand by BookWaves. Required for the Reader and Tagging pages.
+
+**Notification-mode reader**:
+A reader in the `notification` operating mode, pushing tag events to BookWaves. Required for Gate and Checkout.
+
+**Reader model**:
+The hardware model of a reader (e.g. LRU3000). Distinct from its operating mode.
+_Avoid_: Mode
+
+**Saved reader**:
+The middleware instance and host-mode reader chosen on the Reader or Tagging page, remembered on that device and shared by both pages.
+_Avoid_: Persistent selection, selected reader config
+
+## Login and sessions
 
 **Login secret**:
 A user-entered secret used to prove identity during login. In PIN-or-password login, the same login secret may be an Alma PIN or an Alma password.
@@ -32,6 +60,8 @@ _Avoid_: keyboard-safe modal, modal padding top
 A browser environment dedicated to library self-service workflows where preserving the active user session across reloads is expected.
 _Avoid_: personal browser, staff workstation
 
+## Circulation
+
 **Cover image provider**:
 An external service that returns a displayable cover image for one or more ISBNs.
 _Avoid_: cover URL template, image server, random cover service
@@ -47,6 +77,8 @@ _Avoid_: checkout failure, LMS security status
 **Successful item with RFID warning**:
 A borrow or return item whose library transaction succeeded but whose RFID security update still needs attention. The item remains successful for circulation purposes while the RFID warning tells the operator what still needs fixing.
 _Avoid_: failed checkout item, partial failure
+
+## Returns
 
 **Return cart**:
 A physical cart at a circulation desk onto which returned media items are placed, distinguished by colour and by name. Which carts exist is a property of the desk, not of the media item.
