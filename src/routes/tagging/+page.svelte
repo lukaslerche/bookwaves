@@ -42,7 +42,9 @@
 
 	onMount(async () => {
 		const savedFormat = getSelectedFormat();
-		if (savedFormat) holder = savedFormat;
+		if (savedFormat && data.taggingFormats.some((format) => format.name === savedFormat)) {
+			holder = savedFormat;
+		}
 		initializeReader();
 	});
 
