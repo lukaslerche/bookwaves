@@ -314,7 +314,7 @@
 							onchange={() => setSelectedFormat(holder)}
 							disabled={writing}
 						>
-							{#each data.taggingFormats as taggingFormat}
+							{#each data.taggingFormats as taggingFormat, idx (idx)}
 								<option value={taggingFormat.name}>
 									{taggingFormat.description}
 								</option>

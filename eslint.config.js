@@ -25,10 +25,6 @@ export default defineConfig(
 	},
 	{
 		files: ['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js'],
-		rules: {
-			'svelte/require-each-key': 'off', // Temporarily disable this rule, because it is annoying and mostly useless
-			'svelte/no-navigation-without-resolve': 'off' // Temporarily disable this rule, because it is annoying and mostly useless
-		},
 		languageOptions: {
 			parserOptions: {
 				projectService: true,
