@@ -15,12 +15,10 @@ services:
   bookwaves:
     image: ghcr.io/lukaslerche/bookwaves:latest
     container_name: bookwaves
-    ports:
-      - '3000:3000'
+    # Not published: reach the app through nginx, which tells SvelteKit the public origin
     environment:
       HOST_HEADER: x-forwarded-host
       PROTOCOL_HEADER: x-forwarded-proto # Set by nginx.conf so SvelteKit knows the public origin, see https://svelte.dev/docs/kit/adapter-node#Environment-variables-PROTOCOL_HEADER-HOST_HEADER-and-PORT_HEADER
-      FEIG_INTERNAL_URL: http://feig:7070 # Backend calls will use this to communicate with Feig middleware container directly (frontend calls go through nginx proxy)
     volumes:
       # REQUIRED: Mount your configuration file
       # Copy config.example.yaml to config.yaml and customize before running

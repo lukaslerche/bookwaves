@@ -8,6 +8,14 @@ Self-service library circulation, tagging and gate monitoring on top of RFID mid
 A configured RFID middleware server that BookWaves talks to; it exposes one or more readers.
 _Avoid_: Server, backend
 
+**Middleware URL**:
+The address a kiosk browser uses to reach a middleware instance, often a path on the BookWaves site that a proxy forwards.
+_Avoid_: Base URL, public URL
+
+**Internal middleware URL**:
+The address the BookWaves server uses to reach a middleware instance when the middleware URL is not reachable from the server. Each middleware instance has its own.
+_Avoid_: Server URL, backend URL
+
 **Reader**:
 A physical RFID reader exposed by a middleware instance, identified by its name within that instance.
 _Avoid_: Device, antenna

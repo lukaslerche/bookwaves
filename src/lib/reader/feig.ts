@@ -27,16 +27,8 @@ const normalizeBaseUrl = (url?: string): string => {
 		return new URL(raw, window.location.origin).toString().replace(/\/+$/, '');
 	}
 
-	// On the server:
-	// If FEIG_INTERNAL_URL is set, treat it as the full base (do not append the relative path).
-	const serverOverride = process.env.FEIG_INTERNAL_URL;
-	if (serverOverride) {
-		return serverOverride.replace(/\/+$/, '');
-	}
-
-	throw new Error(
-		`Feig middleware url "${raw}" is relative, which the server cannot resolve. Set FEIG_INTERNAL_URL or use an absolute url.`
-	);
+	// On the server, callers pass the absolute address from getServerMiddlewareUrl.
+	throw new Error(`Feig middleware url "${raw}" is relative, which the server cannot resolve.`);
 };
 
 const RssiValueSchema = v.object({

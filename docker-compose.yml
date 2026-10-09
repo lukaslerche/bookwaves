@@ -2,17 +2,24 @@ services:
   bookwaves:
     image: ghcr.io/lukaslerche/bookwaves:latest
     container_name: bookwaves
-    ports:
-      - '3000:3000'
-    # environment:
-    # SvelteKit derives its origin from the Host header and assumes https. Behind a reverse proxy, forward
-    # these headers and uncomment, see https://svelte.dev/docs/kit/adapter-node#Environment-variables-PROTOCOL_HEADER-HOST_HEADER-and-PORT_HEADER
-    # PROTOCOL_HEADER: x-forwarded-proto
-    # HOST_HEADER: x-forwarded-host
-    # FEIG_INTERNAL_URL: http://feig:7070 # Optional: Internal URL to communicate with Feig middleware container withough going through host network
+    # Not published: reach the app through nginx, which tells SvelteKit the public origin
+    environment:
+      HOST_HEADER: x-forwarded-host
+      PROTOCOL_HEADER: x-forwarded-proto # Set by nginx.basic.conf, see https://svelte.dev/docs/kit/adapter-node#Environment-variables-PROTOCOL_HEADER-HOST_HEADER-and-PORT_HEADER
     volumes:
       # REQUIRED: Mount your configuration file
       # Copy config.example.yaml to config.yaml and customize before running
       # If no config.yaml is provided, the the example config will with mock LMS and middleware is used
       - ./config.yaml:/app/config/config.yaml:ro
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: bw-proxy
+    ports:
+      - '80:80'
+    volumes:
+      - ./docker/nginx.basic.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - bookwaves
     restart: unless-stopped

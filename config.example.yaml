@@ -256,6 +256,7 @@ theme:
 middleware_instances:
   #- id: feig1
   #  type: feig # Middleware vendor/type: feig, bibliotheca, etc.
-  #  url: http://localhost:7070
+  #  url: http://localhost:7070 # Used by the browser; may be relative (e.g. /feig) behind a proxy
+  #  internal_url: http://feig:7070 # Optional: used by the server instead of url; required when url is relative
   - id: mock1
     type: mock # Mock middleware for testing (no URL needed)

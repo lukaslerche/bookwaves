@@ -38,6 +38,7 @@ export interface MiddlewareInstanceConfig {
 	id: string;
 	type: string;
 	url?: string; // Optional: not needed for mock middleware
+	internal_url?: string; // Optional: used by the server instead of `url`; required when `url` is relative
 }
 
 export interface LoginConfig {

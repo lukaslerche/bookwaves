@@ -5,6 +5,26 @@ import { MockRFIDReader } from './mock';
 import { logger } from '#lib/server/logger.js';
 
 /**
+ * The address the server uses to reach a middleware instance: its internal URL if set,
+ * otherwise its URL, which then has to be absolute.
+ */
+export function getServerMiddlewareUrl(config: MiddlewareInstanceConfig): string {
+	const field = config.internal_url ? 'internal_url' : 'url';
+	const url = config.internal_url || config.url;
+	if (!url) {
+		throw new Error(`URL is required for middleware: ${config.id}`);
+	}
+	if (!/^https?:\/\//i.test(url)) {
+		throw new Error(
+			field === 'url'
+				? `Middleware instance "${config.id}" has a relative url "${url}"; set internal_url so the server can reach it.`
+				: `Middleware instance "${config.id}" has a relative internal_url "${url}"; it must be absolute.`
+		);
+	}
+	return url;
+}
+
+/**
  * Get all available readers from a middleware instance
  * @param config Middleware instance configuration
  * @returns Promise of reader information array
@@ -16,10 +36,7 @@ export async function getAllReaders(config: MiddlewareInstanceConfig): Promise<R
 				return await MockRFIDReader.getAllReaders();
 
 			case 'feig':
-				if (!config.url) {
-					throw new Error(`URL is required for Feig middleware: ${config.id}`);
-				}
-				return await FeigRFIDReader.getAllReaders(config.url);
+				return await FeigRFIDReader.getAllReaders(getServerMiddlewareUrl(config));
 
 			default:
 				logger.warn({ type: config.type }, 'Unknown middleware type while fetching readers');
