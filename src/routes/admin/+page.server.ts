@@ -1,5 +1,5 @@
 import type { PageServerLoad } from './$types';
-import { loadMiddlewareReaders } from '$lib/server/middlewareReaders';
+import { loadMiddlewareReaders } from '#lib/server/middlewareReaders.js';
 
 export const load = (async () => {
 	const { config, middlewareReaders } = await loadMiddlewareReaders();

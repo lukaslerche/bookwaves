@@ -1,5 +1,5 @@
-import { browser } from '$app/environment';
-import { parseLogLevel, shouldLog, type LogLevel } from '$lib/logger/levels';
+import { browser } from '$app/env';
+import { parseLogLevel, shouldLog, type LogLevel } from '#lib/logger/levels.js';
 
 const defaultLevel: LogLevel = browser ? 'warn' : 'silent';
 

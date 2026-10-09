@@ -1,18 +1,18 @@
 <script lang="ts">
-	import RFIDItem from '$lib/components/RFIDItem.svelte';
+	import RFIDItem from '#lib/components/RFIDItem.svelte';
 	import { BookSearch } from '@lucide/svelte';
 	import type { PageProps } from './$types';
 	import { onDestroy, onMount } from 'svelte';
 	import { fly, fade } from 'svelte/transition';
 	import { flip } from 'svelte/animate';
-	import { createReaderFromParams } from '$lib/stores/reader-selection';
-	import type { RFIDData } from '$lib/reader/interface';
+	import { createReaderFromParams } from '#lib/stores/reader-selection.js';
+	import type { RFIDData } from '#lib/reader/interface.js';
 	import { page } from '$app/state';
-	import { clientLogger } from '$lib/client/logger';
-	import { m } from '$lib/paraglide/messages';
+	import { clientLogger } from '#lib/client/logger.js';
+	import { m } from '#lib/paraglide/messages.js';
 	import { goto } from '$app/navigation';
-	import { createIdleCountdown, IDLE_TIMEOUT_SECONDS } from '$lib/client/idle-countdown';
-	import placeBooksDefaultImage from '$lib/assets/place_book.png';
+	import { createIdleCountdown, IDLE_TIMEOUT_SECONDS } from '#lib/client/idle-countdown.js';
+	import placeBooksDefaultImage from '#lib/assets/place_book.png';
 
 	let { data }: PageProps = $props();
 	let detectedItems: Array<RFIDData> = $state([]);

@@ -1,8 +1,8 @@
-import { buildGetItemsResponse, buildErrorResponse } from '$lib/lms/alma-xml';
-import type { AlmaRFIDItem } from '$lib/lms/alma-types';
-import type { RFIDData } from '$lib/reader/interface';
-import { resolveReaderByIp } from '$lib/server/resolveReader';
-import { logger } from '$lib/server/logger';
+import { buildGetItemsResponse, buildErrorResponse } from '#lib/lms/alma-xml.js';
+import type { AlmaRFIDItem } from '#lib/lms/alma-types.js';
+import type { RFIDData } from '#lib/reader/interface.js';
+import { resolveReaderByIp } from '#lib/server/resolveReader.js';
+import { logger } from '#lib/server/logger.js';
 import type { RequestHandler } from './$types';
 
 const corsHeaders = {

@@ -1,9 +1,9 @@
 import type { PageServerLoad } from './$types';
-import { getLms } from '$lib/server/lms/resolve';
-import { clearAuthCookie, getAuthUserFromCookies } from '$lib/server/auth-cookies';
-import { getConfig, type LoginMode } from '$lib/server/config';
-import { logger } from '$lib/server/logger';
-import type { LoginHelpImageConfig } from '$lib/types/login';
+import { getLms } from '#lib/server/lms/resolve.js';
+import { clearAuthCookie, getAuthUserFromCookies } from '#lib/server/auth-cookies.js';
+import { getConfig, type LoginMode } from '#lib/server/config.js';
+import { logger } from '#lib/server/logger.js';
+import type { LoginHelpImageConfig } from '#lib/types/login.js';
 
 export const load = (async ({ cookies }) => {
 	const lms = getLms();

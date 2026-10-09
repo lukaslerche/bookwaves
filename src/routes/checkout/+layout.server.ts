@@ -1,6 +1,6 @@
 import type { LayoutServerLoad } from './$types';
-import { getConfig } from '$lib/server/config';
-import { logger } from '$lib/server/logger';
+import { getConfig } from '#lib/server/config.js';
+import { logger } from '#lib/server/logger.js';
 
 export const load: LayoutServerLoad = async ({ url }) => {
 	// Extract query parameters

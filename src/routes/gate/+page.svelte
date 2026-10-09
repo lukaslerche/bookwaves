@@ -1,15 +1,15 @@
 <script lang="ts">
-	import RFIDItem from '$lib/components/RFIDItem.svelte';
-	import PageHeader from '$lib/components/PageHeader.svelte';
+	import RFIDItem from '#lib/components/RFIDItem.svelte';
+	import PageHeader from '#lib/components/PageHeader.svelte';
 	import { AlertTriangle, CheckCircle, Eye, ShieldAlert, Lock } from '@lucide/svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import { fly, fade } from 'svelte/transition';
 	import { flip } from 'svelte/animate';
 	import type { PageProps } from './$types';
-	import { createReaderFromParams } from '$lib/stores/reader-selection';
-	import type { RFIDData } from '$lib/reader/interface';
-	import { clientLogger } from '$lib/client/logger';
-	import { m } from '$lib/paraglide/messages';
+	import { createReaderFromParams } from '#lib/stores/reader-selection.js';
+	import type { RFIDData } from '#lib/reader/interface.js';
+	import { clientLogger } from '#lib/client/logger.js';
+	import { m } from '#lib/paraglide/messages.js';
 
 	let { data }: PageProps = $props();
 

@@ -1,4 +1,4 @@
-import { browser } from '$app/environment';
+import { browser } from '$app/env';
 import type {
 	RFIDReader,
 	RFIDData,
@@ -7,7 +7,7 @@ import type {
 	AnalyzeResult
 } from './interface';
 import * as v from 'valibot';
-import { clientLogger } from '$lib/client/logger';
+import { clientLogger } from '#lib/client/logger.js';
 
 export interface FeigReaderConfig {
 	/** Base URL of the Feig API server */
@@ -34,9 +34,9 @@ const normalizeBaseUrl = (url?: string): string => {
 		return serverOverride.replace(/\/+$/, '');
 	}
 
-	// Otherwise, resolve the relative path against a fallback origin.
-	const serverOrigin = process.env.ORIGIN || 'http://localhost:7070';
-	return new URL(raw, serverOrigin).toString().replace(/\/+$/, '');
+	throw new Error(
+		`Feig middleware url "${raw}" is relative, which the server cannot resolve. Set FEIG_INTERNAL_URL or use an absolute url.`
+	);
 };
 
 const RssiValueSchema = v.object({

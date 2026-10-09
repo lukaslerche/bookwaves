@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { CheckoutSession, SessionItem } from '$lib/stores/checkout-session';
-	import { getSuccessfulItems } from '$lib/stores/checkout-session';
-	import type { LmsReturnDirective } from '$lib/lms/lms';
+	import type { CheckoutSession, SessionItem } from '#lib/stores/checkout-session.js';
+	import { getSuccessfulItems } from '#lib/stores/checkout-session.js';
+	import type { LmsReturnDirective } from '#lib/lms/lms.js';
 	import { Check, TriangleAlert } from '@lucide/svelte';
-	import { m } from '$lib/paraglide/messages';
+	import { m } from '#lib/paraglide/messages.js';
 	import { onDestroy, onMount } from 'svelte';
-	import { createIdleCountdown, IDLE_TIMEOUT_SECONDS } from '$lib/client/idle-countdown';
+	import { createIdleCountdown, IDLE_TIMEOUT_SECONDS } from '#lib/client/idle-countdown.js';
 
 	type Props = {
 		session: CheckoutSession;

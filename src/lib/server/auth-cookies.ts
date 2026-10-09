@@ -1,4 +1,4 @@
-import { dev } from '$app/environment';
+import { dev } from '$app/env';
 import type { Cookies } from '@sveltejs/kit';
 
 export const AUTH_COOKIE_NAME = 'bw_auth_user';

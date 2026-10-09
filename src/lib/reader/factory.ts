@@ -1,8 +1,8 @@
-import type { MiddlewareInstanceConfig } from '$lib/server/config';
+import type { MiddlewareInstanceConfig } from '#lib/server/config.js';
 import type { ReaderInfo } from './interface';
 import { FeigRFIDReader } from './feig';
 import { MockRFIDReader } from './mock';
-import { logger } from '$lib/server/logger';
+import { logger } from '#lib/server/logger.js';
 
 /**
  * Get all available readers from a middleware instance

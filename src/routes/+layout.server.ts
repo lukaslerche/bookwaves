@@ -1,5 +1,5 @@
 import type { LayoutServerLoad } from './$types';
-import { getConfig } from '$lib/server/config';
+import { getConfig } from '#lib/server/config.js';
 
 export const load: LayoutServerLoad = async () => {
 	const config = getConfig();

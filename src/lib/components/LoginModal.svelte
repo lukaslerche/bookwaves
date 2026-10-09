@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { onDestroy, onMount, tick } from 'svelte';
-	import { loginUser } from '$lib/lms/lms.remote';
-	import { validateLoginScanRemote } from '$lib/auth/validate.remote';
-	import { setAuthUser } from '$lib/stores/auth';
+	import { loginUser } from '#lib/lms/lms.remote.js';
+	import { validateLoginScanRemote } from '#lib/auth/validate.remote.js';
+	import { setAuthUser } from '#lib/stores/auth.js';
 	import { CircleX } from '@lucide/svelte';
-	import { clientLogger } from '$lib/client/logger';
-	import { m } from '$lib/paraglide/messages';
-	import { getLocale } from '$lib/paraglide/runtime';
+	import { clientLogger } from '#lib/client/logger.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import { getLocale } from '#lib/paraglide/runtime.js';
 	import type { Attachment } from 'svelte/attachments';
-	import type { LoginHelpImageConfig } from '$lib/types/login';
+	import type { LoginHelpImageConfig } from '#lib/types/login.js';
 
 	type LoginMode =
 		| 'username_password'

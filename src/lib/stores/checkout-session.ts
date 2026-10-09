@@ -1,6 +1,6 @@
-import { browser } from '$app/environment';
-import type { RFIDData } from '$lib/reader/interface';
-import type { LmsReturnDirective, MediaItem } from '$lib/lms/lms';
+import { browser } from '$app/env';
+import type { RFIDData } from '#lib/reader/interface.js';
+import type { LmsReturnDirective, MediaItem } from '#lib/lms/lms.js';
 
 export type SessionItemType = 'borrow' | 'return';
 

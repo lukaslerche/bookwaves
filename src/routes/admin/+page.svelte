@@ -1,10 +1,10 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
 	import { onMount } from 'svelte';
-	import type { MediaItem } from '$lib/lms/lms';
-	import * as lms from '$lib/lms/lms.remote';
-	import { clientLogger } from '$lib/client/logger';
-	import { m } from '$lib/paraglide/messages';
+	import type { MediaItem } from '#lib/lms/lms.js';
+	import * as lms from '#lib/lms/lms.remote.js';
+	import { clientLogger } from '#lib/client/logger.js';
+	import { m } from '#lib/paraglide/messages.js';
 
 	let { data }: PageProps = $props();
 	let username = $state('');

@@ -2,10 +2,10 @@ import {
 	buildSuccessResponse,
 	buildErrorResponse,
 	parseItemUpdatePayload
-} from '$lib/lms/alma-xml';
-import type { RFIDData } from '$lib/reader/interface';
-import { resolveReaderByIp } from '$lib/server/resolveReader';
-import { logger } from '$lib/server/logger';
+} from '#lib/lms/alma-xml.js';
+import type { RFIDData } from '#lib/reader/interface.js';
+import { resolveReaderByIp } from '#lib/server/resolveReader.js';
+import { logger } from '#lib/server/logger.js';
 import type { RequestHandler } from './$types';
 
 const corsHeaders = {

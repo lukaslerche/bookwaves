@@ -90,7 +90,7 @@ Copy `config.example.yaml` to `config.yaml` and edit:
 
 ### RFID Middleware configuration
 
-- **Feig**: Talks to the [BookWaves Feig middleware](https://github.com/lukaslerche/bookwaves-feig). Configure a middleware entry with `type: feig` and its base `url`. Optional `FEIG_INTERNAL_URL` lets the app call the middleware over container networking.
+- **Feig**: Talks to the [BookWaves Feig middleware](https://github.com/lukaslerche/bookwaves-feig). Configure a middleware entry with `type: feig` and its base `url`. Optional `FEIG_INTERNAL_URL` lets the app call the middleware over container networking; it is required when `url` is relative.
 - **Mock**: Simulated reader with random items; supports inventory, secure/unsecure, edit, clear, initialize, analyze, and kill.
 
 ### Reader Selection while using

@@ -1,14 +1,14 @@
 <script lang="ts">
-	import LoginModal from '$lib/components/LoginModal.svelte';
+	import LoginModal from '#lib/components/LoginModal.svelte';
 	import type { PageProps } from './$types';
 	import { page } from '$app/state';
 	import { User, ShoppingCart, Package, Receipt } from '@lucide/svelte';
 	import { onDestroy, onMount } from 'svelte';
-	import { getAuthUser, clearAuthUser, setAuthUser } from '$lib/stores/auth';
-	import { logoutUser, resumeCurrentUserSession } from '$lib/lms/lms.remote';
-	import { goto, invalidateAll } from '$app/navigation';
-	import { m } from '$lib/paraglide/messages';
-	import { createIdleCountdown, IDLE_TIMEOUT_SECONDS } from '$lib/client/idle-countdown';
+	import { getAuthUser, clearAuthUser, setAuthUser } from '#lib/stores/auth.js';
+	import { logoutUser, resumeCurrentUserSession } from '#lib/lms/lms.remote.js';
+	import { goto, refreshAll } from '$app/navigation';
+	import { m } from '#lib/paraglide/messages.js';
+	import { createIdleCountdown, IDLE_TIMEOUT_SECONDS } from '#lib/client/idle-countdown.js';
 
 	let { data }: PageProps = $props();
 
@@ -78,7 +78,7 @@
 		startIdleCountdown();
 
 		// Reload the page to load account data
-		invalidateAll();
+		refreshAll();
 	}
 
 	function handleLogoutAndBack() {

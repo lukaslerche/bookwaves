@@ -1,5 +1,5 @@
-import { loadMiddlewareReaders } from '$lib/server/middlewareReaders';
-import { logger } from '$lib/server/logger';
+import { loadMiddlewareReaders } from '#lib/server/middlewareReaders.js';
+import { logger } from '#lib/server/logger.js';
 
 export async function load() {
 	const { middlewareReaders } = await loadMiddlewareReaders({ operatingMode: 'host' });

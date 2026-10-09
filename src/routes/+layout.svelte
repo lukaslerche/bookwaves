@@ -1,9 +1,9 @@
 <script lang="ts">
 	import './layout.css';
-	import favicon from '$lib/assets/favicon.svg';
+	import favicon from '#lib/assets/favicon.svg';
 	import type { Snippet } from 'svelte';
 	import { onMount } from 'svelte';
-	import { setLocale } from '$lib/paraglide/runtime';
+	import { setLocale } from '#lib/paraglide/runtime.js';
 
 	let {
 		children,

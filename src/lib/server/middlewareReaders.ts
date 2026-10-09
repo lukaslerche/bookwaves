@@ -1,7 +1,7 @@
-import { getAllReaders } from '$lib/reader/factory';
-import type { ReaderInfo } from '$lib/reader/interface';
-import { getConfig } from '$lib/server/config';
-import { logger } from '$lib/server/logger';
+import { getAllReaders } from '#lib/reader/factory.js';
+import type { ReaderInfo } from '#lib/reader/interface.js';
+import { getConfig } from '#lib/server/config.js';
+import { logger } from '#lib/server/logger.js';
 
 export async function loadMiddlewareReaders(
 	options: { operatingMode?: 'host' | 'notification' } = {}

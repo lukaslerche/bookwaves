@@ -1,4 +1,4 @@
-import { logger } from '$lib/server/logger';
+import { logger } from '#lib/server/logger.js';
 
 export type CoverImageProvider = {
 	url: string;

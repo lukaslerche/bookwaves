@@ -1,8 +1,8 @@
 <script lang="ts">
-	import PageHeader from '$lib/components/PageHeader.svelte';
-	import NavigationCard from '$lib/components/NavigationCard.svelte';
+	import PageHeader from '#lib/components/PageHeader.svelte';
+	import NavigationCard from '#lib/components/NavigationCard.svelte';
 	import { Tag, Settings, BookOpen, Bell, SquarePen } from '@lucide/svelte';
-	import { m } from '$lib/paraglide/messages';
+	import { m } from '#lib/paraglide/messages.js';
 </script>
 
 <div class="app-page-bg-home min-h-full p-8">

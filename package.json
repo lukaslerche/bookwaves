@@ -18,9 +18,10 @@
 		"@eslint/compat": "^2.1.1",
 		"@eslint/js": "^10.0.1",
 		"@inlang/paraglide-js": "^2.25.4",
-		"@sveltejs/adapter-node": "^5.5.7",
-		"@sveltejs/adapter-vercel": "^6.3.4",
-		"@sveltejs/kit": "^2.70.3",
+		"@sveltejs/adapter-node": "^6.0.0",
+		"@sveltejs/adapter-vercel": "^7.0.0",
+		"@sveltejs/kit": "^3.0.0",
+		"@sveltejs/load-config": "^0.2.2",
 		"@sveltejs/vite-plugin-svelte": "^7.3.1",
 		"@tailwindcss/vite": "^4.3.3",
 		"@types/js-yaml": "^4.0.9",
@@ -49,5 +50,9 @@
 		"pino": "10.3.1",
 		"valibot": "^1.5.0",
 		"yaml": "^2.9.1"
+	},
+	"imports": {
+		"#lib": "./src/lib/index.js",
+		"#lib/*": "./src/lib/*"
 	}
 }

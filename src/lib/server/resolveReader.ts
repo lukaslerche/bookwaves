@@ -1,10 +1,10 @@
-import { getAllReaders } from '$lib/reader/factory';
-import type { RFIDReader, ReaderInfo } from '$lib/reader/interface';
-import { FeigRFIDReader } from '$lib/reader/feig';
-import { mockRFIDReader } from '$lib/reader/mock';
-import type { MiddlewareInstanceConfig } from '$lib/server/config';
-import { getConfig } from '$lib/server/config';
-import { logger } from '$lib/server/logger';
+import { getAllReaders } from '#lib/reader/factory.js';
+import type { RFIDReader, ReaderInfo } from '#lib/reader/interface.js';
+import { FeigRFIDReader } from '#lib/reader/feig.js';
+import { mockRFIDReader } from '#lib/reader/mock.js';
+import type { MiddlewareInstanceConfig } from '#lib/server/config.js';
+import { getConfig } from '#lib/server/config.js';
+import { logger } from '#lib/server/logger.js';
 
 export interface ResolvedReader {
 	reader: RFIDReader;

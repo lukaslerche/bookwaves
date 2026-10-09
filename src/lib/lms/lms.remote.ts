@@ -8,15 +8,17 @@ import type {
 	LmsPickup,
 	LmsRequest
 } from './lms';
-//import * as serverLms from '$lib/server/lms';
+//import * as serverLms from '#lib/server/lms';
 import { getLms } from '../server/lms/resolve';
 import * as v from 'valibot';
-import { AUTH_COOKIE_NAME, clearAuthCookie, setAuthCookie } from '$lib/server/auth-cookies';
-import { logger } from '$lib/server/logger';
+import { AUTH_COOKIE_NAME, clearAuthCookie, setAuthCookie } from '#lib/server/auth-cookies.js';
+import { logger } from '#lib/server/logger.js';
 
 const lms: LibraryManagementSystem = getLms();
 
-async function resumeUserFromCookie() {
+// Queries can neither write cookies nor read `event.url`, so only commands
+// clear a stale auth cookie.
+async function resumeUserFromCookie({ clearStaleCookie }: { clearStaleCookie: boolean }) {
 	const event = getRequestEvent();
 	const cookieUser = event?.cookies.get(AUTH_COOKIE_NAME);
 
@@ -24,7 +26,7 @@ async function resumeUserFromCookie() {
 		const ok = await lms.resumeUserSession(cookieUser);
 		if (ok) return cookieUser;
 
-		if (event) {
+		if (event && clearStaleCookie) {
 			clearAuthCookie(event.cookies, event.url);
 		}
 		await lms.logoutUser();
@@ -35,23 +37,23 @@ async function resumeUserFromCookie() {
 
 export const getHealth = query(async () => lms.getHealth());
 export const getAccount = query(async () => {
-	await resumeUserFromCookie();
+	await resumeUserFromCookie({ clearStaleCookie: false });
 	return lms.getAccount();
 });
 export const getLoans = query(async () => {
-	await resumeUserFromCookie();
+	await resumeUserFromCookie({ clearStaleCookie: false });
 	return lms.getLoans();
 });
 export const getRequests = query(async (): Promise<LmsRequest[]> => {
-	await resumeUserFromCookie();
+	await resumeUserFromCookie({ clearStaleCookie: false });
 	return lms.getRequests();
 });
 export const getPickups = query(async (): Promise<LmsPickup[]> => {
-	await resumeUserFromCookie();
+	await resumeUserFromCookie({ clearStaleCookie: false });
 	return lms.getPickups();
 });
 export const getFees = query(async (): Promise<LmsFee[]> => {
-	await resumeUserFromCookie();
+	await resumeUserFromCookie({ clearStaleCookie: false });
 	return lms.getFees();
 });
 
@@ -77,7 +79,9 @@ export const loginUser = command(
 	}
 );
 
-export const resumeCurrentUserSession = command(async () => Boolean(await resumeUserFromCookie()));
+export const resumeCurrentUserSession = command(async () =>
+	Boolean(await resumeUserFromCookie({ clearStaleCookie: true }))
+);
 
 export const logoutUser = command(async () => {
 	const event = getRequestEvent();
@@ -107,7 +111,7 @@ export const getItem = query(CheckoutCommandSchema, async ({ barcode, context })
 export const borrowItem = command(
 	CheckoutCommandSchema,
 	async ({ barcode, context }): Promise<LmsActionResult> => {
-		await resumeUserFromCookie();
+		await resumeUserFromCookie({ clearStaleCookie: true });
 		try {
 			return await lms.borrowItem(barcode, context);
 		} catch (error) {
@@ -120,7 +124,7 @@ export const borrowItem = command(
 export const returnItem = command(
 	CheckoutCommandSchema,
 	async ({ barcode, context }): Promise<LmsActionResult> => {
-		await resumeUserFromCookie();
+		await resumeUserFromCookie({ clearStaleCookie: true });
 		try {
 			return await lms.returnItem(barcode, context);
 		} catch (error) {

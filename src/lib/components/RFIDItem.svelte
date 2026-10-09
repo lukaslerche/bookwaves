@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { RFIDData } from '$lib/reader/interface';
-	import type { CheckoutContext, MediaItem } from '$lib/lms/lms';
-	import { getItem } from '$lib/lms/lms.remote';
+	import type { RFIDData } from '#lib/reader/interface.js';
+	import type { CheckoutContext, MediaItem } from '#lib/lms/lms.js';
+	import { getItem } from '#lib/lms/lms.remote.js';
 	import { onMount } from 'svelte';
 	import { Lock, LockOpen, Tag } from '@lucide/svelte';
-	import { clientLogger } from '$lib/client/logger';
-	import { m } from '$lib/paraglide/messages';
+	import { clientLogger } from '#lib/client/logger.js';
+	import { m } from '#lib/paraglide/messages.js';
 
 	let {
 		item,

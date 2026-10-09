@@ -1,10 +1,13 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount } from 'svelte';
-	import type { ReaderInfo } from '$lib/reader/interface';
-	import type { MiddlewareInstanceConfig } from '$lib/server/config';
-	import { getSelectedReaderConfig, setSelectedReaderConfig } from '$lib/stores/reader-selection';
+	import type { ReaderInfo } from '#lib/reader/interface.js';
+	import type { MiddlewareInstanceConfig } from '#lib/server/config.js';
+	import {
+		getSelectedReaderConfig,
+		setSelectedReaderConfig
+	} from '#lib/stores/reader-selection.js';
 	import { Cpu } from '@lucide/svelte';
-	import { m } from '$lib/paraglide/messages';
+	import { m } from '#lib/paraglide/messages.js';
 
 	type MiddlewareReaders = {
 		instance: MiddlewareInstanceConfig;

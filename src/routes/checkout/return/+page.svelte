@@ -1,21 +1,21 @@
 <script lang="ts">
-	import RFIDItem from '$lib/components/RFIDItem.svelte';
-	import CheckoutSummaryModal from '$lib/components/CheckoutSummaryModal.svelte';
+	import RFIDItem from '#lib/components/RFIDItem.svelte';
+	import CheckoutSummaryModal from '#lib/components/CheckoutSummaryModal.svelte';
 	import { Check, BookUp, RefreshCw, X } from '@lucide/svelte';
 	import type { PageProps } from './$types';
 	import { onDestroy, onMount } from 'svelte';
 	import { fly, fade } from 'svelte/transition';
 	import { flip } from 'svelte/animate';
 	import type { SvelteComponent } from 'svelte';
-	import { createReaderFromParams } from '$lib/stores/reader-selection';
-	import type { RFIDData, RFIDReader } from '$lib/reader/interface';
-	import { returnItem } from '$lib/lms/lms.remote';
-	import type { LmsActionResult, LmsReturnDirective, MediaItem } from '$lib/lms/lms';
+	import { createReaderFromParams } from '#lib/stores/reader-selection.js';
+	import type { RFIDData, RFIDReader } from '#lib/reader/interface.js';
+	import { returnItem } from '#lib/lms/lms.remote.js';
+	import type { LmsActionResult, LmsReturnDirective, MediaItem } from '#lib/lms/lms.js';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { clientLogger } from '$lib/client/logger';
-	import { classifyReaderOperationError } from '$lib/reader/operation-errors';
-	import { formatReaderOperationError } from '$lib/reader/operation-error-messages';
+	import { clientLogger } from '#lib/client/logger.js';
+	import { classifyReaderOperationError } from '#lib/reader/operation-errors.js';
+	import { formatReaderOperationError } from '#lib/reader/operation-error-messages.js';
 	import {
 		getCheckoutSession,
 		startCheckoutSession,
@@ -24,11 +24,11 @@
 		getItemIdentity,
 		type CheckoutSession,
 		type SessionItem
-	} from '$lib/stores/checkout-session';
+	} from '#lib/stores/checkout-session.js';
 	import { SvelteSet } from 'svelte/reactivity';
-	import { m } from '$lib/paraglide/messages';
-	import { createIdleCountdown, IDLE_TIMEOUT_SECONDS } from '$lib/client/idle-countdown';
-	import placeBooksDefaultImage from '$lib/assets/place_book.png';
+	import { m } from '#lib/paraglide/messages.js';
+	import { createIdleCountdown, IDLE_TIMEOUT_SECONDS } from '#lib/client/idle-countdown.js';
+	import placeBooksDefaultImage from '#lib/assets/place_book.png';
 
 	let { data }: PageProps = $props();
 

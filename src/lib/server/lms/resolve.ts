@@ -1,4 +1,4 @@
-import { getConfig } from '$lib/server/config';
+import { getConfig } from '#lib/server/config.js';
 import type { LibraryManagementSystem } from '../../lms/lms';
 import { createMockLMS } from './mock';
 import { AlmaLMS } from './alma';

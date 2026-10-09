@@ -1,5 +1,5 @@
 <script lang="ts">
-	import MockReaderOverlay from '$lib/components/MockReaderOverlay.svelte';
+	import MockReaderOverlay from '#lib/components/MockReaderOverlay.svelte';
 	import type { LayoutProps } from './$types';
 
 	let { children, data }: LayoutProps = $props();

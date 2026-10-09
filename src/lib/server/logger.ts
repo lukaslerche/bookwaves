@@ -1,6 +1,6 @@
 import pino from 'pino';
 import { getConfig } from './config';
-import { type LogLevel, parseLogLevel } from '$lib/logger/levels';
+import { type LogLevel, parseLogLevel } from '#lib/logger/levels.js';
 
 const defaultLevel: LogLevel = 'info';
 

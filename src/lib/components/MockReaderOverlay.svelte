@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
-	import { mockRFIDReader, type MockReaderMode } from '$lib/reader/mock';
-	import type { RFIDData, RFIDEvent } from '$lib/reader/interface';
+	import { mockRFIDReader, type MockReaderMode } from '#lib/reader/mock.js';
+	import type { RFIDData, RFIDEvent } from '#lib/reader/interface.js';
 	import {
 		Activity,
 		Bug,

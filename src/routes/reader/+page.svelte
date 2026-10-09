@@ -1,8 +1,8 @@
 <script lang="ts">
-	import RFIDItem from '$lib/components/RFIDItem.svelte';
-	import PageHeader from '$lib/components/PageHeader.svelte';
-	import ReaderSelector from '$lib/components/ReaderSelector.svelte';
-	import MockReaderOverlay from '$lib/components/MockReaderOverlay.svelte';
+	import RFIDItem from '#lib/components/RFIDItem.svelte';
+	import PageHeader from '#lib/components/PageHeader.svelte';
+	import ReaderSelector from '#lib/components/ReaderSelector.svelte';
+	import MockReaderOverlay from '#lib/components/MockReaderOverlay.svelte';
 	import {
 		Monitor,
 		RefreshCw,
@@ -15,12 +15,18 @@
 	} from '@lucide/svelte';
 	import type { PageData } from './$types';
 	import { onDestroy, onMount } from 'svelte';
-	import type { RFIDData, RFIDReader } from '$lib/reader/interface';
-	import { classifyReaderOperationError, type ReaderOperation } from '$lib/reader/operation-errors';
-	import { formatReaderOperationError } from '$lib/reader/operation-error-messages';
-	import { getSelectedReaderConfig, createReaderFromSelection } from '$lib/stores/reader-selection';
-	import { clientLogger } from '$lib/client/logger';
-	import { m } from '$lib/paraglide/messages';
+	import type { RFIDData, RFIDReader } from '#lib/reader/interface.js';
+	import {
+		classifyReaderOperationError,
+		type ReaderOperation
+	} from '#lib/reader/operation-errors.js';
+	import { formatReaderOperationError } from '#lib/reader/operation-error-messages.js';
+	import {
+		getSelectedReaderConfig,
+		createReaderFromSelection
+	} from '#lib/stores/reader-selection.js';
+	import { clientLogger } from '#lib/client/logger.js';
+	import { m } from '#lib/paraglide/messages.js';
 
 	let { data }: { data: PageData } = $props();
 	let detectedItems: Array<RFIDData> = $state([]);

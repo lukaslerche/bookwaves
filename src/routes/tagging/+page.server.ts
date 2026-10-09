@@ -1,5 +1,5 @@
-import { loadMiddlewareReaders } from '$lib/server/middlewareReaders';
-import type { TaggingConfig } from '$lib/server/config';
+import { loadMiddlewareReaders } from '#lib/server/middlewareReaders.js';
+import type { TaggingConfig } from '#lib/server/config.js';
 
 export async function load() {
 	const { config, middlewareReaders } = await loadMiddlewareReaders({ operatingMode: 'host' });

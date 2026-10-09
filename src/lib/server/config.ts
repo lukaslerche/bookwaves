@@ -1,9 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import YAML from 'yaml';
-import { type LogLevel, parseLogLevel } from '$lib/logger/levels';
-import { locales, type Locale } from '$lib/paraglide/runtime';
-import type { LoginHelpImageConfig } from '$lib/types/login';
+import { type LogLevel, parseLogLevel } from '#lib/logger/levels.js';
+import { locales, type Locale } from '#lib/paraglide/runtime.js';
+import type { LoginHelpImageConfig } from '#lib/types/login.js';
 import type { CoverImageProvider } from './lms/cover-image-provider';
 
 export type LoginMode =

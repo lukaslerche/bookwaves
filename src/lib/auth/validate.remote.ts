@@ -1,8 +1,8 @@
 import { command } from '$app/server';
 import * as v from 'valibot';
-import { validateCampusId } from '$lib/server/auth/campus_id';
-import { getConfig } from '$lib/server/config';
-import { logger } from '$lib/server/logger';
+import { validateCampusId } from '#lib/server/auth/campus_id.js';
+import { getConfig } from '#lib/server/config.js';
+import { logger } from '#lib/server/logger.js';
 
 export const validateLoginScanRemote = command(v.string(), async (qrstring) => {
 	const scannedValue = qrstring.trim();

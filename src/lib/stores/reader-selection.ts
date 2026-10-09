@@ -1,7 +1,7 @@
-import type { RFIDReader } from '$lib/reader/interface';
-import { FeigRFIDReader } from '$lib/reader/feig';
-import { mockRFIDReader } from '$lib/reader/mock';
-import { clientLogger } from '$lib/client/logger';
+import type { RFIDReader } from '#lib/reader/interface.js';
+import { FeigRFIDReader } from '#lib/reader/feig.js';
+import { mockRFIDReader } from '#lib/reader/mock.js';
+import { clientLogger } from '#lib/client/logger.js';
 
 /**
  * Helper functions to get the currently selected reader from localStorage

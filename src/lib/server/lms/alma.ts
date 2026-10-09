@@ -9,15 +9,15 @@ import type {
 	MediaItem
 } from '../../lms/lms';
 import * as v from 'valibot';
-import { logger } from '$lib/server/logger';
-import { getLocale } from '$lib/paraglide/runtime';
+import { logger } from '#lib/server/logger.js';
+import { getLocale } from '#lib/paraglide/runtime.js';
 import { buildProviderCoverUrl, type CoverImageProvider } from './cover-image-provider';
 import type {
 	CompleteTransitAt,
 	ReturnCondition,
 	ReturnDirective,
 	ReturnRule
-} from '$lib/server/config';
+} from '#lib/server/config.js';
 
 const DEFAULT_API_URL = 'https://api-eu.hosted.exlibrisgroup.com/almaws/v1/';
 

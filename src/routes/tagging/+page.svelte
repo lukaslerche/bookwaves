@@ -1,18 +1,18 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import { onMount } from 'svelte';
-	import type { RFIDData, RFIDReader } from '$lib/reader/interface';
-	import ReaderSelector from '$lib/components/ReaderSelector.svelte';
+	import type { RFIDData, RFIDReader } from '#lib/reader/interface.js';
+	import ReaderSelector from '#lib/components/ReaderSelector.svelte';
 	import {
 		getSelectedReaderConfig,
 		createReaderFromSelection,
 		getSelectedFormat,
 		setSelectedFormat
-	} from '$lib/stores/reader-selection';
+	} from '#lib/stores/reader-selection.js';
 	import { Circle, CircleX, SquarePen } from '@lucide/svelte';
-	import { clientLogger } from '$lib/client/logger';
-	import MockReaderOverlay from '$lib/components/MockReaderOverlay.svelte';
-	import { m } from '$lib/paraglide/messages';
+	import { clientLogger } from '#lib/client/logger.js';
+	import MockReaderOverlay from '#lib/components/MockReaderOverlay.svelte';
+	import { m } from '#lib/paraglide/messages.js';
 
 	let { data }: { data: PageData } = $props();
 
