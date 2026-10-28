@@ -1,7 +1,7 @@
 <script lang="ts">
 	import PageHeader from '#lib/components/PageHeader.svelte';
 	import NavigationCard from '#lib/components/NavigationCard.svelte';
-	import { BookDown, BookUp, User, BookSearch } from '@lucide/svelte';
+	import { BookDown, User, BookSearch } from '@lucide/svelte';
 	import { page } from '$app/state';
 	import { m } from '#lib/paraglide/messages.js';
 
@@ -10,7 +10,6 @@
 	let checkoutIconThemeStyle = $derived(
 		[
 			'--bw-checkout-icon-borrow: color-mix(in oklab, var(--bw-page-checkout-to) 85%, var(--bw-page-checkout-from))',
-			'--bw-checkout-icon-return: color-mix(in oklab, var(--bw-page-checkout-to) 65%, var(--bw-page-checkout-from))',
 			'--bw-checkout-icon-list: color-mix(in oklab, var(--bw-page-checkout-to) 40%, var(--bw-page-checkout-from))',
 			'--bw-checkout-icon-account: color-mix(in oklab, var(--bw-page-checkout-from) 85%, var(--bw-page-checkout-to))'
 		].join('; ')
@@ -21,7 +20,7 @@
 	<PageHeader title={m.checkout_label()} showLogo />
 
 	<nav
-		class="grid w-full max-w-6xl grid-cols-1 gap-8 lg:grid-cols-4"
+		class="grid w-full max-w-6xl grid-cols-1 gap-8 lg:grid-cols-3"
 		style={checkoutIconThemeStyle}
 	>
 		<NavigationCard
@@ -29,14 +28,6 @@
 			title={m.borrow_label()}
 			icon={BookDown}
 			iconColorValue="var(--bw-checkout-icon-borrow)"
-			size="large"
-		/>
-
-		<NavigationCard
-			href="/checkout/return{queryString}"
-			title={m.return_label()}
-			icon={BookUp}
-			iconColorValue="var(--bw-checkout-icon-return)"
 			size="large"
 		/>
 
