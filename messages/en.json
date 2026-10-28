@@ -65,6 +65,7 @@
 	"borrow_failed": "Borrow failed",
 	"return_succeeded": "Return succeeded",
 	"return_failed": "Return failed",
+    "remove": "remove",
 	"lms_reachable": "LMS reachable",
 	"lms_unreachable": "LMS unreachable",
 	"system_configuration": "System Configuration",
@@ -246,5 +247,15 @@
 	"epc_label": "EPC: {epc}",
 	"barcode_label": "Barcode: {barcode}",
 	"filter_readers": "Filter readers...",
-	"na": "N/A"
+    "inactivity_timout_message": "Due to inactivity, you will be redirected to the home page in {duration}s",
+    "inactivity_timeout_reset": "Stay here",
+    "username_login_form_label": "Barcode / Username",
+    "pin_login_form_label": "PIN / Password",
+    "borrow_all": "Borrow all",
+    "return_all": "Return all",
+    "format": "Format",
+    "syncing_security": "Syncing Security...",
+	"na": "N/A",
+    "item_security_out_of_sync": "Out of sync",
+    "item_security_synced": "In Sync"
 }

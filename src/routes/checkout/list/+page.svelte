@@ -13,11 +13,14 @@
 	import { goto } from '$app/navigation';
 	import { createIdleCountdown, IDLE_TIMEOUT_SECONDS } from '#lib/client/idle-countdown.js';
 	import placeBooksDefaultImage from '#lib/assets/place_book.png';
+    import type { RFIDReader } from '#lib/reader/interface.js';
 
 	let { data }: PageProps = $props();
 	let detectedItems: Array<RFIDData> = $state([]);
 	let readerUnsubscribe: (() => void) | null = null;
 	let countdownSeconds = $state(IDLE_TIMEOUT_SECONDS);
+    let securitySyncingActive = $derived(data.securitySyncingActive);
+    let hideLocation = $derived(data.hideLocation);
 	//const countdownProgress = $derived(Math.round((countdownSeconds / IDLE_TIMEOUT_SECONDS) * 100));
 	const missingReaderParams = $derived(
 		!data.readerConfig.middlewareId || !data.readerConfig.readerId
@@ -43,6 +46,7 @@
 	const checkoutProfileId = $derived(
 		data.checkoutProfileId ?? page.url.searchParams.get('checkout_profile_id')
 	);
+    let reader = $derived<RFIDReader | null>(null);
 	const checkoutContext = $derived(
 		checkoutProfileId && lmsType.toLowerCase() === 'alma' ? { checkoutProfileId } : undefined
 	);
@@ -74,7 +78,7 @@
 		startIdleCountdown();
 
 		// Create a reader instance from URL params or localStorage
-		const reader = createReaderFromParams(
+		 reader = createReaderFromParams(
 			data.readerConfig.middlewareId,
 			data.readerConfig.readerId,
 			data.readerConfig.middlewareUrl,
@@ -219,7 +223,13 @@
 							animate:flip={{ duration: 200 }}
 						>
 							<div class="p-4 hover:bg-base-200">
-								<RFIDItem {item} showBadges={false} {checkoutContext} />
+								<RFIDItem {item} 
+                                          showBadges={false} 
+                                          {checkoutContext} 
+                                          showSecuritySyncState={true} 
+                                          hideLocation={hideLocation} 
+                                          {securitySyncingActive} 
+                                          reader={reader}/>
 							</div>
 						</li>
 					{:else}

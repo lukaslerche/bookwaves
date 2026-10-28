@@ -29,6 +29,7 @@ export type LoginMode =
 export type LoginValidationImplementation = 'campus_id';
 
 export interface GateConfig {
+    compact?: boolean;
 	show_all_detected_items?: boolean;
 }
 
@@ -153,6 +154,9 @@ export interface CheckoutProfileConfig {
 
 export interface CheckoutConfig {
 	profiles?: CheckoutProfileConfig[];
+    auto_borrow?: boolean;
+    auto_return?: boolean;
+    security_syncing_enabled?: boolean;
 	no_media_found_image?: string;
 }
 
@@ -178,6 +182,7 @@ export interface ThemeConfig {
 
 export interface LMSConfig {
 	log_level?: LogLevel;
+    hide_location?: boolean;
 	lms: {
 		type: string;
 		api_key: string;
@@ -209,7 +214,8 @@ const VALID_LOGIN_MODES: LoginMode[] = [
 	'username_password_or_pin'
 ];
 const DEFAULT_GATE_CONFIG: Required<GateConfig> = {
-	show_all_detected_items: true
+	show_all_detected_items: true,
+    compact: false,
 };
 const DEFAULT_TAGGING_CONFIG: Required<TaggingConfig> = {
 	whitelist: {
@@ -220,6 +226,9 @@ const DEFAULT_TAGGING_CONFIG: Required<TaggingConfig> = {
 };
 const DEFAULT_CHECKOUT_CONFIG: CheckoutConfig = {
 	profiles: [],
+    auto_borrow: true,
+    auto_return: true,
+    security_syncing_enabled: false,
 	no_media_found_image: undefined
 };
 const DEFAULT_THEME_CONFIG: ThemeConfig = {
@@ -326,7 +335,11 @@ function parseGateConfig(data: LMSConfig): GateConfig {
 		show_all_detected_items:
 			typeof data.gate?.show_all_detected_items === 'boolean'
 				? data.gate.show_all_detected_items
-				: DEFAULT_GATE_CONFIG.show_all_detected_items
+				: DEFAULT_GATE_CONFIG.show_all_detected_items,
+		compact:
+			typeof data.gate?.compact === 'boolean'
+				? data.gate.compact
+				: DEFAULT_GATE_CONFIG.compact
 	};
 }
 
@@ -707,6 +720,9 @@ function parseCheckoutProfiles(data: LMSConfig): CheckoutProfileConfig[] {
 function parseCheckoutConfig(data: LMSConfig): CheckoutConfig {
 	return {
 		profiles: parseCheckoutProfiles(data),
+        auto_borrow: data.checkout?.auto_borrow,
+        auto_return: data.checkout?.auto_return,
+        security_syncing_enabled: data.checkout?.security_syncing_enabled,
 		no_media_found_image:
 			validateSource(data.checkout?.no_media_found_image) ??
 			DEFAULT_CHECKOUT_CONFIG.no_media_found_image
@@ -782,6 +798,7 @@ function normalizeConfigData(data: LMSConfig, requireTaggingFormats: boolean): L
 
 	const parsedLoginMode = data.login?.mode ?? DEFAULT_LOGIN_MODE;
 
+    data.hide_location = data.hide_location ?? false;
 	data.log_level = parseLogLevel(data.log_level, 'info');
 	data.lms = parseLmsConfig(data);
 	data.login = {
@@ -888,6 +905,7 @@ lms:
   #   url: 'https://api.ub.tu-dortmund.de/ccm/cover'
 
 log_level: info # Logging level: fatal, error, warn, info, debug, trace, silent
+hide_location: false # this hides the loation data of the RFIDItem component
 
 # Login flow configuration
 login:
@@ -915,10 +933,17 @@ checkout:
       type: alma
       library: MAIN_LIBRARY
       circulation_desk: SELF-CHECKOUT-CIRC2
+  auto_borrow: true # Defaults to true. If true, the step pending in borrow is skipped and all the detected items will be borrowed
+  auto_return: true # Defaults to true. If true, the same as in auto_borrow but for the return workflow
+  security_syncing_enabled: false # Defauts to false. If true, in book list a syncing of the security with the alma state (borrowed/in place) is attempted
 
 # Security gate display configuration
 gate:
   show_all_detected_items: true # If false, only secured items are shown/warned
+  # Defaults to false. if true:
+  # the flex-direction in the gate is row 
+  # Cover Pages are displayed
+  compact: false 
 
 tagging:
   whitelist:
@@ -995,6 +1020,7 @@ export function getConfig(): LMSConfig {
 
 		cachedConfig = {
 			log_level: 'info',
+            hide_location: false,
 			lms: { type: 'mock', api_key: '' },
 			login: {
 				mode: DEFAULT_LOGIN_MODE,

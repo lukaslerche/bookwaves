@@ -6,10 +6,12 @@
 	import { Lock, LockOpen, Tag } from '@lucide/svelte';
 	import { clientLogger } from '#lib/client/logger.js';
 	import { m } from '#lib/paraglide/messages.js';
+    import type { RFIDReader } from '#lib/reader/interface.js';
 
 	let {
 		item,
 		highlight = false,
+        hideCoverPage=false,
 		showRfidDetails = false,
 		onMediaItemLoaded,
 		showBadges = true,
@@ -17,10 +19,15 @@
 		showSecurity = true,
 		showLibraryLocation = true,
 		showPublicationLine = true,
+        showSecuritySyncState = false,
+        securitySyncingActive = false,
+        reader = null,
+        hideLocation = false,
 		checkoutContext
 	}: {
 		item: RFIDData;
 		highlight?: boolean;
+        hideCoverPage?: boolean;
 		showRfidDetails?: boolean;
 		onMediaItemLoaded?: (mediaItem: MediaItem | null) => void;
 		showBadges?: boolean;
@@ -30,20 +37,84 @@
 		showPublicationLine?: boolean;
 		/** Terminal the lookup happens at; required for a return directive to resolve. */
 		checkoutContext?: CheckoutContext;
+        showSecuritySyncState?: boolean;
+        securitySyncingActive?: boolean;
+        hideLocation?: boolean;
+        reader?: RFIDReader | null;
 	} = $props();
 
+    const MAX_SECURITY_SYNC_TRIES = 10;
 	let mediaItem = $state<MediaItem | null>(null);
-	let loading = $state(true);
+    let loading = $state(true);
+    let secured = $state(item.secured);
 	let fetchError = $state<string | null>(null);
+    let isSecuritySynced = $state(false);
+	let rfidWarning = undefined;
+	let rfidSecuritySyncing = $state(false);
+    let rfidSecurityState = $state<boolean | null | undefined>(null);
+    let itemLoadedNotified = false;
 
 	onMount(async () => {
 		await fetchMediaItem();
 	});
 
+	async function trySecuritySync(item: RFIDData) {
+        if (reader === null) {
+            return;
+        }
+        rfidSecuritySyncing = true;
+		try {
+            let result = null;
+            if (secured) {
+                result = await reader.unsecure(item.id);
+            } else {
+                result = await reader.secure(item.id);
+            }
+			if (!result.success) {
+				rfidWarning = new Error(result.message ?? m.unknown_error());
+			}
+		} catch (error) {
+			clientLogger.error({ err: error }, 'RFID security sync retry failed');
+			rfidWarning = error;
+            return false;
+		} finally {
+            const startTime = Date.now();
+            const minLoadingTime = 1000; // Minimum duration in milliseconds (1 second)
+            const elapsed = Date.now() - startTime;
+            if (elapsed < minLoadingTime) {
+                await new Promise((resolve) => setTimeout(resolve, minLoadingTime - elapsed));
+            }
+            const rfidItem = document.getElementById(item.id);
+            if (rfidItem) {
+                rfidItem.remove();
+            }
+			rfidSecuritySyncing = false;
+		}
+        return true;
+	}
+
+    async function setSecuritySyncState(item: RFIDData) {
+        if (mediaItem === undefined || mediaItem === null) {
+            return undefined;
+        }
+        else if ((secured && mediaItem.status !== 'borrowed') || (!secured && mediaItem.status === 'borrowed')) {
+            rfidSecurityState = true;
+        } else {
+            if (securitySyncingActive) {
+                rfidSecurityState = await trySecuritySync(item);
+            }
+            rfidSecurityState = false;
+        }
+    }
+
 	async function fetchMediaItem() {
 		loading = true;
 		fetchError = null;
 		try {
+            if (onMediaItemLoaded && !itemLoadedNotified) {
+                itemLoadedNotified = true;
+                onMediaItemLoaded(mediaItem);
+            }
 			mediaItem = await getItem({
 				barcode: item.mediaId || item.id,
 				context: checkoutContext
@@ -55,11 +126,13 @@
 			clientLogger.error('Failed to fetch media item:', error);
 			mediaItem = null;
 			fetchError = m.unable_to_load_media_information();
-			if (onMediaItemLoaded) {
+			if (onMediaItemLoaded && !itemLoadedNotified) {
+                itemLoadedNotified = true;
 				onMediaItemLoaded(null);
 			}
 		} finally {
 			loading = false;
+            await setSecuritySyncState(item);
 		}
 	}
 
@@ -130,14 +203,17 @@
 </script>
 
 <div
-	class="rfid-item card border bg-base-100 shadow-sm {highlight
+	class="rfid-item card p-1 border bg-base-100 shadow-sm {highlight
 		? 'border-2 border-error bg-error/10'
 		: 'border-base-300'}"
+    id="{item.id}"
 >
-	<div class="card-body p-4">
+	<div class="card-body p-1">
 		{#if loading}
 			<div class="flex items-start gap-3">
+                {#if !hideCoverPage} 
 				<div class="h-45 w-32 shrink-0 skeleton rounded-box"></div>
+                {/if}
 				<div class="flex min-w-0 flex-1 flex-col gap-3">
 					<div class="h-5 w-3/4 skeleton"></div>
 					<div class="h-4 w-1/2 skeleton"></div>
@@ -157,6 +233,7 @@
 		{:else if mediaItem}
 			<!-- Media Item Information -->
 			<div class="flex items-stretch gap-3">
+                {#if !hideCoverPage}
 				<div class="h-[180px] w-[120px] shrink-0">
 					{#if mediaItem.cover}
 						<img
@@ -166,6 +243,7 @@
 						/>
 					{/if}
 				</div>
+                {/if}
 				<div class="min-w-0 flex-1">
 					<h3 class="card-title truncate text-2xl font-semibold">
 						{getDisplayTitle(mediaItem)}
@@ -205,7 +283,7 @@
 							{/if}
 						</div>
 					{/if}
-					{#if showBadges && showLibraryLocation && (mediaItem.library || mediaItem.location)}
+					{#if showBadges && showLibraryLocation && (mediaItem.library || mediaItem.location) && !hideLocation}
 						<div class="mt-2 flex flex-wrap gap-2 text-xs opacity-70">
 							{#if mediaItem.library}
 								<div class="badge badge-outline badge-sm">{mediaItem.library}</div>
@@ -215,8 +293,24 @@
 							{/if}
 						</div>
 					{/if}
+                    {#if showSecuritySyncState}
+						<div class="mt-2 flex flex-wrap gap-2 text-xs opacity-70">
+                            {#if rfidSecuritySyncing}
+                            <span class="loading loading-md loading-spinner text-primary"></span>
+                            <div class="badge badge-info badge-sm">{m.syncing_security()}</div>
+                            {:else}
+                            <div class="badge {rfidSecurityState ? 'badge-success' : 'badge-error'} badge-sm">
+                            {#if rfidSecurityState}
+                            {m.item_security_synced()}
+                            {:else}
+                            {m.item_security_out_of_sync()}
+                            {/if}
+                            </div>
+                            {/if}
+						</div>
+                    {/if}
 				</div>
-				{#if mediaItem.shelfmark || (showBin && mediaItem.returnDirective)}
+				{#if ((mediaItem.shelfmark || (showBin && mediaItem.returnDirective))) && !hideLocation}
 					<div class="flex min-w-40 items-center justify-center gap-3 text-center">
 						{#if mediaItem.shelfmark}
 							<span class="text-lg font-semibold text-base-content/70">

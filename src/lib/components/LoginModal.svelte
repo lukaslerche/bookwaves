@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onDestroy, onMount, tick } from 'svelte';
+	import { AlertTriangle } from '@lucide/svelte';
 	import { loginUser } from '#lib/lms/lms.remote.js';
 	import { validateLoginScanRemote } from '#lib/auth/validate.remote.js';
 	import { setAuthUser } from '#lib/stores/auth.js';
@@ -24,6 +25,7 @@
 		loginHelpImage?: LoginHelpImageConfig;
 		scannerFocusAssist?: boolean;
 		topAlignedModal?: boolean;
+        idleTimeoutSeconds?: number;
 	}
 
 	let {
@@ -32,8 +34,13 @@
 		loginMode = 'username_password',
 		loginHelpImage,
 		scannerFocusAssist = false,
-		topAlignedModal = false
+		topAlignedModal = false,
+        idleTimeoutSeconds = 60
 	}: Props = $props();
+
+    const IDLE_WARNING_THRESHOLD_SEC = 20;
+    let idleSecondsRemaining = $derived(idleTimeoutSeconds);
+    let idleTimer: ReturnType<typeof setInterval> | null = null;
 
 	const helpImage = $derived.by(() => {
 		if (!loginHelpImage) return undefined;
@@ -47,7 +54,7 @@
 		loginMode === 'username_password' || loginMode === 'username_password_or_pin'
 	);
 	const loginSecretLabel = $derived(
-		loginMode === 'username_password_or_pin' ? `${m.password()} / PIN` : m.password()
+		loginMode === 'username_password_or_pin' ? m.pin_login_form_label() : m.password()
 	);
 	const missingLoginSecretMessage = $derived(
 		loginMode === 'username_password_or_pin'
@@ -92,6 +99,15 @@
 		};
 	};
 
+    function resetIdleTimer() {
+        idleSecondsRemaining = idleTimeoutSeconds;
+    }
+
+    function handleUserActivity(event: Event) {
+        handleDocumentFocusRecovery(event);
+        resetIdleTimer();
+    }
+
 	function focusUsernameInput() {
 		usernameInput?.focus();
 		usernameInput?.select();
@@ -123,11 +139,13 @@
 		lastLoginSecretCharacterAt = now;
 	}
 	const handleCancel = () => {
+        if (idleTimer) clearInterval(idleTimer);
 		void stopScanner();
 		onCancel?.();
 	};
 
 	function handleLoginSecretKeydown(e: KeyboardEvent) {
+        resetIdleTimer();
 		if (!scannerFocusAssist) return;
 
 		if (e.key === 'Tab' || e.key === 'Enter') {
@@ -156,9 +174,20 @@
 			void startScanner();
 			return;
 		}
+
+        idleTimer = setInterval(() => {
+            if (isLoading) return; 
+
+            idleSecondsRemaining -= 1;
+            if (idleSecondsRemaining <= 0) {
+                if (idleTimer) clearInterval(idleTimer);
+                handleCancel();
+            }
+        }, 1000);
 	});
 
 	onDestroy(() => {
+        if (idleTimer) clearInterval(idleTimer);
 		void stopScanner();
 	});
 
@@ -212,6 +241,7 @@
 	}
 
 	async function handleScanSuccess(decodedText: string) {
+        resetIdleTimer();
 		const normalized = decodedText.trim();
 		if (!normalized) return;
 		if (isLoading || isHandlingScan) return;
@@ -251,6 +281,7 @@
 	}
 
 	async function handleSubmit(event?: Event) {
+        resetIdleTimer();
 		event?.preventDefault();
 		if (isLoading) return;
 
@@ -310,7 +341,12 @@
 	}
 </script>
 
-<svelte:document onclick={handleDocumentFocusRecovery} ontouchend={handleDocumentFocusRecovery} />
+<svelte:document 
+    onclick={handleUserActivity} 
+    ontouchend={handleUserActivity} 
+    onmousemove={resetIdleTimer} 
+    onkeydown={resetIdleTimer}
+/>
 
 <div
 	class="modal modal-open"
@@ -320,6 +356,27 @@
 	<div
 		class="modal-box max-w-4xl rounded-3xl bg-base-100/95 text-base-content shadow-2xl ring-1 ring-base-300/70"
 	>
+
+        {#if idleSecondsRemaining <= IDLE_WARNING_THRESHOLD_SEC}
+            <div class="m-4 rounded-2xl border border-warning/30 bg-warning/10 px-4 py-3 text-warning">
+                <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <AlertTriangle class="shrink-0" />
+                        <span class="text-sm font-medium">
+                            {m.inactivity_timout_message({duration: idleSecondsRemaining})}
+                        </span>
+                    </div>
+                    <button
+                        type="button"
+                        class="btn btn-warning btn-xs btn-outline"
+                        onclick={resetIdleTimer}
+                    >
+                        {m.inactivity_timeout_reset()}
+                    </button>
+                </div>
+            </div>
+        {/if}
+
 		<div class="flex flex-col gap-6 md:flex-row md:items-stretch">
 			{#if helpImage}
 				<div class="md:w-72 md:shrink-0">
@@ -350,12 +407,14 @@
 				<form class="mt-6 space-y-5" onsubmit={handleSubmit}>
 					<div class="form-control gap-2">
 						<label class="label" for="username">
-							<span class="label-text text-sm font-semibold">{m.username()} / Barcode</span>
+							<span class="label-text text-sm font-semibold">
+                            {m.username_login_form_label()}
+                            </span>
 						</label>
 						<input
 							id={usernameInputId}
 							type="text"
-							inputmode="text"
+                            inputmode={loginMode === "username_password_or_pin" ? "none" : "text"}
 							autocomplete="username"
 							class="input-bordered input w-full input-lg"
 							bind:value={username}

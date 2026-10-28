@@ -31,6 +31,7 @@
 	import placeBooksDefaultImage from '#lib/assets/place_book.png';
 
 	let { data }: PageProps = $props();
+    let hideLocation = $derived(data.hideLocation);
 
 	let showSummaryModal = $state(false);
 	let countdownSeconds = $state(IDLE_TIMEOUT_SECONDS);
@@ -70,6 +71,7 @@
 	const noMediaFoundImageUrl = $derived(
 		data.checkoutConfig?.noMediaFoundImageUrl || placeBooksDefaultImage
 	);
+    const autoReturnActive = $derived(data.autoReturnActive);
 
 	const idleCountdown = createIdleCountdown({
 		seconds: IDLE_TIMEOUT_SECONDS,
@@ -89,7 +91,7 @@
 		mediaResolved: boolean;
 		actionReady: boolean;
 		directive?: LmsReturnDirective | null;
-		status: 'checking' | 'returning' | 'success' | 'failed';
+		status: 'pending' | 'checking' | 'returning' | 'success' | 'failed';
 		message?: string;
 		rfidWarning?: string;
 		rfidRetrying?: boolean;
@@ -110,6 +112,10 @@
 	function stopIdleCountdown() {
 		idleCountdown.stop();
 	}
+
+    function removeItem(processed: ProcessedItem) {
+        processedItems = processedItems.filter((p) => getItemIdentity(p.rfidData) !== getItemIdentity(processed.rfidData));
+    }
 
 	function dedupeSessionItems(items: SessionItem[]): SessionItem[] {
 		const seen = new SvelteSet<string>();
@@ -141,132 +147,148 @@
 	}
 
 	async function handleMediaItemLoaded(processed: ProcessedItem, mediaItem: MediaItem | null) {
-		if (processed.status !== 'checking') return;
+        if (processed.status !== 'checking') return;
 
-		processed.mediaResolved = true;
-		processed.mediaItem = mediaItem;
-		processed.directive = mediaItem?.returnDirective ?? processed.directive ?? null;
+        processed.mediaResolved = true;
+        processed.mediaItem = mediaItem;
+        processed.directive = mediaItem?.returnDirective ?? processed.directive ?? null;
 
-		if (!processed.actionReady) {
-			processed.message = m.waiting_for_stable_signal_message();
-			processedItems = [...processedItems];
-			return;
-		}
+        if (!processed.actionReady) {
+            processed.message = m.waiting_for_stable_signal_message();
+            processedItems = [...processedItems];
+            return;
+        }
 
-		await attemptReturn(processed);
-	}
+        if (autoReturnActive) {
+            await attemptReturn(processed);
+        } else {
+            // Manual mode: set status to pending and wait for user click
+            processed.status = 'pending';
+            processed.message = 'Ready to return';
+            processedItems = [...processedItems];
+        }
+    }
 
-	async function attemptReturn(processed: ProcessedItem) {
-		if (processed.status !== 'checking' || !processed.actionReady || !processed.mediaResolved) {
-			return;
-		}
+    const hasPendingItems = $derived(
+        !autoReturnActive && processedItems.some((item) => item.status === 'pending')
+    );
 
-		if (workflowWarning) {
-			processed.status = 'failed';
-			processed.message = workflowWarning ?? undefined;
-			processedItems = [...processedItems];
-			return;
-		}
+    async function handleReturnAll() {
+        const pendingItems = processedItems.filter((item) => item.status === 'pending');
+        for (const item of pendingItems) {
+            await attemptReturn(item);
+        }
+    }
 
-		const mediaItem = processed.mediaItem;
+    async function attemptReturn(processed: ProcessedItem) {
+        if (processed.status !== 'checking' && processed.status !== 'pending') {
+            return;
+        }
+        if (!processed.actionReady || !processed.mediaResolved) {
+            return;
+        }
 
-		if (!mediaItem) {
-			processed.status = 'failed';
-			processed.message = m.item_not_found_in_lms_message();
-			processedItems = [...processedItems];
+        if (workflowWarning) {
+            processed.status = 'failed';
+            processed.message = workflowWarning ?? undefined;
+            processedItems = [...processedItems];
+            return;
+        }
 
-			// Add to session
-			addSessionItem({
-				rfidData: processed.rfidData,
-				mediaItem: null,
-				directive: null,
-				timestamp: Date.now(),
-				status: 'failed',
-				message: processed.message
-			});
-			currentSession = getCheckoutSession();
-			return;
-		}
+        const mediaItem = processed.mediaItem;
 
-		// Try to return the item
-		processed.status = 'returning';
-		processed.message = m.awaiting_lms_response_message();
-		processedItems = [...processedItems];
+        if (!mediaItem) {
+            processed.status = 'failed';
+            processed.message = m.item_not_found_in_lms_message();
+            processedItems = [...processedItems];
 
-		let result: LmsActionResult | undefined;
-		try {
-			result = await returnItem({
-				barcode: processed.rfidData.mediaId || processed.rfidData.id,
-				context: checkoutContext
-			});
-		} catch (error) {
-			clientLogger.error({ err: error }, 'Return item call failed');
-			result = { ok: false, reasonKey: 'error_unexpected_return' };
-		}
+            addSessionItem({
+                rfidData: processed.rfidData,
+                mediaItem: null,
+                directive: null,
+                timestamp: Date.now(),
+                status: 'failed',
+                message: processed.message
+            });
+            currentSession = getCheckoutSession();
+            return;
+        }
 
-		if (result?.ok) {
-			processed.status = 'success';
-			const msgFn = result.messageKey
-				? (m as unknown as Record<string, () => string>)[result.messageKey]
-				: undefined;
-			processed.message = msgFn?.() ?? result.message ?? m.successfully_returned_message();
-			processed.directive =
-				result.directive ?? processed.directive ?? mediaItem?.returnDirective ?? null;
-			// Refresh the RFIDItem to show updated status
-			if (processed.component?.refresh) {
-				await processed.component.refresh();
-			}
-			const itemForSession = result.item ?? mediaItem;
-			processed.mediaItem = itemForSession ?? processed.mediaItem;
-			processed.rfidWarning = undefined;
+        // Try to return the item
+        processed.status = 'returning';
+        processed.message = m.awaiting_lms_response_message();
+        processedItems = [...processedItems];
 
-			if (readerInstance?.secure) {
-				try {
-					const secureResult = await readerInstance.secure(processed.rfidData.id);
-					if (!secureResult.success) {
-						processed.rfidWarning = formatRfidSecurityWarning(
-							new Error(secureResult.message ?? m.unknown_error())
-						);
-					}
-				} catch (err) {
-					clientLogger.error({ err }, 'Failed to secure item after return');
-					processed.rfidWarning = formatRfidSecurityWarning(err);
-				}
-			}
+        let result: LmsActionResult | undefined;
+        try {
+            result = await returnItem({
+                barcode: processed.rfidData.mediaId || processed.rfidData.id,
+                context: checkoutContext
+            });
+        } catch (error) {
+            clientLogger.error({ err: error }, 'Return item call failed');
+            result = { ok: false, reasonKey: 'error_unexpected_return' };
+        }
 
-			// Add to session
-			addSessionItem({
-				rfidData: processed.rfidData,
-				mediaItem: itemForSession,
-				directive: processed.directive ?? null,
-				timestamp: Date.now(),
-				status: 'success',
-				message: processed.message,
-				rfidWarning: processed.rfidWarning
-			});
-		} else {
-			processed.status = 'failed';
-			const reasonFn = result?.reasonKey
-				? (m as unknown as Record<string, () => string>)[result.reasonKey]
-				: undefined;
-			const reason = reasonFn?.() ?? result?.reason ?? m.error_failed_to_return();
-			//const details = result?.errors?.length ? `: ${result.errors.join('; ')}` : '';
-			processed.message = reason; // + details;
+        if (result?.ok) {
+            processed.status = 'success';
+            const msgFn = result.messageKey
+                ? (m as unknown as Record<string, () => string>)[result.messageKey]
+                : undefined;
+            processed.message = msgFn?.() ?? result.message ?? m.successfully_returned_message();
+            processed.directive =
+                result.directive ?? processed.directive ?? mediaItem?.returnDirective ?? null;
+            
+            if (processed.component?.refresh) {
+                await processed.component.refresh();
+            }
+            const itemForSession = result.item ?? mediaItem;
+            processed.mediaItem = itemForSession ?? processed.mediaItem;
+            processed.rfidWarning = undefined;
 
-			// Add to session
-			addSessionItem({
-				rfidData: processed.rfidData,
-				mediaItem,
-				directive: processed.directive ?? null,
-				timestamp: Date.now(),
-				status: 'failed',
-				message: processed.message
-			});
-		}
+            if (readerInstance?.secure) {
+                try {
+                    const secureResult = await readerInstance.secure(processed.rfidData.id);
+                    if (!secureResult.success) {
+                        processed.rfidWarning = formatRfidSecurityWarning(
+                            new Error(secureResult.message ?? m.unknown_error())
+                        );
+                    }
+                } catch (err) {
+                    clientLogger.error({ err }, 'Failed to secure item after return');
+                    processed.rfidWarning = formatRfidSecurityWarning(err);
+                }
+            }
 
-		processedItems = [...processedItems];
-		currentSession = getCheckoutSession();
-	}
+            addSessionItem({
+                rfidData: processed.rfidData,
+                mediaItem: itemForSession,
+                directive: processed.directive ?? null,
+                timestamp: Date.now(),
+                status: 'success',
+                message: processed.message,
+                rfidWarning: processed.rfidWarning
+            });
+        } else {
+            processed.status = 'failed';
+            const reasonFn = result?.reasonKey
+                ? (m as unknown as Record<string, () => string>)[result.reasonKey]
+                : undefined;
+            processed.message = reasonFn?.() ?? result?.reason ?? m.error_failed_to_return();
+
+            addSessionItem({
+                rfidData: processed.rfidData,
+                mediaItem,
+                directive: processed.directive ?? null,
+                timestamp: Date.now(),
+                status: 'failed',
+                message: processed.message
+            });
+        }
+
+        processedItems = [...processedItems];
+        currentSession = getCheckoutSession();
+    }
 
 	function formatRfidSecurityWarning(error: unknown): string {
 		return m.rfid_security_update_warning({
@@ -308,37 +330,40 @@
 	}
 
 	function processItem(rfidData: RFIDData, actionReady: boolean) {
-		const identity = getItemIdentity(rfidData);
-		const existing = processedItems.find((p) => getItemIdentity(p.rfidData) === identity);
+        const identity = getItemIdentity(rfidData);
+        const existing = processedItems.find((p) => getItemIdentity(p.rfidData) === identity);
 
-		if (existing) {
-			existing.rfidData = rfidData;
-			existing.actionReady = existing.actionReady || actionReady;
-			if (existing.status === 'checking' && existing.actionReady && existing.mediaResolved) {
-				void attemptReturn(existing);
-			}
-			processedItems = [...processedItems];
-			return;
-		}
+        if (existing) {
+            existing.rfidData = rfidData;
+            existing.actionReady = existing.actionReady || actionReady;
+            if (existing.status === 'checking' && existing.actionReady && existing.mediaResolved) {
+                if (autoReturnActive) {
+                    void attemptReturn(existing);
+                } else {
+                    existing.status = 'pending';
+                }
+            }
+            processedItems = [...processedItems];
+            return;
+        }
 
-		resetIdleCountdown();
+        resetIdleCountdown();
 
-		// Add item with checking status
-		const processed: ProcessedItem = {
-			rfidData,
-			mediaItem: null,
-			mediaResolved: false,
-			actionReady,
-			status: 'checking',
-			message: m.preparing_to_return_message()
-		};
+        const processed: ProcessedItem = {
+            rfidData,
+            mediaItem: null,
+            mediaResolved: false,
+            actionReady,
+            status: 'checking',
+            message: m.preparing_to_return_message()
+        };
 
-		if (!actionReady) {
-			processed.message = m.waiting_for_stable_signal_message();
-		}
+        if (!actionReady) {
+            processed.message = m.waiting_for_stable_signal_message();
+        }
 
-		processedItems = [processed, ...processedItems];
-	}
+        processedItems = [processed, ...processedItems];
+    }
 
 	onMount(async () => {
 		clientLogger.debug('Page data:', data);
@@ -441,7 +466,7 @@
 		goto(`/checkout${page.url.search}`);
 	}
 
-	function handleIdleTimeout() {
+	function handleIdleTimeout(){
 		handleDoneClick();
 	}
 </script>
@@ -505,6 +530,11 @@
 					<span>Timeout</span>
 					<span>{countdownSeconds}s</span>
 				</div>
+                {#if hasPendingItems}
+                    <button class="btn shadow-xl btn-primary btn-lg" onclick={handleReturnAll}>
+                        <Check />{m.return_all()}
+                    </button>
+                {/if}
 				<button class="btn shadow-xl btn-accent btn-lg" onclick={handleDoneClick}>
 					<Check />{m.i_am_done()}
 				</button>
@@ -535,6 +565,7 @@
 											item={item.rfidData}
 											showBadges={false}
 											showBin={false}
+                                            hideLocation={hideLocation}
 											{checkoutContext}
 											bind:this={item.component}
 											onMediaItemLoaded={(mediaItem) => handleMediaItemLoaded(item, mediaItem)}
@@ -559,6 +590,17 @@
 													</div>
 												</div>
 											</div>
+                                        {:else if item.status === 'pending'}
+                                            <div class="flex flex-col gap-2">
+                                                <div class="flex items-center justify-between gap-2">
+                                                    <button class="btn btn-primary btn-s py-16" onclick={() => attemptReturn(item)}>
+                                                        <Check class="h-4 w-4" /> {m.return()}
+                                                    </button>
+                                                    <button class="btn btn-secondary btn-s py-16" onclick={() => removeItem(item)}>
+                                                        <X class="h-4 w-4" /> {m.remove()}
+                                                    </button>
+                                                </div>
+                                            </div>
 										{:else if item.status === 'success'}
 											<div
 												class="card w-full border border-success/40 bg-success/10 px-4 py-4 text-base text-success shadow-sm"

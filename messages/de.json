@@ -78,6 +78,7 @@
 	"lookup": "Nachschlagen",
 	"borrow": "Ausleihen",
 	"return": "Rückgabe",
+    "remove": "Entfernen",
 	"utilities": "Hilfsprogramme",
 	"fees": "Gebühren",
 	"shelfmark": "Signatur",
@@ -246,5 +247,15 @@
 	"epc_label": "EPC: {epc}",
 	"barcode_label": "Barcode: {barcode}",
 	"filter_readers": "Lesegeräte filtern...",
+    "inactivity_timout_message": "Wegen Inaktivität werden Sie in {duration}s Sekunden zur Startseite weitergeleitet.",
+    "inactivity_timeout_reset": "Hier bleiben",
+    "username_login_form_label": "Barcode / Benutzername",
+    "pin_login_form_label": "PIN / Passwort",
+    "borrow_all": "Alles ausleihen",
+    "return_all": "Alles zurückgeben",
+    "item_security_out_of_sync": "Sicherheit nicht synchronisiert",
+    "item_security_synced": "Sicherheit synchronisiert",
+    "format": "Format",
+    "syncing_security": "Sicherheit Synchronisation...",
 	"na": "k. A."
 }

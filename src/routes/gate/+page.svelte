@@ -15,6 +15,8 @@
 
 	let detectedItems: Array<RFIDData> = $state([]);
 	let showAllDetectedItems = $derived(data.gateConfig?.showAllDetectedItems ?? true);
+    const hideLocation = $derived(data.gateConfig?.hideLocation ?? false);
+    const compact = $derived(data.gateConfig?.compact ?? false);
 	let visibleItems = $derived(
 		showAllDetectedItems ? detectedItems : detectedItems.filter((item) => item.secured)
 	);
@@ -113,101 +115,109 @@
 	<source src="/warning.ogg" type="audio/ogg" />
 </audio>
 
-<div class="app-page-bg-gate min-h-screen p-8">
-	<div class="mx-auto max-w-7xl">
-		{#if readerWarning}
-			<div class="mb-6 alert alert-warning shadow-lg">
-				<div>
-					<strong
-						>{readerConfigProblem === 'unknown_middleware_type'
-							? m.reader_misconfigured()
-							: m.reader_not_configured()}.</strong
-					>
-					{readerWarning}
-					{m.contact_staff()}.
-				</div>
+<div class="app-page-bg-gate min-h-screen flex flex-col p-6 md:p-8 overflow-hidden">
+    
+    {#if readerWarning}
+        <div class="w-full mb-4 alert alert-warning shadow-lg flex justify-between items-center shrink-0">
+            <div>
+                <strong>{m.reader_not_configured()}.</strong>
+                {readerWarning}
+                {m.contact_staff()}.
+            </div>
+            <a
+                class="btn btn-ghost btn-sm"
+                href="?middleware_id=mock1&reader_id=MockReader1"
+                onclick={(event) => {
+                    event.preventDefault();
+                    location.assign('?middleware_id=mock1&reader_id=MockReader1');
+                }}
+            >
+                MOCK
+            </a>
+        </div>
+    {/if}
 
-				<a
-					class="btn btn-ghost btn-sm"
-					href="?middleware_id=mock1&reader_id=MockReader1"
-					onclick={(event) => {
-						event.preventDefault();
-						location.assign('?middleware_id=mock1&reader_id=MockReader1');
-					}}
-				>
-					MOCK
-				</a>
-			</div>
-		{/if}
-		<PageHeader title={m.gate_label()} showLogo />
+    <div class="mx-auto max-w-7xl w-full flex flex-1 min-h-0
+        {!compact ? 'flex-col' : 'flex-row'}
+        {!compact || detectedItems.length === 0 ? 'justify-center items-center' : 'items-stretch gap-8'}">
+        
+        <div class="flex flex-col justify-start w-max
+            {compact || detectedItems.length === 0 ? 'items-center text-center justify-center' : 'w-96 shrink-0 justify-center'}">
+            <PageHeader title={m.gate_label()} showLogo />
 
-		<div class="mb-8 flex items-center justify-center">
-			{#if detectedItems.some((item) => item.secured)}
-				<div
-					class="flex animate-pulse items-center gap-3 rounded-box border-4 border-white bg-error px-10 py-5 text-3xl font-bold text-white shadow-2xl"
-				>
-					<ShieldAlert class="h-12 w-12" />
-					<span>{m.secured_item_detected()}</span>
-				</div>
-			{:else if detectedItems.length > 0}
-				<div
-					class="flex items-center gap-3 rounded-box border-4 border-white bg-success px-10 py-5 text-3xl font-bold text-white shadow-2xl"
-				>
-					<CheckCircle class="h-10 w-10" />
-					<span>{m.all_clear()}</span>
-				</div>
-			{:else}
-				<div
-					class="flex items-center gap-3 rounded-box border-4 border-white/50 bg-base-300 px-10 py-5 text-3xl font-bold opacity-80 shadow-2xl"
-				>
-					<Eye class="h-10 w-10" />
-					<span>{m.monitoring()}</span>
-				</div>
-			{/if}
-		</div>
+            <div class="my-6 flex items-center justify-center">
+                {#if detectedItems.some((item) => item.secured)}
+                    <div
+                        class="flex flex-col animate-pulse items-center gap-3 rounded-box border-4 border-white bg-error px-8 py-5 text-3xl font-bold text-white shadow-2xl"
+                    >
+                        <ShieldAlert class="h-12 w-12" />
+                        <span>{m.secured_item_detected()}</span>
+                    </div>
+                {:else if detectedItems.length > 0}
+                    <div
+                        class="flex flex-col items-center gap-3 rounded-box border-4 border-white bg-success px-8 py-5 text-3xl font-bold text-white shadow-2xl"
+                    >
+                        <CheckCircle class="h-10 w-10" />
+                        <span>{m.all_clear()}</span>
+                    </div>
+                {:else}
+                    <div
+                        class="flex flex-col items-center gap-3 rounded-box border-4 border-white/50 bg-base-300 px-10 py-5 text-3xl font-bold opacity-80 shadow-2xl"
+                    >
+                        <Eye class="h-10 w-10" />
+                        <span>{m.monitoring()}</span>
+                    </div>
+                {/if}
+            </div>
+        </div>
 
-		<div class="card bg-base-100 shadow-2xl">
-			<div class="card-body p-0">
-				<ul class="">
-					<li class="menu-title px-8 py-6 text-xl opacity-70">
-						<span class="text-2xl">{listTitle}</span>
-					</li>
-					{#each visibleItems as item (item.id)}
-						<li
-							class="border-t border-base-200"
-							in:fly={{ y: -10, duration: 160 }}
-							out:fade={{ duration: 120 }}
-							animate:flip={{ duration: 200 }}
-						>
-							<div class="p-6 hover:bg-base-200 {item.secured ? 'bg-error/10' : ''}">
-								<RFIDItem {item} highlight={item.secured} showBadges={false} showBin={false} />
-							</div>
-						</li>
-					{:else}
-						<li class="px-8 py-16 text-center">
-							<div class="flex flex-col items-center gap-6 opacity-60">
-								<Lock class="h-24 w-24 text-base-content/30" />
-								<p class="text-3xl font-semibold">{emptyMessage}</p>
-								<p class="text-xl">
-									{showAllDetectedItems
-										? m.gate_is_clear()
-										: m.no_secured_items_require_attention()}
-								</p>
-							</div>
-						</li>
-					{/each}
-				</ul>
-			</div>
-		</div>
+        {#if !compact || detectedItems.length > 0}
+            <div class="flex-1 min-w-0 flex flex-col gap-4 min-h-0 justify-center w-full">
+                {#if detectedItems.some((item) => item.secured)}
+                    <div class="alert border-4 border-white alert-error text-white shadow-2xl flex items-center shrink-0">
+                        <AlertTriangle class="h-16 w-16 shrink-0" />
+                        <div>
+                            <p class="text-3xl font-bold">{m.please_return_to_desk()}</p>
+                            <p class="mt-1 text-xl">{m.please_return_to_desk_text()}</p>
+                        </div>
+                    </div>
+                {/if}
 
-		{#if detectedItems.some((item) => item.secured)}
-			<div class="mt-8 alert border-4 border-white alert-error text-white shadow-2xl">
-				<AlertTriangle class="h-16 w-16 shrink-0" />
-				<div>
-					<p class="text-4xl font-bold">{m.please_return_to_desk()}</p>
-					<p class="mt-2 text-2xl">{m.please_return_to_desk_text()}</p>
-				</div>
-			</div>
-		{/if}
-	</div>
+                <div class="card bg-base-100 shadow-2xl w-full flex-1 flex flex-col min-h-0 overflow-hidden">
+                    <div class="card-body p-0 flex flex-col flex-1 min-h-0">
+                        <ul class="overflow-y-auto flex-1">
+                            <li class="menu-title px-8 py-4 sticky top-0 bg-base-100/90 backdrop-blur-md z-10 border-b border-base-200">
+                                <span class="text-xl font-semibold tracking-wide text-base-content/60">{listTitle}</span>
+                            </li>
+                            {#each visibleItems as item (item.id)}
+                                <li
+                                    class="border-t border-base-200"
+                                    in:fly={{ y: -10, duration: 160 }}
+                                    out:fade={{ duration: 120 }}
+                                    animate:flip={{ duration: 200 }}
+                                >
+                                    <div class="p-2 hover:bg-base-200 {item.secured ? 'bg-error/10' : ''}">
+                                        <RFIDItem {item} highlight={item.secured} showBadges={false} showBin={false} hideCoverPage={compact} {hideLocation}/>
+                                    </div>
+                                </li>
+                            {:else}
+                                <li class="px-8 py-16 text-center">
+                                    <div class="flex flex-col items-center gap-6 opacity-60">
+                                        <Lock class="h-24 w-24 text-base-content/30" />
+                                        <p class="text-3xl font-semibold">{emptyMessage}</p>
+                                        <p class="text-xl">
+                                            {showAllDetectedItems
+                                                ? m.gate_is_clear()
+                                                : m.no_secured_items_require_attention()}
+                                        </p>
+                                    </div>
+                                </li>
+                            {/each}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        {/if}
+
+    </div>
 </div>

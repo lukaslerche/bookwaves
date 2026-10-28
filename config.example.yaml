@@ -3,39 +3,40 @@
 lms:
   type: mock # LMS type: alma, koha, etc.
   api_key: your_api_key # API key for authentication
-  # Optional Cover image provider. Configure a base endpoint; BookWaves appends
-  # one comma-separated isbn query parameter, e.g. ?isbn=9780747591078,0747591079.
-  # The mock LMS includes ISBN-bearing books, so this can be tested without Alma.
-  # When configured, items without ISBNs do not fall back to generated covers.
-  # When omitted, generated covers remain the default behaviour.
-  # Provider misses/placeholders are handled by the provider, not by BookWaves.
-  # cover_image_provider:
-  #   url: 'https://api.ub.tu-dortmund.de/ccm/cover'
+# Optional Cover image provider. Configure a base endpoint; BookWaves appends
+# one comma-separated isbn query parameter, e.g. ?isbn=9780747591078,0747591079.
+# The mock LMS includes ISBN-bearing books, so this can be tested without Alma.
+# When configured, items without ISBNs do not fall back to generated covers.
+# When omitted, generated covers remain the default behaviour.
+# Provider misses/placeholders are handled by the provider, not by BookWaves.
+# cover_image_provider:
+#   url: 'https://api.ub.tu-dortmund.de/ccm/cover'
 
 log_level: info # Logging level: fatal, error, warn, info, debug, trace, silent
+hide_location: false # this hides the loation data of the RFIDItem component
 
 # Login flow configuration
 login:
   mode: username_password # username_password (default), username_password_or_pin, username_only, scanner_only, or username_or_scanner
-  # scanner_focus_assist keeps scanner-driven login focused in kiosk workflows.
-  # When enabled, a user identifier scan entered in the password/PIN field replaces
-  # the username and clears the password/PIN. The scanner is expected to send fast
-  # input of at least 4 characters and finish with Tab or Enter.
-  # scanner_focus_assist: false
-  # top_aligned_modal moves the login modal near the top with 3rem spacing, useful
-  # when an on-screen keyboard would otherwise cover the form.
-  # top_aligned_modal: false
-  # If the login help image must be localized, use the second configuration.
-  # If the image is linguistically neutral, the first configuration is enough.
-  # login_help_image: '/branding/login-help.png' # optional; supports /absolute/path or https:// URL
-  # login_help_image: # optional; supports /absolute/path or https:// URL per locale
-  #   en: '/branding/login-help-en.png'
-  #   de: '/branding/login-help-de.png'
-  # validation:
-  #   implementation: campus_id # empty/missing means scanner values are used directly for login
-  #   campus_id:
-  #     url: 'https://url-to-validate-login-scans/validate' # URL to validate CampusID login scans
-  #     api_key: 'replace_me'
+# scanner_focus_assist keeps scanner-driven login focused in kiosk workflows.
+# When enabled, a user identifier scan entered in the password/PIN field replaces
+# the username and clears the password/PIN. The scanner is expected to send fast
+# input of at least 4 characters and finish with Tab or Enter.
+# scanner_focus_assist: false
+# top_aligned_modal moves the login modal near the top with 3rem spacing, useful
+# when an on-screen keyboard would otherwise cover the form.
+# top_aligned_modal: false
+# If the login help image must be localized, use the second configuration.
+# If the image is linguistically neutral, the first configuration is enough.
+# login_help_image: '/branding/login-help.png' # optional; supports /absolute/path or https:// URL
+# login_help_image: # optional; supports /absolute/path or https:// URL per locale
+#   en: '/branding/login-help-en.png'
+#   de: '/branding/login-help-de.png'
+# validation:
+#   implementation: campus_id # empty/missing means scanner values are used directly for login
+#   campus_id:
+#     url: 'https://url-to-validate-login-scans/validate' # URL to validate CampusID login scans
+#     api_key: 'replace_me'
 
 # Return directives tell the user which return cart to place a returned item on.
 #
@@ -175,6 +176,9 @@ global_return_directives:
 checkout:
   # Optional image for the checkout list empty state; supports /absolute/path or https:// URL
   #no_media_found_image: '/branding/place_book.png'
+  auto_borrow: true # Defaults to true. If true, the step pending in borrow is skipped and all the detected items will be borrowed
+  auto_return: true # Defaults to true. If true, the same as in auto_borrow but for the return workflow
+  security_syncing_enabled: false # Defauts to false. If true, in book list a syncing of the security with the alma state (borrowed/in place) is attempted
   profiles:
     # The profile id is used via the checkout_profile_id URL param on checkout pages.
     #
@@ -218,6 +222,10 @@ checkout:
 # Security gate display configuration
 gate:
   show_all_detected_items: true # If false, only secured items are shown/warned
+  # Defaults to false. if true:
+  # the flex-direction in the gate is row 
+  # Cover Pages are displayed
+  compact: false 
 
 tagging:
   whitelist:

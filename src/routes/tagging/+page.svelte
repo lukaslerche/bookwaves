@@ -302,9 +302,18 @@
 						{/if}
 					</p>
 
+					{#if lastWriteStatus}
+						<div
+							class="mt-4 alert {lastWriteStatus === 'success' ? 'alert-success' : 'alert-error'}"
+						>
+							<CircleX />
+							<span>{statusMessage}</span>
+						</div>
+					{/if}
+
 					<div class="form-control mb-4" class:hidden={data.taggingFormats.length < 2}>
 						<label class="label" for="format-select">
-							<span class="label-text text-lg">Format</span>
+							<span class="label-text text-lg">{ m.format() }</span>
 						</label>
 
 						<select
@@ -363,15 +372,6 @@
 							{m.initialize_tag()}
 						{/if}
 					</button>
-
-					{#if lastWriteStatus}
-						<div
-							class="mt-4 alert {lastWriteStatus === 'success' ? 'alert-success' : 'alert-error'}"
-						>
-							<CircleX />
-							<span>{statusMessage}</span>
-						</div>
-					{/if}
 				</div>
 			</div>
 		{/if}

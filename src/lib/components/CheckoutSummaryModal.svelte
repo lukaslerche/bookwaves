@@ -131,7 +131,7 @@
 									{/if}
 								</div>
 								<div
-									class="flex items-center justify-center px-2 text-sm font-semibold text-base-content/70"
+									class="flex items-center justify-center px-2 text-s font-semibold text-base-content/90"
 								>
 									{item.mediaItem?.shelfmark ?? '—'}
 								</div>
@@ -143,7 +143,7 @@
 											{directive.label}
 										</div>
 										{#if directive.message}
-											<p class="max-w-48 text-right text-xs text-base-content/70">
+											<p class="max-w-48 text-right text-s text-base-content/90">
 												{directive.message}
 											</p>
 										{/if}
