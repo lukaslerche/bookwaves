@@ -2,7 +2,7 @@
 	import RFIDItem from '#lib/components/RFIDItem.svelte';
 	import { BookSearch } from '@lucide/svelte';
 	import type { PageProps } from './$types';
-	import { onDestroy, onMount } from 'svelte';
+	import { onDestroy, onMount, untrack } from 'svelte';
 	import { fly, fade } from 'svelte/transition';
 	import { flip } from 'svelte/animate';
 	import { createReaderFromParams, getReaderConfigProblem } from '#lib/stores/reader-selection.js';
@@ -11,14 +11,14 @@
 	import { clientLogger } from '#lib/client/logger.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import { goto } from '$app/navigation';
-	import { createIdleCountdown, IDLE_TIMEOUT_SECONDS } from '#lib/client/idle-countdown.js';
+	import { createIdleCountdown } from '#lib/client/idle-countdown.js';
 	import placeBooksDefaultImage from '#lib/assets/place_book.png';
 
 	let { data }: PageProps = $props();
+	const idleTimeoutSeconds = untrack(() => data.checkoutConfig.idleTimeoutSeconds);
 	let detectedItems: Array<RFIDData> = $state([]);
 	let readerUnsubscribe: (() => void) | null = null;
-	let countdownSeconds = $state(IDLE_TIMEOUT_SECONDS);
-	//const countdownProgress = $derived(Math.round((countdownSeconds / IDLE_TIMEOUT_SECONDS) * 100));
+	let countdownSeconds = $state(idleTimeoutSeconds);
 	const missingReaderParams = $derived(
 		!data.readerConfig.middlewareId || !data.readerConfig.readerId
 	);
@@ -47,7 +47,7 @@
 	);
 
 	const idleCountdown = createIdleCountdown({
-		seconds: IDLE_TIMEOUT_SECONDS,
+		seconds: idleTimeoutSeconds,
 		onTick: (remainingSeconds) => {
 			countdownSeconds = remainingSeconds;
 		},

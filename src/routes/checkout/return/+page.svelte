@@ -4,7 +4,7 @@
 	import CheckoutSummaryModal from '#lib/components/CheckoutSummaryModal.svelte';
 	import { Check, BookUp, RefreshCw, X } from '@lucide/svelte';
 	import type { PageProps } from './$types';
-	import { onDestroy, onMount } from 'svelte';
+	import { onDestroy, onMount, untrack } from 'svelte';
 	import { fly, fade } from 'svelte/transition';
 	import { flip } from 'svelte/animate';
 	import type { SvelteComponent } from 'svelte';
@@ -28,14 +28,14 @@
 	} from '#lib/stores/checkout-session.js';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { m } from '#lib/paraglide/messages.js';
-	import { createIdleCountdown, IDLE_TIMEOUT_SECONDS } from '#lib/client/idle-countdown.js';
+	import { createIdleCountdown } from '#lib/client/idle-countdown.js';
 	import placeBooksDefaultImage from '#lib/assets/place_book.png';
 
 	let { data }: PageProps = $props();
+	const idleTimeoutSeconds = untrack(() => data.checkoutConfig.idleTimeoutSeconds);
 
 	let showSummaryModal = $state(false);
-	let countdownSeconds = $state(IDLE_TIMEOUT_SECONDS);
-	//const countdownProgress = $derived(Math.round((countdownSeconds / IDLE_TIMEOUT_SECONDS) * 100));
+	let countdownSeconds = $state(idleTimeoutSeconds);
 	let currentSession: CheckoutSession | null = $state(null);
 	let readerUnsubscribe: (() => void) | null = null;
 	let readerInstance: RFIDReader | null = null;
@@ -73,7 +73,7 @@
 	);
 
 	const idleCountdown = createIdleCountdown({
-		seconds: IDLE_TIMEOUT_SECONDS,
+		seconds: idleTimeoutSeconds,
 		onTick: (remainingSeconds) => {
 			countdownSeconds = remainingSeconds;
 		},
@@ -613,5 +613,9 @@
 </div>
 
 {#if showSummaryModal && currentSession}
-	<CheckoutSummaryModal session={currentSession} onConfirm={handleSummaryConfirm} />
+	<CheckoutSummaryModal
+		session={currentSession}
+		{idleTimeoutSeconds}
+		onConfirm={handleSummaryConfirm}
+	/>
 {/if}

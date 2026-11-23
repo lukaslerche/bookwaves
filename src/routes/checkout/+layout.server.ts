@@ -1,5 +1,5 @@
 import type { LayoutServerLoad } from './$types';
-import { getConfig } from '#lib/server/config.js';
+import { DEFAULT_CHECKOUT_IDLE_TIMEOUT_SECONDS, getConfig } from '#lib/server/config.js';
 import { logger } from '#lib/server/logger.js';
 
 export const load: LayoutServerLoad = async ({ url }) => {
@@ -19,11 +19,13 @@ export const load: LayoutServerLoad = async ({ url }) => {
 	} | null = null;
 	let lmsType: string | undefined;
 	let noMediaFoundImageUrl: string | null = null;
+	let idleTimeoutSeconds: number | undefined;
 
 	try {
 		const config = getConfig();
 		lmsType = config.lms.type;
 		noMediaFoundImageUrl = config.checkout?.no_media_found_image ?? null;
+		idleTimeoutSeconds = config.checkout?.idle_timeout_seconds;
 
 		if (middlewareId) {
 			const middleware = config.middleware_instances.find((m) => m.id === middlewareId);
@@ -58,6 +60,7 @@ export const load: LayoutServerLoad = async ({ url }) => {
 			middlewareType
 		},
 		checkoutConfig: {
+			idleTimeoutSeconds: idleTimeoutSeconds ?? DEFAULT_CHECKOUT_IDLE_TIMEOUT_SECONDS,
 			noMediaFoundImageUrl
 		},
 		checkoutProfileId: checkoutProfileId || null,

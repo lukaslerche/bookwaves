@@ -194,6 +194,8 @@ global_return_directives:
       always: true
 
 checkout:
+  # Positive whole seconds for checkout page and summary countdowns (default: 60).
+  # idle_timeout_seconds: 60
   # Optional image for the checkout list empty state; supports /absolute/path or https:// URL
   #no_media_found_image: '/branding/place_book.png'
   profiles:

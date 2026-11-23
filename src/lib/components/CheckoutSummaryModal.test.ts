@@ -26,9 +26,22 @@ function item(status: SessionItem['status'], id: string): SessionItem {
 	};
 }
 
+it('shows the configured summary timeout', async () => {
+	const { body } = await render(CheckoutSummaryModal, {
+		props: {
+			idleTimeoutSeconds: 90,
+			onConfirm: () => {},
+			session: { type: 'borrow', startedAt: 0, items: [] }
+		}
+	});
+
+	expect(body).toContain('90s');
+});
+
 it('shows the full cart directive only for successful returns, even with an RFID warning', async () => {
 	const { body } = await render(CheckoutSummaryModal, {
 		props: {
+			idleTimeoutSeconds: 60,
 			onConfirm: () => {},
 			session: {
 				type: 'return',

@@ -1,13 +1,11 @@
 type IdleCountdownOptions = {
-	seconds?: number;
+	seconds: number;
 	onTick?: (remainingSeconds: number) => void;
 	onExpired: () => void;
 };
 
-export const IDLE_TIMEOUT_SECONDS = 60;
-
 export function createIdleCountdown(options: IdleCountdownOptions) {
-	const totalSeconds = Math.max(1, Math.floor(options.seconds ?? IDLE_TIMEOUT_SECONDS));
+	const totalSeconds = options.seconds;
 	let remainingSeconds = totalSeconds;
 	let interval: ReturnType<typeof setInterval> | null = null;
 	let expired = false;

@@ -153,6 +153,7 @@ export interface CheckoutProfileConfig {
 }
 
 export interface CheckoutConfig {
+	idle_timeout_seconds: number;
 	profiles?: CheckoutProfileConfig[];
 	no_media_found_image?: string;
 }
@@ -219,7 +220,9 @@ const DEFAULT_TAGGING_CONFIG: Required<TaggingConfig> = {
 	formats: [],
 	focus: false
 };
+export const DEFAULT_CHECKOUT_IDLE_TIMEOUT_SECONDS = 60;
 const DEFAULT_CHECKOUT_CONFIG: CheckoutConfig = {
+	idle_timeout_seconds: DEFAULT_CHECKOUT_IDLE_TIMEOUT_SECONDS,
 	profiles: [],
 	no_media_found_image: undefined
 };
@@ -714,7 +717,15 @@ function parseCheckoutProfiles(data: LMSConfig): CheckoutProfileConfig[] {
 }
 
 function parseCheckoutConfig(data: LMSConfig): CheckoutConfig {
+	const { idle_timeout_seconds = DEFAULT_CHECKOUT_IDLE_TIMEOUT_SECONDS } = data.checkout ?? {};
+	if (!Number.isSafeInteger(idle_timeout_seconds) || idle_timeout_seconds < 1) {
+		throw new Error(
+			'Invalid configuration: checkout.idle_timeout_seconds must be a positive integer'
+		);
+	}
+
 	return {
+		idle_timeout_seconds,
 		profiles: parseCheckoutProfiles(data),
 		no_media_found_image:
 			validateSource(data.checkout?.no_media_found_image) ??
@@ -914,6 +925,7 @@ login:
   #     api_key: 'replace_me'
 
 checkout:
+  # idle_timeout_seconds: 60 # Checkout page and summary countdowns, in seconds
   profiles:
     # The profile id is used via the checkout_profile_id URL param on checkout pages
     - id: terminal1

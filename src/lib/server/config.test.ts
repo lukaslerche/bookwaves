@@ -83,6 +83,30 @@ middleware_instances:
 		expect(config.middlewareConfigProblems).toEqual([]);
 	});
 
+	it('defaults the checkout idle timeout to 60 seconds', () => {
+		expect(parseConfigSource(MINIMAL).checkout?.idle_timeout_seconds).toBe(60);
+	});
+
+	it('uses the configured checkout idle timeout in seconds', () => {
+		const config = parseConfigSource(`${MINIMAL}
+checkout:
+  idle_timeout_seconds: 90
+`);
+		expect(config.checkout?.idle_timeout_seconds).toBe(90);
+	});
+
+	it.each(['0', '-1', '0.5', '"90"', 'null', '.inf'])(
+		'rejects invalid checkout idle timeout %s',
+		(value) => {
+			expect(() =>
+				parseConfigSource(`${MINIMAL}
+checkout:
+  idle_timeout_seconds: ${value}
+`)
+			).toThrow('checkout.idle_timeout_seconds must be a positive integer');
+		}
+	);
+
 	it('rejects a duplicated checkout profile id', () => {
 		const source = `${MINIMAL}
 checkout:

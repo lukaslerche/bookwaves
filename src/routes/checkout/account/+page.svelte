@@ -3,26 +3,26 @@
 	import type { PageProps } from './$types';
 	import { page } from '$app/state';
 	import { User, ShoppingCart, Package, Receipt } from '@lucide/svelte';
-	import { onDestroy, onMount } from 'svelte';
+	import { onDestroy, onMount, untrack } from 'svelte';
 	import { getAuthUser, clearAuthUser, setAuthUser } from '#lib/stores/auth.js';
 	import { logoutUser, resumeCurrentUserSession } from '#lib/lms/lms.remote.js';
 	import { goto, refreshAll } from '$app/navigation';
 	import { m } from '#lib/paraglide/messages.js';
-	import { createIdleCountdown, IDLE_TIMEOUT_SECONDS } from '#lib/client/idle-countdown.js';
+	import { createIdleCountdown } from '#lib/client/idle-countdown.js';
 
 	let { data }: PageProps = $props();
+	const idleTimeoutSeconds = untrack(() => data.checkoutConfig.idleTimeoutSeconds);
 
 	const needsLogin = $derived(data.requiresAuth || !data.account);
 	const loginMode = $derived(data.loginMode ?? 'username_password');
 	let showLoginModal = $derived(needsLogin);
-	let countdownSeconds = $state(IDLE_TIMEOUT_SECONDS);
-	//const countdownProgress = $derived(Math.round((countdownSeconds / IDLE_TIMEOUT_SECONDS) * 100));
+	let countdownSeconds = $state(idleTimeoutSeconds);
 
 	// Get current query string to preserve reader config
 	let queryString = $derived(page.url.search);
 
 	const idleCountdown = createIdleCountdown({
-		seconds: IDLE_TIMEOUT_SECONDS,
+		seconds: idleTimeoutSeconds,
 		onTick: (remainingSeconds) => {
 			countdownSeconds = remainingSeconds;
 		},

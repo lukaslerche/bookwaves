@@ -5,17 +5,18 @@
 	import type { LmsReturnDirective } from '#lib/lms/lms.js';
 	import { Check, TriangleAlert } from '@lucide/svelte';
 	import { m } from '#lib/paraglide/messages.js';
-	import { onDestroy, onMount } from 'svelte';
-	import { createIdleCountdown, IDLE_TIMEOUT_SECONDS } from '#lib/client/idle-countdown.js';
+	import { onDestroy, onMount, untrack } from 'svelte';
+	import { createIdleCountdown } from '#lib/client/idle-countdown.js';
 
 	type Props = {
 		session: CheckoutSession;
+		idleTimeoutSeconds: number;
 		onConfirm: () => void;
 	};
 
-	let { session, onConfirm }: Props = $props();
-	let countdownSeconds = $state(IDLE_TIMEOUT_SECONDS);
-	//const countdownProgress = $derived(Math.round((countdownSeconds / IDLE_TIMEOUT_SECONDS) * 100));
+	let { session, idleTimeoutSeconds, onConfirm }: Props = $props();
+	const timeoutSeconds = untrack(() => idleTimeoutSeconds);
+	let countdownSeconds = $state(timeoutSeconds);
 	let didConfirm = false;
 
 	const successfulItems = $derived(getSuccessfulItems(session));
@@ -31,7 +32,7 @@
 	}
 
 	const idleCountdown = createIdleCountdown({
-		seconds: IDLE_TIMEOUT_SECONDS,
+		seconds: timeoutSeconds,
 		onTick: (remainingSeconds) => {
 			countdownSeconds = remainingSeconds;
 		},
