@@ -160,6 +160,7 @@
 	"media_information_unavailable": "Book data unavailable",
 	"reload": "Reload",
 	"borrowed": "borrowed",
+	"on_loan": "On loan",
 	"returned": "returned",
 	"tagging_crew_message": "Scan the next book using the barcode scanner",
 	"i_am_done": "I am done",

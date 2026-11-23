@@ -37,8 +37,7 @@
 	// Get current query string to preserve reader config
 	let queryString = $derived(page.url.search);
 
-	// "Prüfen" shows the same shelf instruction as "Rückgabe", so it resolves
-	// return directives from the same terminal.
+	// For items not on loan, Buchinfo shows the return cart for this terminal.
 	const lmsType = $derived(data.lmsType ?? 'alma');
 	const checkoutProfileId = $derived(
 		data.checkoutProfileId ?? page.url.searchParams.get('checkout_profile_id')
@@ -219,7 +218,7 @@
 							animate:flip={{ duration: 200 }}
 						>
 							<div class="p-4 hover:bg-base-200">
-								<RFIDItem {item} showBadges={false} {checkoutContext} />
+								<RFIDItem {item} showBadges={false} showLoanStatus {checkoutContext} />
 							</div>
 						</li>
 					{:else}

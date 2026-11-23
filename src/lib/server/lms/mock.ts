@@ -417,7 +417,9 @@ export function createMockLMS({
 			await new Promise((resolve) => setTimeout(resolve, 100)); // Simulate network delay
 			const item = mediaDatabase.get(barcode);
 			if (!item) return null;
-			const mediaItem = projectMediaItem(item, coverImageProvider);
+			const mediaItem = projectMediaItem(item, coverImageProvider, {
+				process_type: item.status === 'borrowed' ? 'LOAN' : undefined
+			});
 			return { ...mediaItem, returnDirective: getMockReturnDirective(mediaItem) };
 		},
 		async borrowItem(barcode: string): Promise<LmsActionResult> {

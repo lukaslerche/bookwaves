@@ -70,6 +70,10 @@ _Avoid_: personal browser, staff workstation
 
 ## Circulation
 
+**On loan**:
+The state of a physical item currently checked out to a patron under an ordinary loan. Claimed returned and lost are separate states.
+_Avoid_: Lent out, unavailable
+
 **Cover image provider**:
 An external service that returns a displayable cover image for one or more ISBNs.
 _Avoid_: cover URL template, image server, random cover service

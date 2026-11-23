@@ -14,6 +14,7 @@
 		showRfidDetails = false,
 		onMediaItemLoaded,
 		showBadges = true,
+		showLoanStatus = false,
 		showBin = true,
 		showSecurity = true,
 		showLibraryLocation = true,
@@ -25,6 +26,7 @@
 		showRfidDetails?: boolean;
 		onMediaItemLoaded?: (mediaItem: MediaItem | null) => void;
 		showBadges?: boolean;
+		showLoanStatus?: boolean;
 		showBin?: boolean;
 		showSecurity?: boolean;
 		showLibraryLocation?: boolean;
@@ -36,6 +38,7 @@
 	let mediaItem = $state<MediaItem | null>(null);
 	let loading = $state(true);
 	let fetchError = $state<string | null>(null);
+	const showOnLoan = $derived(showLoanStatus && mediaItem?.process_type === 'LOAN');
 
 	onMount(async () => {
 		await fetchMediaItem();
@@ -45,10 +48,13 @@
 		loading = true;
 		fetchError = null;
 		try {
-			mediaItem = await getItem({
+			const itemQuery = getItem({
 				barcode: item.mediaId || item.id,
 				context: checkoutContext
 			});
+			// A re-scan in Buchinfo must check the LMS rather than reuse a cached query.
+			if (showLoanStatus) await itemQuery.refresh();
+			mediaItem = await itemQuery;
 			if (onMediaItemLoaded) {
 				onMediaItemLoaded(mediaItem);
 			}
@@ -202,14 +208,16 @@
 						</div>
 					{/if}
 				</div>
-				{#if mediaItem.shelfmark || (showBin && mediaItem.returnDirective)}
+				{#if mediaItem.shelfmark || showOnLoan || (showBin && mediaItem.returnDirective)}
 					<div class="flex min-w-40 items-center justify-center gap-3 text-center">
 						{#if mediaItem.shelfmark}
 							<span class="text-lg font-semibold text-base-content/70">
 								{mediaItem.shelfmark}
 							</span>
 						{/if}
-						{#if showBin && mediaItem.returnDirective}
+						{#if showOnLoan}
+							<span class="badge badge-warning">{m.on_loan()}</span>
+						{:else if showBin && mediaItem.returnDirective}
 							<ReturnCart directive={mediaItem.returnDirective} />
 						{/if}
 					</div>

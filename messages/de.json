@@ -160,6 +160,7 @@
 	"media_information_unavailable": "Buchdaten nicht verfügbar",
 	"reload": "Neu laden",
 	"borrowed": "ausgeliehen",
+	"on_loan": "Ausgeliehen",
 	"returned": "zurückgegeben",
 	"tagging_crew_message": "Scanne das nächste Buch mit dem Barcode-Scanner",
 	"i_am_done": "Ich bin fertig",
