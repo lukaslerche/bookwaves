@@ -3,7 +3,7 @@
 	import logo from '#lib/assets/logo.png';
 
 	interface Props {
-		title: string;
+		title?: string;
 		subtitle?: string;
 		showLogo?: boolean;
 		variant?: 'default' | 'compact';
@@ -28,7 +28,7 @@
 			? 'text-4xl'
 			: 'text-5xl md:text-6xl'}"
 	>
-		{title}
+		{#if title}{title}{/if}
 	</h1>
 	{#if subtitle}
 		<p class="text-xl font-medium opacity-95">

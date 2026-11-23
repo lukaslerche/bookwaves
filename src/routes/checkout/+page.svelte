@@ -18,7 +18,7 @@
 </script>
 
 <div class="app-page-bg-checkout flex min-h-full flex-col items-center justify-center p-8">
-	<PageHeader title={m.checkout_label()} showLogo />
+	<PageHeader showLogo />
 
 	<nav
 		class="grid w-full max-w-6xl grid-cols-1 gap-8 lg:grid-cols-4"
