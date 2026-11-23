@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ReturnCart from './ReturnCart.svelte';
 	import type { CheckoutSession, SessionItem } from '#lib/stores/checkout-session.js';
 	import { getSuccessfulItems } from '#lib/stores/checkout-session.js';
 	import type { LmsReturnDirective } from '#lib/lms/lms.js';
@@ -21,21 +22,6 @@
 	const failedItems = $derived(session.items.filter((item) => item.status !== 'success'));
 
 	const actionText = $derived(session.type === 'borrow' ? m.borrowed() : m.returned());
-
-	function getDirectiveBadgeClass(color?: string) {
-		switch (color) {
-			case 'red':
-				return 'badge-error';
-			case 'green':
-				return 'badge-success';
-			case 'blue':
-				return 'badge-info';
-			case 'yellow':
-				return 'badge-warning';
-			default:
-				return 'badge-neutral';
-		}
-	}
 
 	function getReturnDirective(item: SessionItem): LmsReturnDirective | null {
 		if (session.type !== 'return') return null;
@@ -137,11 +123,7 @@
 								</div>
 								{#if directive}
 									<div class="flex flex-col items-end justify-center gap-1">
-										<div
-											class={`badge badge-lg ${getDirectiveBadgeClass(directive.color)} rounded-md px-4`}
-										>
-											{directive.label}
-										</div>
+										<ReturnCart {directive} />
 										{#if directive.message}
 											<p class="max-w-48 text-right text-xs text-base-content/70">
 												{directive.message}
@@ -167,10 +149,9 @@
 				</h4>
 				<ul class="space-y-2">
 					{#each failedItems as item (item.rfidData.id)}
-						{@const directive = getReturnDirective(item)}
 						<li class="flex items-stretch gap-3 rounded-lg bg-warning/10 p-3">
 							<span class="text-warning"><TriangleAlert /></span>
-							<div class="grid min-w-0 flex-1 grid-cols-[1fr_auto_auto] items-stretch gap-4">
+							<div class="grid min-w-0 flex-1 grid-cols-[1fr_auto] items-stretch gap-4">
 								<div class="min-w-0">
 									<p class="font-medium">
 										{item.mediaItem?.title || 'Unknown Item'}
@@ -188,17 +169,6 @@
 								>
 									{item.mediaItem?.shelfmark ?? '—'}
 								</div>
-								{#if directive}
-									<div class="flex items-center justify-center">
-										<div
-											class={`badge badge-lg ${getDirectiveBadgeClass(directive.color)} rounded-md px-4`}
-										>
-											{directive.label}
-										</div>
-									</div>
-								{:else}
-									<div></div>
-								{/if}
 							</div>
 						</li>
 					{/each}

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ReturnCart from '#lib/components/ReturnCart.svelte';
 	import RFIDItem from '#lib/components/RFIDItem.svelte';
 	import CheckoutSummaryModal from '#lib/components/CheckoutSummaryModal.svelte';
 	import { Check, BookUp, RefreshCw, X } from '@lucide/svelte';
@@ -123,21 +124,6 @@
 		}
 
 		return unique;
-	}
-
-	function getDirectiveBadgeClass(color?: string) {
-		switch (color) {
-			case 'red':
-				return 'badge-error';
-			case 'green':
-				return 'badge-success';
-			case 'blue':
-				return 'badge-info';
-			case 'yellow':
-				return 'badge-warning';
-			default:
-				return 'badge-neutral';
-		}
 	}
 
 	async function handleMediaItemLoaded(processed: ProcessedItem, mediaItem: MediaItem | null) {
@@ -548,11 +534,6 @@
 												class="card w-full border border-base-300 bg-base-100 px-4 py-3 shadow-sm"
 											>
 												<div class="flex flex-col gap-2">
-													{#if directive}
-														<div class="badge {getDirectiveBadgeClass(directive.color)} badge-sm">
-															{directive.label}
-														</div>
-													{/if}
 													<div class="flex items-center gap-3">
 														<span class="loading loading-md loading-spinner text-info"></span>
 														<span class="text-left text-base">{item.message}</span>
@@ -565,9 +546,7 @@
 											>
 												<div class="flex flex-col gap-2">
 													{#if directive}
-														<div class="badge {getDirectiveBadgeClass(directive.color)} badge-sm">
-															{directive.label}
-														</div>
+														<ReturnCart {directive} compact />
 													{/if}
 													<div class="flex items-center gap-3">
 														<Check />
@@ -600,11 +579,6 @@
 												class="card w-full border border-error/40 bg-error/10 px-4 py-4 text-base text-error shadow-sm"
 											>
 												<div class="flex flex-col gap-2">
-													{#if directive}
-														<div class="badge {getDirectiveBadgeClass(directive.color)} badge-sm">
-															{directive.label}
-														</div>
-													{/if}
 													<div class="flex items-center gap-2">
 														<X />
 														<span class="font-semibold">{m.error()}</span>

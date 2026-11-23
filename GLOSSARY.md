@@ -93,7 +93,7 @@ A physical cart at a circulation desk onto which returned media items are placed
 _Avoid_: bin, shelf, sorting bin, Regal
 
 **Return directive**:
-The instruction telling a user which return cart a media item belongs on, in their own language and naming the cart in words as well as by colour.
+The instruction telling a user which return cart a media item belongs on, in their own language and naming the cart in words as well as by colour. A photo of the cart can accompany the instruction.
 _Avoid_: bin assignment, sorting rule, shelf badge
 
 **Onward transit**:

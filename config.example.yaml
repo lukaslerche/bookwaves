@@ -70,6 +70,23 @@ login:
 #
 # Omitting global_return_directives entirely turns the feature off: no badge is
 # shown and returns keep working.
+#
+# Optional cart photos accept a same-origin web path (see examples below) or a
+# full HTTP(S) URL, e.g. image: 'https://images.example.org/return-carts/yellow.png'.
+# Use HTTPS URLs for HTTPS deployments. Filesystem paths aren't supported.
+# To serve your own files with nginx (no Bookwaves rebuild needed):
+#   1. Put the image files in ./return-carts next to your Compose file. Make
+#      the directory and files readable by nginx. The example files aren't bundled.
+#   2. Under the nginx service's volumes, add:
+#        - ./return-carts:/usr/share/nginx/html/branding/return-carts:ro
+#   3. In the mounted nginx config, add this inside the existing server block:
+#        location /branding/return-carts/ {
+#          root /usr/share/nginx/html;
+#          try_files $uri =404;
+#        }
+#   4. Recreate the nginx service, verify a photo opens at its web path, then
+#      uncomment the matching image fields below and restart Bookwaves.
+# Missing or invalid images leave the cart label visible.
 global_return_directives:
   # ORDER MATTERS, and the obvious order is wrong. A hold is collected wherever
   # the patron asked, whoever owns the book, so ask "does it travel?" first:
@@ -91,6 +108,7 @@ global_return_directives:
   # failed. Anything unknown falls through to the red cart, which keeps it.
   - binId: requested_elsewhere
     color: grey
+    # image: '/branding/return-carts/buchwagen-grau.png'
     label:
       de: 'Grauer Wagen'
       en: 'Grey cart'
@@ -119,6 +137,7 @@ global_return_directives:
   # rule mentions one.
   - binId: reserved
     color: red
+    # image: '/branding/return-carts/buchwagen-rot.png'
     label:
       de: 'Roter Wagen'
       en: 'Red cart'
@@ -149,6 +168,7 @@ global_return_directives:
   # transit record is what says the book is on the road. Never settle it here.
   - binId: other_location
     color: grey
+    # image: '/branding/return-carts/buchwagen-grau.png'
     label:
       de: 'Grauer Wagen'
       en: 'Grey cart'
@@ -163,6 +183,7 @@ global_return_directives:
   # 4. Everything else is shelved locally. This is the required catch-all.
   - binId: main
     color: yellow
+    # image: '/branding/return-carts/buchwagen-gelb.png'
     label:
       de: 'Gelber Wagen'
       en: 'Yellow cart'
@@ -181,7 +202,8 @@ checkout:
     # return_directives selects which global carts physically stand at this desk,
     # in evaluation order, and may override individual fields of each. A bare
     # "- binId: main" inherits the global definition wholesale. The list must
-    # still end with a catch-all.
+    # still end with a catch-all. Omit image to inherit it, set a different
+    # path to replace it, or use image: null to hide it for this desk.
     #
     # Omitting it entirely uses the global set unchanged, which is the common
     # case.

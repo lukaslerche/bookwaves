@@ -150,6 +150,28 @@ checkout:
 			expect(directive.label).toEqual({ de: 'Wagen', en: 'Cart' });
 		});
 
+		it.each([
+			[undefined, '/branding/main.png'],
+			['/branding/desk.png', '/branding/desk.png'],
+			[null, undefined],
+			['https://example.com/cart.png', 'https://example.com/cart.png'],
+			['http://example.com/cart.png', 'http://example.com/cart.png'],
+			['file:///branding/cart.png', undefined],
+			['//example.com/cart.png', undefined],
+			['/\\example.com/cart.png', undefined],
+			['cart.png', undefined]
+		])('resolves a return cart photo with profile image %s', (image, expected) => {
+			const override = image === undefined ? '' : `\n          image: ${JSON.stringify(image)}`;
+			const config = parseConfigSource(`${MINIMAL}
+global_return_directives:${CATCH_ALL}    image: '/branding/main.png'
+checkout:
+  profiles:${profile('desk', `      return_directives:\n        - binId: main${override}`)}`);
+
+			const directive = config.checkout?.profiles?.[0].return_directives[0];
+			expect(directive?.binId).toBe('main');
+			expect(directive?.image).toBe(expected);
+		});
+
 		it('reject a profile entry naming a bin the global list does not define', () => {
 			const source = `${MINIMAL}
 global_return_directives:${CATCH_ALL}

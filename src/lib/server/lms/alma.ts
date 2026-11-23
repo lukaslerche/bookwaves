@@ -412,7 +412,8 @@ export class AlmaLMS implements LibraryManagementSystem {
 				binId: directive.binId,
 				label,
 				message: directive.message[locale] ?? Object.values(directive.message)[0],
-				color: directive.color
+				color: directive.color,
+				image: directive.image
 			};
 		}
 

@@ -6,6 +6,7 @@ export const LmsReturnDirectiveSchema = v.object({
 	binId: v.string(),
 	label: v.string(),
 	color: v.optional(v.string()),
+	image: v.optional(v.string()),
 	message: v.optional(v.string())
 });
 

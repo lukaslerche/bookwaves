@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { RFIDData } from '#lib/reader/interface.js';
 	import type { CheckoutContext, MediaItem } from '#lib/lms/lms.js';
+	import ReturnCart from './ReturnCart.svelte';
 	import { getItem } from '#lib/lms/lms.remote.js';
 	import { onMount } from 'svelte';
 	import { Lock, LockOpen, Tag } from '@lucide/svelte';
@@ -90,21 +91,6 @@
 				return 'badge-info';
 			default:
 				return 'badge-ghost';
-		}
-	}
-
-	function getDirectiveBadgeClass(color?: string): string {
-		switch (color) {
-			case 'red':
-				return 'badge-error';
-			case 'green':
-				return 'badge-success';
-			case 'blue':
-				return 'badge-info';
-			case 'yellow':
-				return 'badge-warning';
-			default:
-				return 'badge-neutral';
 		}
 	}
 
@@ -224,13 +210,7 @@
 							</span>
 						{/if}
 						{#if showBin && mediaItem.returnDirective}
-							<span
-								class="badge badge-lg {getDirectiveBadgeClass(
-									mediaItem.returnDirective.color
-								)} rounded-md px-4"
-							>
-								{mediaItem.returnDirective.label}
-							</span>
+							<ReturnCart directive={mediaItem.returnDirective} />
 						{/if}
 					</div>
 				{/if}

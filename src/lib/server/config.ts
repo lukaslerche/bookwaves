@@ -135,6 +135,7 @@ export interface ReturnDirective {
 	message: Partial<Record<Locale, string>>;
 	label: Partial<Record<Locale, string>>;
 	color: string;
+	image?: string;
 	when?: ReturnCondition;
 	/**
 	 * Where to scan the item in again so a transit it should not keep is resolved.
@@ -251,6 +252,12 @@ function validateSource(value: unknown): string | undefined {
 	if (/^https?:\/\//i.test(trimmed)) return trimmed;
 
 	return undefined;
+}
+
+function validateReturnCartImage(value: unknown): string | undefined {
+	const source = validateSource(value);
+	if (source?.startsWith('//') || source?.includes('\\')) return undefined;
+	return source;
 }
 
 function validateHttpUrl(value: unknown): string | undefined {
@@ -533,6 +540,7 @@ function parseReturnDirective(value: unknown, path: string): ReturnDirective {
 		label,
 		message,
 		color,
+		image: validateReturnCartImage(raw.image),
 		when: parseReturnCondition(raw.when, `${path}.when`),
 		complete_transit_at:
 			raw.complete_transit_at === undefined
@@ -614,6 +622,7 @@ function mergeReturnDirective(
 		message:
 			raw.message === undefined ? base.message : parseLocalizedText(raw.message, `${path}.message`),
 		color,
+		image: raw.image === undefined ? base.image : validateReturnCartImage(raw.image),
 		when: raw.when === undefined ? base.when : parseReturnCondition(raw.when, `${path}.when`),
 		complete_transit_at:
 			raw.complete_transit_at === undefined
