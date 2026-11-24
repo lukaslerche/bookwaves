@@ -124,7 +124,7 @@
 			onchange={(event) => handleMiddlewareSelect(event.currentTarget.value)}
 		>
 			{#each middlewareReaders as middleware (middleware.instance.id)}
-				<option value={middleware.instance.id}>
+				<option value={middleware.instance.id} class="mt-1 bg-base-100 text-base-content">
 					{middleware.instance.id} ({middleware.instance.type})
 				</option>
 			{/each}
@@ -145,9 +145,9 @@
 			disabled={!currentMiddleware?.readers.length}
 		>
 			{#each visibleReaders as reader (reader.name)}
-				<option value={reader.name}>{reader.name}</option>
+				<option value={reader.name} class="mt-1 bg-base-100 text-base-content">{reader.name}</option>
 			{:else}
-				<option value="">{m.no_readers()}</option>
+				<option value="" class="mt-1 bg-base-100 text-base-content">{m.no_readers()}</option>
 			{/each}
 		</select>
 
